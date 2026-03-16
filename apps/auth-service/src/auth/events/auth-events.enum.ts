@@ -11,6 +11,7 @@ export enum AuthEvents {
   EMAIL_VERIFICATION_REQUESTED = 'auth.email.verification.requested',
   TWO_FACTOR_ENABLED = 'auth.2fa.enabled',
   TWO_FACTOR_DISABLED = 'auth.2fa.disabled',
+  OTP_REQUESTED = 'auth.otp.requested',
   NEW_DEVICE_LOGIN = 'auth.device.new',
   SESSION_REVOKED = 'auth.session.revoked',
   ACCOUNT_LOCKED = 'auth.account.locked',
