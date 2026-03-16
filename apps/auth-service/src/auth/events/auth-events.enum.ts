@@ -6,8 +6,9 @@ export enum AuthEvents {
   PASSWORD_RESET_REQUESTED = 'auth.password.reset.requested',
   PASSWORD_RESET_COMPLETED = 'auth.password.reset.completed',
   EMAIL_CHANGED = 'auth.email.changed',
+  EMAIL_CHANGE_REQUESTED = 'auth.email.change.requested',
   EMAIL_VERIFIED = 'auth.email.verified',
-
+  EMAIL_VERIFICATION_REQUESTED = 'auth.email.verification.requested',
   TWO_FACTOR_ENABLED = 'auth.2fa.enabled',
   TWO_FACTOR_DISABLED = 'auth.2fa.disabled',
   NEW_DEVICE_LOGIN = 'auth.device.new',

@@ -67,4 +67,24 @@ export class AuditService {
   async logTokenBlacklist(userId: string, tokenHash: string, ip: string, userAgent: string): Promise<void> {
     await this.log(AuditEvent.TOKEN_BLACKLIST, userId, 'auth', null, { tokenHash }, ip, userAgent);
   }
+
+  async logPasswordResetRequest(userId: string, email: string, ip: string, userAgent: string): Promise<void> {
+    await this.log(AuditEvent.PASSWORD_RESET_REQUEST, userId, 'auth', null, { email }, ip, userAgent);
+  }
+
+  async logPasswordResetComplete(userId: string, ip: string, userAgent: string): Promise<void> {
+    await this.log(AuditEvent.PASSWORD_RESET_COMPLETE, userId, 'auth', null, {}, ip, userAgent);
+  }
+
+  async logPasswordChange(userId: string, ip: string, userAgent: string): Promise<void> {
+    await this.log(AuditEvent.PASSWORD_CHANGE, userId, 'auth', null, {}, ip, userAgent);
+  }
+
+  async logEmailChangeRequest(userId: string, oldEmail: string, newEmail: string, ip: string, userAgent: string): Promise<void> {
+    await this.log(AuditEvent.EMAIL_CHANGE_REQUEST, userId, 'auth', null, { oldEmail, newEmail }, ip, userAgent);
+  }
+
+  async logEmailChange(userId: string, oldEmail: string, newEmail: string, ip: string, userAgent: string): Promise<void> {
+    await this.log(AuditEvent.EMAIL_CHANGE, userId, 'auth', null, { oldEmail, newEmail }, ip, userAgent);
+  }
 }
