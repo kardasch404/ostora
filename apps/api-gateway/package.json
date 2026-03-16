@@ -1,0 +1,26 @@
+{
+  "name": "@ostora/api-gateway",
+  "version": "1.0.0",
+  "description": "Ostora API Gateway - Main entry point for all microservices",
+  "main": "src/main.ts",
+  "dependencies": {
+    "@nestjs/core": "^10.3.0",
+    "@nestjs/common": "^10.3.0",
+    "@nestjs/platform-express": "^10.3.0",
+    "@nestjs/swagger": "^7.1.17",
+    "@nestjs/throttler": "^5.1.1",
+    "@nestjs/terminus": "^10.2.0",
+    "@nestjs/microservices": "^10.3.0",
+    "@nestjs/config": "^3.1.1",
+    "helmet": "^7.1.0",
+    "express-rate-limit": "^7.1.5",
+    "uuid": "^9.0.1",
+    "class-validator": "^0.14.0",
+    "class-transformer": "^0.5.1",
+    "winston": "^3.11.0",
+    "nest-winston": "^1.9.4",
+    "kafkajs": "^2.2.4",
+    "reflect-metadata": "^0.1.14",
+    "rxjs": "^7.8.1"
+  }
+}
