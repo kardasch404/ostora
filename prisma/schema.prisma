@@ -126,6 +126,7 @@ model User {
   networkingActions NetworkingAction[]
   messageTemplates  MessageTemplate[]
   emailConfigs      EmailConfig[]
+  applicationBundles ApplicationBundle[]
 
   @@index([email])
   @@index([username])
@@ -746,4 +747,52 @@ enum EmailEncryption {
   TLS
   STARTTLS
   NONE
+}
+
+// ==================== APPLICATION BUNDLES & DOCUMENTS ====================
+model ApplicationBundle {
+  id            String   @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  userId        String   @db.Uuid
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name          String
+  slug          String
+  description   String?  @db.Text
+  
+  createdAt     DateTime @default(now()) @db.Timestamptz
+  updatedAt     DateTime @updatedAt @db.Timestamptz
+
+  documents     ApplicationDocument[]
+
+  @@unique([userId, slug])
+  @@index([userId])
+  @@index([slug])
+  @@map("application_bundles")
+}
+
+model ApplicationDocument {
+  id            String                  @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  bundleId      String                  @db.Uuid
+  bundle        ApplicationBundle       @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  
+  type          ApplicationDocumentType
+  filename      String
+  s3Key         String
+  s3Url         String
+  fileSize      Int
+  mimeType      String
+  
+  createdAt     DateTime                @default(now()) @db.Timestamptz
+  updatedAt     DateTime                @updatedAt @db.Timestamptz
+
+  @@index([bundleId])
+  @@index([type])
+  @@map("application_documents")
+}
+
+enum ApplicationDocumentType {
+  CV
+  COVER_LETTER
+  PORTFOLIO
+  OTHER
 }

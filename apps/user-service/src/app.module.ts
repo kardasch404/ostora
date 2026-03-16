@@ -5,6 +5,7 @@ import { ProfileModule } from './profile/profile.module';
 import { EducationModule } from './education/education.module';
 import { MessageTemplateModule } from './message-template/template.module';
 import { EmailConfigModule } from './email-config/email-config.module';
+import { BundleModule } from './bundle/bundle.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { EmailConfigModule } from './email-config/email-config.module';
     EducationModule,
     MessageTemplateModule,
     EmailConfigModule,
+    BundleModule,
     // ExperienceModule,
     // SkillModule,
     // LanguageModule,
