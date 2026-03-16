@@ -16,7 +16,7 @@ export class Password {
 
   static async create(plain: string): Promise<Password> {
     if (plain.length < Password.MIN_LENGTH) {
-      throw new Error(`Password must be at least ${Password.MIN_LENGTH} characters`);
+      throw new Error(`Password must be at least ${Password.MIN_LENGTH} characters long`);
     }
 
     if (!Password.UPPERCASE_REGEX.test(plain)) {

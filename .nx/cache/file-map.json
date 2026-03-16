@@ -1,0 +1,1229 @@
+{
+  "version": "6.0",
+  "nxVersion": "17.3.2",
+  "deps": {
+    "@nestjs/common": "^10.3.0",
+    "@nestjs/core": "^10.3.0",
+    "@nestjs/platform-express": "^10.3.0",
+    "@nestjs/microservices": "^10.3.0",
+    "@nestjs/jwt": "^10.2.0",
+    "@nestjs/passport": "^10.0.3",
+    "@nestjs/config": "^3.1.1",
+    "@nestjs/throttler": "^5.1.1",
+    "@nestjs/websockets": "^10.3.0",
+    "@nestjs/platform-socket.io": "^10.3.0",
+    "@nestjs/swagger": "^7.1.17",
+    "@nestjs/cache-manager": "^2.1.1",
+    "@nestjs/graphql": "^12.0.11",
+    "@nestjs/apollo": "^12.0.11",
+    "@apollo/server": "^4.9.5",
+    "graphql": "^16.8.1",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
+    "passport-google-oauth20": "^2.0.0",
+    "passport-github2": "^0.1.12",
+    "passport-linkedin-oauth2": "^2.0.0",
+    "passport-local": "^1.0.0",
+    "bcrypt": "^5.1.1",
+    "speakeasy": "^2.0.0",
+    "qrcode": "^1.5.3",
+    "prisma": "^5.8.1",
+    "@prisma/client": "^5.8.1",
+    "ioredis": "^5.3.2",
+    "cache-manager": "^5.3.2",
+    "cache-manager-ioredis-yet": "^2.0.0",
+    "kafkajs": "^2.2.4",
+    "socket.io": "^4.6.0",
+    "nodemailer": "^6.9.7",
+    "handlebars": "^4.7.8",
+    "bull": "^4.12.0",
+    "@nestjs/bull": "^10.0.1",
+    "class-validator": "^0.14.0",
+    "class-transformer": "^0.5.1",
+    "helmet": "^7.1.0",
+    "winston": "^3.11.0",
+    "winston-daily-rotate-file": "^4.7.1",
+    "nest-winston": "^1.9.4",
+    "stripe": "^14.10.0",
+    "@nestjs/axios": "^3.0.1",
+    "axios": "^1.6.5",
+    "uuid": "^9.0.1",
+    "uuidv7": "^0.6.3",
+    "ms": "^2.1.3",
+    "dayjs": "^1.11.10",
+    "zxcvbn": "^4.4.2",
+    "reflect-metadata": "^0.1.14",
+    "rxjs": "^7.8.1",
+    "@nestjs/testing": "^10.3.0",
+    "@nestjs/cli": "^10.2.1",
+    "@nestjs/schematics": "^10.0.3",
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3",
+    "@playwright/test": "^1.40.1",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.3.3",
+    "nx": "^17.2.8",
+    "@nrwl/nest": "^17.2.8",
+    "@nrwl/workspace": "^17.2.8",
+    "prettier": "^3.1.1",
+    "eslint": "^8.56.0",
+    "@typescript-eslint/eslint-plugin": "^6.18.1",
+    "@typescript-eslint/parser": "^6.18.1",
+    "@types/node": "^20.10.6",
+    "@types/jest": "^29.5.11",
+    "@types/bcrypt": "^5.0.2",
+    "@types/passport-jwt": "^4.0.0",
+    "@types/passport-local": "^1.0.38",
+    "@types/nodemailer": "^6.4.14",
+    "@types/uuid": "^9.0.7",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0"
+  },
+  "pathMappings": {
+    "@ostora/shared-dto": [
+      "libs/shared-dto/src/index.ts"
+    ],
+    "@ostora/shared-interfaces": [
+      "libs/shared-interfaces/src/index.ts"
+    ],
+    "@ostora/shared-guards": [
+      "libs/shared-guards/src/index.ts"
+    ],
+    "@ostora/shared-decorators": [
+      "libs/shared-decorators/src/index.ts"
+    ],
+    "@ostora/shared-filters": [
+      "libs/shared-filters/src/index.ts"
+    ],
+    "@ostora/shared-interceptors": [
+      "libs/shared-interceptors/src/index.ts"
+    ],
+    "@ostora/shared-utils": [
+      "libs/shared-utils/src/index.ts"
+    ]
+  },
+  "nxJsonPlugins": [],
+  "fileMap": {
+    "projectFileMap": {
+      "@ostora/shared-dto": [
+        {
+          "file": "libs/shared-dto/package.json",
+          "hash": "9125836540826516092"
+        },
+        {
+          "file": "libs/shared-dto/src/dto.ts",
+          "hash": "10810180957564041938",
+          "deps": [
+            "npm:class-validator",
+            "npm:class-transformer",
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "libs/shared-dto/src/index.ts",
+          "hash": "10569551167100361170"
+        }
+      ],
+      "@ostora/shared-interceptors": [
+        {
+          "file": "libs/shared-interceptors/package.json",
+          "hash": "4290182328883889716",
+          "deps": [
+            "@ostora/shared-dto"
+          ]
+        },
+        {
+          "file": "libs/shared-interceptors/src/index.ts",
+          "hash": "18389510941027743092"
+        },
+        {
+          "file": "libs/shared-interceptors/src/interceptors.ts",
+          "hash": "6983588182879687993",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:rxjs",
+            "npm:rxjs/operators",
+            "npm:express",
+            "@ostora/shared-dto"
+          ]
+        }
+      ],
+      "@ostora/shared-utils": [
+        {
+          "file": "libs/shared-utils/package.json",
+          "hash": "12580115154479882853"
+        },
+        {
+          "file": "libs/shared-utils/src/index.ts",
+          "hash": "8213285748717114530"
+        },
+        {
+          "file": "libs/shared-utils/src/utils.ts",
+          "hash": "8664618544211339107",
+          "deps": [
+            "npm:bcrypt",
+            "npm:uuid",
+            "npm:uuidv7"
+          ]
+        }
+      ],
+      "@ostora/shared-guards": [
+        {
+          "file": "libs/shared-guards/package.json",
+          "hash": "17567852176893551228",
+          "deps": [
+            "@ostora/shared-decorators"
+          ]
+        },
+        {
+          "file": "libs/shared-guards/src/guards.ts",
+          "hash": "2352380799803522768",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/core",
+            "npm:rxjs",
+            "@ostora/shared-decorators"
+          ]
+        },
+        {
+          "file": "libs/shared-guards/src/index.ts",
+          "hash": "11579263375226770447"
+        }
+      ],
+      "@ostora/shared-filters": [
+        {
+          "file": "libs/shared-filters/package.json",
+          "hash": "13832542764281673510",
+          "deps": [
+            "@ostora/shared-dto"
+          ]
+        },
+        {
+          "file": "libs/shared-filters/src/filters.ts",
+          "hash": "16009832788620251550",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:express",
+            "@ostora/shared-dto"
+          ]
+        },
+        {
+          "file": "libs/shared-filters/src/index.ts",
+          "hash": "13361373403365443580"
+        }
+      ],
+      "@ostora/shared-interfaces": [
+        {
+          "file": "libs/shared-interfaces/package.json",
+          "hash": "18013178706857667717"
+        },
+        {
+          "file": "libs/shared-interfaces/src/index.ts",
+          "hash": "3737214394007349657"
+        },
+        {
+          "file": "libs/shared-interfaces/src/interfaces.ts",
+          "hash": "9465692003546581619"
+        }
+      ],
+      "@ostora/shared-logger": [
+        {
+          "file": "libs/shared-logger/package.json",
+          "hash": "7754393892233571924"
+        },
+        {
+          "file": "libs/shared-logger/src/index.ts",
+          "hash": "16649338060020874399"
+        },
+        {
+          "file": "libs/shared-logger/src/logger.module.ts",
+          "hash": "18093176858169847993",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:nest-winston",
+            "npm:winston",
+            "npm:winston-daily-rotate-file"
+          ]
+        },
+        {
+          "file": "libs/shared-logger/tsconfig.json",
+          "hash": "15758653278413531619"
+        }
+      ],
+      "@ostora/shared-decorators": [
+        {
+          "file": "libs/shared-decorators/package.json",
+          "hash": "11901553111853038216"
+        },
+        {
+          "file": "libs/shared-decorators/src/decorators.ts",
+          "hash": "4408401609612821962",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "libs/shared-decorators/src/index.ts",
+          "hash": "10545845954697214321"
+        }
+      ],
+      "api-gateway": [
+        {
+          "file": "apps/api-gateway/README.md",
+          "hash": "13534837612663784551"
+        },
+        {
+          "file": "apps/api-gateway/package.json",
+          "hash": "1127868780730437221"
+        },
+        {
+          "file": "apps/api-gateway/project.json",
+          "hash": "17910634142903657361"
+        },
+        {
+          "file": "apps/api-gateway/src/app.module.ts",
+          "hash": "15472469103205670205",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:@nestjs/throttler",
+            "npm:@nestjs/core",
+            "npm:@nestjs/cache-manager",
+            "npm:cache-manager-ioredis-yet",
+            "npm:@nestjs/graphql",
+            "npm:@nestjs/apollo",
+            "npm:@apollo/gateway"
+          ]
+        },
+        {
+          "file": "apps/api-gateway/src/common/filters/http-exception.filter.ts",
+          "hash": "14853372978032680066",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:express"
+          ]
+        },
+        {
+          "file": "apps/api-gateway/src/common/interceptors/request-logger.interceptor.ts",
+          "hash": "10511405844873898382",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:rxjs",
+            "npm:rxjs/operators",
+            "npm:express"
+          ]
+        },
+        {
+          "file": "apps/api-gateway/src/common/middleware/correlation-id.middleware.ts",
+          "hash": "9954258668949155704",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:express",
+            "npm:uuid"
+          ]
+        },
+        {
+          "file": "apps/api-gateway/src/common/middleware/request-id.middleware.ts",
+          "hash": "1189389628258916545",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:express",
+            "npm:uuid"
+          ]
+        },
+        {
+          "file": "apps/api-gateway/src/config/config.service.ts",
+          "hash": "16257811594924410509",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config"
+          ]
+        },
+        {
+          "file": "apps/api-gateway/src/gateway/gateway.controller.ts",
+          "hash": "1314623820610896892",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/microservices",
+            "npm:@nestjs/swagger",
+            "npm:@nestjs/throttler",
+            "npm:rxjs"
+          ]
+        },
+        {
+          "file": "apps/api-gateway/src/gateway/gateway.module.ts",
+          "hash": "1850738176415718583",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/microservices"
+          ]
+        },
+        {
+          "file": "apps/api-gateway/src/health/health.controller.ts",
+          "hash": "12940946784324094959",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/swagger",
+            "npm:@nestjs/terminus",
+            "npm:@nestjs/microservices"
+          ]
+        },
+        {
+          "file": "apps/api-gateway/src/health/health.module.ts",
+          "hash": "13839521839877509384",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/terminus",
+            "npm:@nestjs/axios"
+          ]
+        },
+        {
+          "file": "apps/api-gateway/src/main.ts",
+          "hash": "9558058111318151856",
+          "deps": [
+            "npm:@nestjs/core",
+            "npm:@nestjs/common",
+            "npm:@nestjs/swagger",
+            "npm:nest-winston",
+            "npm:helmet",
+            "npm:winston"
+          ]
+        },
+        {
+          "file": "apps/api-gateway/tsconfig.app.json",
+          "hash": "8930509723095636765"
+        },
+        {
+          "file": "apps/api-gateway/tsconfig.json",
+          "hash": "3170028462270897752"
+        }
+      ],
+      "@ostora/auth-service": [
+        {
+          "file": "apps/auth-service/.env.example",
+          "hash": "13294321269591227902"
+        },
+        {
+          "file": "apps/auth-service/.env.oauth.example",
+          "hash": "15459491436796499781"
+        },
+        {
+          "file": "apps/auth-service/README.md",
+          "hash": "662259321070918569"
+        },
+        {
+          "file": "apps/auth-service/jest.config.js",
+          "hash": "13117682490780293321"
+        },
+        {
+          "file": "apps/auth-service/package.json",
+          "hash": "15076170156497050510"
+        },
+        {
+          "file": "apps/auth-service/src/app.module.ts",
+          "hash": "8787543061357341405",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/audit/audit-event.enum.ts",
+          "hash": "705972498258628789"
+        },
+        {
+          "file": "apps/auth-service/src/audit/audit.module.ts",
+          "hash": "13929621651226051265",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/audit/audit.service.ts",
+          "hash": "7581155759175348272",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/__tests__/README.md",
+          "hash": "10770994179740498969"
+        },
+        {
+          "file": "apps/auth-service/src/auth/__tests__/mocks/kafka.mock.ts",
+          "hash": "2288649044508216594"
+        },
+        {
+          "file": "apps/auth-service/src/auth/__tests__/mocks/prisma.mock.ts",
+          "hash": "16408186805812950191"
+        },
+        {
+          "file": "apps/auth-service/src/auth/__tests__/mocks/redis.mock.ts",
+          "hash": "11400546086289511460"
+        },
+        {
+          "file": "apps/auth-service/src/auth/__tests__/unit/auth-login.service.spec.ts",
+          "hash": "10056948687783456004",
+          "deps": [
+            "npm:@nestjs/testing",
+            "npm:@nestjs/common",
+            "npm:bcrypt",
+            [
+              "npm:speakeasy",
+              "dynamic"
+            ]
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/__tests__/unit/auth-refresh.service.spec.ts",
+          "hash": "3044535850011781271",
+          "deps": [
+            "npm:@nestjs/testing",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/__tests__/unit/auth-register.service.spec.ts",
+          "hash": "13180540651970192741",
+          "deps": [
+            "npm:@nestjs/testing",
+            "npm:@nestjs/common",
+            [
+              "npm:axios",
+              "dynamic"
+            ]
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/__tests__/unit/device-fingerprint.vo.spec.ts",
+          "hash": "11307253106399260496"
+        },
+        {
+          "file": "apps/auth-service/src/auth/__tests__/unit/email.vo.spec.ts",
+          "hash": "12260876098570890804"
+        },
+        {
+          "file": "apps/auth-service/src/auth/__tests__/unit/jwt-auth.guard.spec.ts",
+          "hash": "11838328486382231178",
+          "deps": [
+            "npm:@nestjs/testing",
+            "npm:@nestjs/common",
+            "npm:@nestjs/core",
+            "npm:@nestjs/jwt"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/__tests__/unit/password.vo.spec.ts",
+          "hash": "12052118632987208639"
+        },
+        {
+          "file": "apps/auth-service/src/auth/__tests__/unit/rbac.service.spec.ts",
+          "hash": "12598133217000390730",
+          "deps": [
+            "npm:@nestjs/testing"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/__tests__/unit/roles.guard.spec.ts",
+          "hash": "2558831076719930506",
+          "deps": [
+            "npm:@nestjs/testing",
+            "npm:@nestjs/common",
+            "npm:@nestjs/core"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/__tests__/unit/token.service.spec.ts",
+          "hash": "3087471275975634068",
+          "deps": [
+            "npm:@nestjs/testing",
+            "npm:@nestjs/jwt",
+            "npm:@nestjs/config",
+            [
+              "npm:crypto",
+              "dynamic"
+            ]
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/auth.controller.ts",
+          "hash": "18248447620311568160",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/swagger",
+            "npm:express"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/auth.module.ts",
+          "hash": "16485376354500261067",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:@nestjs/jwt",
+            "npm:@nestjs/passport",
+            "npm:@nestjs/microservices",
+            "npm:@nestjs/core"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/auth.service.ts",
+          "hash": "4337345618720184639",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:express",
+            "npm:speakeasy",
+            "npm:crypto",
+            [
+              "npm:uuid",
+              "dynamic"
+            ]
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/controllers/oauth.controller.ts",
+          "hash": "1526362271119464694",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/swagger",
+            "npm:express"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/controllers/role-management.controller.ts",
+          "hash": "4409211689135821642",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/controllers/two-factor.controller.ts",
+          "hash": "453812982640545262",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/decorators/current-user.decorator.ts",
+          "hash": "4140059422152479119",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/decorators/match.decorator.ts",
+          "hash": "172971920392061997",
+          "deps": [
+            "npm:class-validator"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/decorators/permissions.decorator.ts",
+          "hash": "4224748528045804286",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/decorators/public.decorator.ts",
+          "hash": "10376415826596655091",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/decorators/roles.decorator.ts",
+          "hash": "5293917905643579840",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/dto/change-email.dto.ts",
+          "hash": "8341450822285756775",
+          "deps": [
+            "npm:class-validator"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/dto/change-password.dto.ts",
+          "hash": "1253084633466400611",
+          "deps": [
+            "npm:class-validator"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/dto/disable-2fa.dto.ts",
+          "hash": "12875473943792468380",
+          "deps": [
+            "npm:class-validator"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/dto/enable-2fa.dto.ts",
+          "hash": "32075822543196434",
+          "deps": [
+            "npm:class-validator"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/dto/forgot-password.dto.ts",
+          "hash": "11459190519225881980",
+          "deps": [
+            "npm:class-validator"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/dto/login.dto.ts",
+          "hash": "2261260018618625778",
+          "deps": [
+            "npm:class-validator"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/dto/refresh-token.dto.ts",
+          "hash": "8778845545947872442",
+          "deps": [
+            "npm:class-validator"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/dto/register.dto.ts",
+          "hash": "12742116254440700819",
+          "deps": [
+            "npm:class-validator"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/dto/reset-password.dto.ts",
+          "hash": "18013898215822811828",
+          "deps": [
+            "npm:class-validator"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/dto/role-management.dto.ts",
+          "hash": "2794813521887062076",
+          "deps": [
+            "npm:class-validator",
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/dto/send-otp.dto.ts",
+          "hash": "15071145183983322178",
+          "deps": [
+            "npm:class-validator"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/dto/verify-email-change.dto.ts",
+          "hash": "487211706837221845",
+          "deps": [
+            "npm:class-validator"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/dto/verify-email.dto.ts",
+          "hash": "342929751331638235",
+          "deps": [
+            "npm:class-validator"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/dto/verify-otp.dto.ts",
+          "hash": "14297406504902757094",
+          "deps": [
+            "npm:class-validator"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/events/auth-events.enum.ts",
+          "hash": "16497880146575057616"
+        },
+        {
+          "file": "apps/auth-service/src/auth/events/auth.event-publisher.ts",
+          "hash": "15626976781045588517",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/microservices"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/guards/jwt-auth.guard.ts",
+          "hash": "17048161855246583912",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/passport",
+            "npm:@nestjs/core"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/guards/oauth.guard.ts",
+          "hash": "11845234788195392263",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/passport"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/guards/roles.guard.ts",
+          "hash": "6628416404791276465",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/core"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/interfaces/device-info.interface.ts",
+          "hash": "7450440053714207500"
+        },
+        {
+          "file": "apps/auth-service/src/auth/interfaces/jwt-payload.interface.ts",
+          "hash": "3350237642774182019"
+        },
+        {
+          "file": "apps/auth-service/src/auth/interfaces/token-pair.interface.ts",
+          "hash": "18185290913715482668"
+        },
+        {
+          "file": "apps/auth-service/src/auth/responses/2fa-enable.response.ts",
+          "hash": "7868365829950412269"
+        },
+        {
+          "file": "apps/auth-service/src/auth/responses/auth-token.response.ts",
+          "hash": "1276893303415895909"
+        },
+        {
+          "file": "apps/auth-service/src/auth/responses/session-list.response.ts",
+          "hash": "12465356588428329991"
+        },
+        {
+          "file": "apps/auth-service/src/auth/services/oauth.service.ts",
+          "hash": "5801428425978510993",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:crypto"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/services/otp.service.ts",
+          "hash": "1224595960304099934",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/services/rbac.service.ts",
+          "hash": "4401261810873326388",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/services/role-management.service.ts",
+          "hash": "10352313318812633820",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/services/token.service.ts",
+          "hash": "11540282725425281130",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/jwt",
+            "npm:@nestjs/config",
+            "npm:uuid",
+            "npm:crypto"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/services/two-factor.service.ts",
+          "hash": "6140660633893092949",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:speakeasy",
+            "npm:qrcode"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/strategies/github.strategy.ts",
+          "hash": "9293323738005271539",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/passport",
+            "npm:passport-github2",
+            "npm:@nestjs/config"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/strategies/google.strategy.ts",
+          "hash": "6669252930661444319",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/passport",
+            "npm:passport-google-oauth20",
+            "npm:@nestjs/config"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/strategies/jwt.strategy.ts",
+          "hash": "1902421217555478223",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/passport",
+            "npm:passport-jwt",
+            "npm:@nestjs/config",
+            "npm:crypto"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/strategies/linkedin.strategy.ts",
+          "hash": "15568986344950195325",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/passport",
+            "npm:passport-linkedin-oauth2",
+            "npm:@nestjs/config"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/value-objects/device-fingerprint.vo.ts",
+          "hash": "11578772809175527907",
+          "deps": [
+            "npm:crypto",
+            "npm:express"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/auth/value-objects/email.vo.ts",
+          "hash": "13905031433283747770"
+        },
+        {
+          "file": "apps/auth-service/src/auth/value-objects/password.vo.ts",
+          "hash": "14494122957535056522",
+          "deps": [
+            "npm:bcrypt"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/common/filters/all-exceptions.filter.ts",
+          "hash": "3446070178872349715",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:express"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/common/interceptors/logging.interceptor.ts",
+          "hash": "14474408236538381321",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:rxjs",
+            "npm:rxjs/operators"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/common/interceptors/response-transform.interceptor.ts",
+          "hash": "5640070081956167989",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:rxjs",
+            "npm:rxjs/operators"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/common/pipes/validation.pipe.ts",
+          "hash": "8687117342462565359",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:class-validator",
+            "npm:class-transformer"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/config/jwt.config.ts",
+          "hash": "15178295741668591148",
+          "deps": [
+            "npm:@nestjs/config"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/main.ts",
+          "hash": "8309323504089409420",
+          "deps": [
+            "npm:@nestjs/core",
+            "npm:@nestjs/microservices",
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/prisma/prisma.module.ts",
+          "hash": "9953693136448664954",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/prisma/prisma.service.ts",
+          "hash": "718592270783167474",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@prisma/client"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/redis/redis.module.ts",
+          "hash": "12285439854055938490",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/redis/redis.service.ts",
+          "hash": "12226708527590282513",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:ioredis"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/session/session.module.ts",
+          "hash": "16961219471450748795",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/auth-service/src/session/session.service.ts",
+          "hash": "18202845865732141843",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:crypto"
+          ]
+        },
+        {
+          "file": "apps/auth-service/tsconfig.json",
+          "hash": "13218350810977073870"
+        },
+        {
+          "file": "apps/auth-service/tsconfig.spec.json",
+          "hash": "4464251284668277004"
+        }
+      ]
+    },
+    "nonProjectFiles": [
+      {
+        "file": ".env.example",
+        "hash": "10170025764555107189"
+      },
+      {
+        "file": ".eslintrc.json",
+        "hash": "2182100824821217434"
+      },
+      {
+        "file": ".gitignore",
+        "hash": "15686979603068457947"
+      },
+      {
+        "file": ".huskyrc.json",
+        "hash": "3755404097982764199"
+      },
+      {
+        "file": ".prettierrc",
+        "hash": "5265871919894009"
+      },
+      {
+        "file": "INSTALL_NODEJS.md",
+        "hash": "2185866143719944615"
+      },
+      {
+        "file": "README.md",
+        "hash": "14267732121799234232"
+      },
+      {
+        "file": "START_HERE.md",
+        "hash": "17819373114112775718"
+      },
+      {
+        "file": "devops/README.md",
+        "hash": "5201245234053973778"
+      },
+      {
+        "file": "devops/docker/Dockerfile.base",
+        "hash": "15208568890477166220"
+      },
+      {
+        "file": "devops/docker/ai-service.Dockerfile",
+        "hash": "8331989316639902777"
+      },
+      {
+        "file": "devops/docker/analytics-service.Dockerfile",
+        "hash": "9379448817148371493"
+      },
+      {
+        "file": "devops/docker/api-gateway.Dockerfile",
+        "hash": "14342630522743602418"
+      },
+      {
+        "file": "devops/docker/auth-service.Dockerfile",
+        "hash": "7517165105371979486"
+      },
+      {
+        "file": "devops/docker/b2b-service.Dockerfile",
+        "hash": "10687377863797165797"
+      },
+      {
+        "file": "devops/docker/email-service.Dockerfile",
+        "hash": "12673526966044973650"
+      },
+      {
+        "file": "devops/docker/job-service.Dockerfile",
+        "hash": "3757000488915867705"
+      },
+      {
+        "file": "devops/docker/networking-service.Dockerfile",
+        "hash": "2950215790340290521"
+      },
+      {
+        "file": "devops/docker/notification-service.Dockerfile",
+        "hash": "16439558645055905495"
+      },
+      {
+        "file": "devops/docker/payment-service.Dockerfile",
+        "hash": "3662963467305574251"
+      },
+      {
+        "file": "devops/docker/scraping-service.Dockerfile",
+        "hash": "16947100817328553207"
+      },
+      {
+        "file": "devops/docker/user-service.Dockerfile",
+        "hash": "4680143352841715826"
+      },
+      {
+        "file": "devops/jenkins/Jenkinsfile",
+        "hash": "4964626298221448095"
+      },
+      {
+        "file": "devops/k8s/base/api-gateway.yaml",
+        "hash": "13408349722943926047"
+      },
+      {
+        "file": "devops/k8s/base/auth-service.yaml",
+        "hash": "5914199893382528037"
+      },
+      {
+        "file": "devops/k8s/base/configmap.yaml",
+        "hash": "6948548683616933490"
+      },
+      {
+        "file": "devops/k8s/base/namespace.yaml",
+        "hash": "5057326092980588479"
+      },
+      {
+        "file": "devops/k8s/base/secret.yaml",
+        "hash": "149368949291344581"
+      },
+      {
+        "file": "devops/terraform/main.tf",
+        "hash": "11154312308356512539"
+      },
+      {
+        "file": "devops/terraform/outputs.tf",
+        "hash": "1920070844936755823"
+      },
+      {
+        "file": "devops/terraform/variables.tf",
+        "hash": "308051006382918447"
+      },
+      {
+        "file": "docker-compose.yml",
+        "hash": "16647633401854014177"
+      },
+      {
+        "file": "fix-path.ps1",
+        "hash": "2050269990299378432"
+      },
+      {
+        "file": "jest.config.js",
+        "hash": "5788031201447047313"
+      },
+      {
+        "file": "jest.preset.js",
+        "hash": "3612300490656737904"
+      },
+      {
+        "file": "nx.json",
+        "hash": "16220432666974105064"
+      },
+      {
+        "file": "package.json",
+        "hash": "9172204188850368243"
+      },
+      {
+        "file": "prisma/schema.prisma",
+        "hash": "3064683019660609376"
+      },
+      {
+        "file": "prisma/seed.ts",
+        "hash": "11120792292439009500"
+      },
+      {
+        "file": "scripts/init-mysql.sql",
+        "hash": "17505709288912723968"
+      },
+      {
+        "file": "scripts/init-postgres.sql",
+        "hash": "17202630500789043895"
+      },
+      {
+        "file": "scripts/install-nodejs.bat",
+        "hash": "2579752933790323418"
+      },
+      {
+        "file": "scripts/setup-and-test.bat",
+        "hash": "10066093394885156682"
+      },
+      {
+        "file": "scripts/setup-git.sh",
+        "hash": "6356974443740305000"
+      },
+      {
+        "file": "setup-project.bat",
+        "hash": "12851317097940093639"
+      },
+      {
+        "file": "setup-project.ps1",
+        "hash": "15256361923168343045"
+      },
+      {
+        "file": "setup.bat",
+        "hash": "17040147802881657003"
+      },
+      {
+        "file": "test-and-commit-gateway.bat",
+        "hash": "8920908435989561590"
+      },
+      {
+        "file": "tsconfig.base.json",
+        "hash": "6377365718620125912"
+      },
+      {
+        "file": "validate-and-commit.bat",
+        "hash": "8190865983947132676"
+      },
+      {
+        "file": "workspace.json",
+        "hash": "7073132662127537879"
+      }
+    ]
+  }
+}

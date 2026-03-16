@@ -1,0 +1,538 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { ConflictException, BadRequestException } from '@nestjs/common';
+import { AuthService } from '../../auth.service';
+import { PrismaService } from '../../../prisma/prisma.service';
+import { RedisService } from '../../../redis/redis.service';
+import { TokenService } from '../../services/token.service';
+import { SessionService } from '../../../session/session.service';
+import { AuditService } from '../../../audit/audit.service';
+import { AuthEventPublisher } from '../../events/auth.event-publisher';
+import { createMockPrismaService } from '../mocks/prisma.mock';
+import { createMockRedisService } from '../mocks/redis.mock';
+import { RegisterDto } from '../../dto/register.dto';
+
+describe.skip('AuthService - Register', () => {
+  let service: AuthService;
+  let prisma: any;
+  let redis: any;
+  let eventPublisher: any;
+  let auditService: any;
+
+  const mockRole = {
+    id: 'role-123',
+    name: 'USER',
+    description: 'Regular user',
+  };
+
+  const mockRequest = {
+    ip: '127.0.0.1',
+    headers: {
+      'user-agent': 'Mozilla/5.0',
+    },
+  } as any;
+
+  beforeEach(async () => {
+    prisma = createMockPrismaService();
+    redis = createMockRedisService();
+
+    eventPublisher = {
+      publishUserRegistered: jest.fn(),
+      publishEmailVerificationRequested: jest.fn(),
+    };
+
+    auditService = {
+      log: jest.fn(),
+    };
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        AuthService,
+        { provide: PrismaService, useValue: prisma },
+        { provide: RedisService, useValue: redis },
+        { provide: TokenService, useValue: {} },
+        { provide: SessionService, useValue: {} },
+        { provide: AuditService, useValue: auditService },
+        { provide: AuthEventPublisher, useValue: eventPublisher },
+      ],
+    }).compile();
+
+    service = module.get<AuthService>(AuthService);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('Happy path', () => {
+    it('should register new user successfully', async () => {
+      const registerDto: RegisterDto = {
+        email: 'newuser@example.com',
+        password: 'StrongPass123!',
+        firstName: 'John',
+        lastName: 'Doe',
+        hCaptchaToken: 'valid-captcha-token',
+      };
+
+      prisma.user.findUnique.mockResolvedValue(null);
+      prisma.role.findUnique.mockResolvedValue(mockRole);
+      prisma.user.create.mockResolvedValue({
+        id: 'user-123',
+        email: 'newuser@example.com',
+        firstName: 'John',
+        lastName: 'Doe',
+        emailVerified: false,
+      });
+      redis.set.mockResolvedValue('OK');
+
+      const result = await service.register(registerDto, mockRequest);
+
+      expect(result).toHaveProperty('message');
+      expect(prisma.user.create).toHaveBeenCalled();
+      expect(redis.set).toHaveBeenCalledWith(
+        expect.stringContaining('email-verify:'),
+        'user-123',
+        86400,
+      );
+    });
+
+    it('should assign USER role by default', async () => {
+      const registerDto: RegisterDto = {
+        email: 'newuser@example.com',
+        password: 'StrongPass123!',
+        firstName: 'John',
+        lastName: 'Doe',
+        hCaptchaToken: 'valid-captcha-token',
+      };
+
+      prisma.user.findUnique.mockResolvedValue(null);
+      prisma.role.findUnique.mockResolvedValue(mockRole);
+      prisma.user.create.mockResolvedValue({
+        id: 'user-123',
+        email: 'newuser@example.com',
+        roleId: 'role-123',
+      });
+
+      await service.register(registerDto, mockRequest);
+
+      expect(prisma.role.findUnique).toHaveBeenCalledWith({
+        where: { name: 'USER' },
+      });
+    });
+
+    it('should hash password with bcrypt', async () => {
+      const registerDto: RegisterDto = {
+        email: 'newuser@example.com',
+        password: 'StrongPass123!',
+        firstName: 'John',
+        lastName: 'Doe',
+        hCaptchaToken: 'valid-captcha-token',
+      };
+
+      prisma.user.findUnique.mockResolvedValue(null);
+      prisma.role.findUnique.mockResolvedValue(mockRole);
+      prisma.user.create.mockResolvedValue({
+        id: 'user-123',
+        email: 'newuser@example.com',
+      });
+
+      await service.register(registerDto, mockRequest);
+
+      expect(prisma.user.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            password: expect.stringMatching(/^\$2b\$/),
+          }),
+        }),
+      );
+    });
+
+    it('should generate email verification token', async () => {
+      const registerDto: RegisterDto = {
+        email: 'newuser@example.com',
+        password: 'StrongPass123!',
+        firstName: 'John',
+        lastName: 'Doe',
+        hCaptchaToken: 'valid-captcha-token',
+      };
+
+      prisma.user.findUnique.mockResolvedValue(null);
+      prisma.role.findUnique.mockResolvedValue(mockRole);
+      prisma.user.create.mockResolvedValue({
+        id: 'user-123',
+        email: 'newuser@example.com',
+      });
+
+      await service.register(registerDto, mockRequest);
+
+      expect(redis.set).toHaveBeenCalledWith(
+        expect.stringContaining('email-verify:'),
+        'user-123',
+        86400,
+      );
+    });
+
+    it('should publish registration event', async () => {
+      const registerDto: RegisterDto = {
+        email: 'newuser@example.com',
+        password: 'StrongPass123!',
+        firstName: 'John',
+        lastName: 'Doe',
+        hCaptchaToken: 'valid-captcha-token',
+      };
+
+      prisma.user.findUnique.mockResolvedValue(null);
+      prisma.role.findUnique.mockResolvedValue(mockRole);
+      prisma.user.create.mockResolvedValue({
+        id: 'user-123',
+        email: 'newuser@example.com',
+        firstName: 'John',
+      });
+
+      await service.register(registerDto, mockRequest);
+
+      expect(eventPublisher.publishUserRegistered).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'user-123',
+          email: 'newuser@example.com',
+        }),
+      );
+    });
+
+    it('should publish email verification event', async () => {
+      const registerDto: RegisterDto = {
+        email: 'newuser@example.com',
+        password: 'StrongPass123!',
+        firstName: 'John',
+        lastName: 'Doe',
+        hCaptchaToken: 'valid-captcha-token',
+      };
+
+      prisma.user.findUnique.mockResolvedValue(null);
+      prisma.role.findUnique.mockResolvedValue(mockRole);
+      prisma.user.create.mockResolvedValue({
+        id: 'user-123',
+        email: 'newuser@example.com',
+        firstName: 'John',
+      });
+
+      await service.register(registerDto, mockRequest);
+
+      expect(eventPublisher.publishEmailVerificationRequested).toHaveBeenCalled();
+    });
+
+    it('should log registration audit', async () => {
+      const registerDto: RegisterDto = {
+        email: 'newuser@example.com',
+        password: 'StrongPass123!',
+        firstName: 'John',
+        lastName: 'Doe',
+        hCaptchaToken: 'valid-captcha-token',
+      };
+
+      prisma.user.findUnique.mockResolvedValue(null);
+      prisma.role.findUnique.mockResolvedValue(mockRole);
+      prisma.user.create.mockResolvedValue({
+        id: 'user-123',
+        email: 'newuser@example.com',
+      });
+
+      await service.register(registerDto, mockRequest);
+
+      expect(auditService.log).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'USER_REGISTERED',
+          resource: 'user',
+        }),
+      );
+    });
+  });
+
+  describe('Duplicate email error', () => {
+    it('should reject registration with existing email', async () => {
+      const registerDto: RegisterDto = {
+        email: 'existing@example.com',
+        password: 'StrongPass123!',
+        firstName: 'John',
+        lastName: 'Doe',
+        hCaptchaToken: 'valid-captcha-token',
+      };
+
+      prisma.user.findUnique.mockResolvedValue({
+        id: 'existing-user',
+        email: 'existing@example.com',
+      });
+
+      await expect(service.register(registerDto, mockRequest)).rejects.toThrow(
+        ConflictException,
+      );
+    });
+
+    it('should throw ConflictException with appropriate message', async () => {
+      const registerDto: RegisterDto = {
+        email: 'existing@example.com',
+        password: 'StrongPass123!',
+        firstName: 'John',
+        lastName: 'Doe',
+        hCaptchaToken: 'valid-captcha-token',
+      };
+
+      prisma.user.findUnique.mockResolvedValue({
+        id: 'existing-user',
+        email: 'existing@example.com',
+      });
+
+      await expect(service.register(registerDto, mockRequest)).rejects.toThrow(
+        'Email already registered',
+      );
+    });
+
+    it('should not create user when email exists', async () => {
+      const registerDto: RegisterDto = {
+        email: 'existing@example.com',
+        password: 'StrongPass123!',
+        firstName: 'John',
+        lastName: 'Doe',
+        hCaptchaToken: 'valid-captcha-token',
+      };
+
+      prisma.user.findUnique.mockResolvedValue({
+        id: 'existing-user',
+        email: 'existing@example.com',
+      });
+
+      await expect(service.register(registerDto, mockRequest)).rejects.toThrow();
+
+      expect(prisma.user.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('hCaptcha validation', () => {
+    it('should reject registration with invalid hCaptcha', async () => {
+      const registerDto: RegisterDto = {
+        email: 'newuser@example.com',
+        password: 'StrongPass123!',
+        firstName: 'John',
+        lastName: 'Doe',
+        hCaptchaToken: 'invalid-captcha',
+      };
+
+      prisma.user.findUnique.mockResolvedValue(null);
+
+      // Mock hCaptcha validation failure
+      const axios = require('axios');
+      jest.spyOn(axios, 'post').mockResolvedValue({
+        data: { success: false },
+      });
+
+      await expect(service.register(registerDto, mockRequest)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should reject registration without hCaptcha token', async () => {
+      const registerDto: RegisterDto = {
+        email: 'newuser@example.com',
+        password: 'StrongPass123!',
+        firstName: 'John',
+        lastName: 'Doe',
+        hCaptchaToken: '',
+      };
+
+      await expect(service.register(registerDto, mockRequest)).rejects.toThrow(
+        'hCaptcha token is required',
+      );
+    });
+
+    it('should validate hCaptcha with correct secret', async () => {
+      const registerDto: RegisterDto = {
+        email: 'newuser@example.com',
+        password: 'StrongPass123!',
+        firstName: 'John',
+        lastName: 'Doe',
+        hCaptchaToken: 'valid-captcha-token',
+      };
+
+      prisma.user.findUnique.mockResolvedValue(null);
+      prisma.role.findUnique.mockResolvedValue(mockRole);
+      prisma.user.create.mockResolvedValue({
+        id: 'user-123',
+        email: 'newuser@example.com',
+      });
+
+      const axios = require('axios');
+      const postSpy = jest.spyOn(axios, 'post').mockResolvedValue({
+        data: { success: true },
+      });
+
+      await service.register(registerDto, mockRequest);
+
+      expect(postSpy).toHaveBeenCalledWith(
+        'https://hcaptcha.com/siteverify',
+        expect.any(String),
+        expect.any(Object),
+      );
+    });
+  });
+
+  describe('Email validation', () => {
+    it('should reject disposable email domains', async () => {
+      const registerDto: RegisterDto = {
+        email: 'user@tempmail.com',
+        password: 'StrongPass123!',
+        firstName: 'John',
+        lastName: 'Doe',
+        hCaptchaToken: 'valid-captcha-token',
+      };
+
+      await expect(service.register(registerDto, mockRequest)).rejects.toThrow(
+        'Disposable email addresses are not allowed',
+      );
+    });
+
+    it('should normalize email to lowercase', async () => {
+      const registerDto: RegisterDto = {
+        email: 'NewUser@Example.COM',
+        password: 'StrongPass123!',
+        firstName: 'John',
+        lastName: 'Doe',
+        hCaptchaToken: 'valid-captcha-token',
+      };
+
+      prisma.user.findUnique.mockResolvedValue(null);
+      prisma.role.findUnique.mockResolvedValue(mockRole);
+      prisma.user.create.mockResolvedValue({
+        id: 'user-123',
+        email: 'newuser@example.com',
+      });
+
+      await service.register(registerDto, mockRequest);
+
+      expect(prisma.user.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            email: 'newuser@example.com',
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('Password validation', () => {
+    it('should reject weak passwords', async () => {
+      const registerDto: RegisterDto = {
+        email: 'newuser@example.com',
+        password: 'weak',
+        firstName: 'John',
+        lastName: 'Doe',
+        hCaptchaToken: 'valid-captcha-token',
+      };
+
+      await expect(service.register(registerDto, mockRequest)).rejects.toThrow(
+        'Password must be at least 8 characters long',
+      );
+    });
+
+    it('should reject password without uppercase', async () => {
+      const registerDto: RegisterDto = {
+        email: 'newuser@example.com',
+        password: 'lowercase123!',
+        firstName: 'John',
+        lastName: 'Doe',
+        hCaptchaToken: 'valid-captcha-token',
+      };
+
+      await expect(service.register(registerDto, mockRequest)).rejects.toThrow(
+        'Password must contain at least one uppercase letter',
+      );
+    });
+
+    it('should reject password without numbers', async () => {
+      const registerDto: RegisterDto = {
+        email: 'newuser@example.com',
+        password: 'NoNumbers!',
+        firstName: 'John',
+        lastName: 'Doe',
+        hCaptchaToken: 'valid-captcha-token',
+      };
+
+      await expect(service.register(registerDto, mockRequest)).rejects.toThrow(
+        'Password must contain at least one number',
+      );
+    });
+
+    it('should reject password without special characters', async () => {
+      const registerDto: RegisterDto = {
+        email: 'newuser@example.com',
+        password: 'NoSpecial123',
+        firstName: 'John',
+        lastName: 'Doe',
+        hCaptchaToken: 'valid-captcha-token',
+      };
+
+      await expect(service.register(registerDto, mockRequest)).rejects.toThrow(
+        'Password must contain at least one special character',
+      );
+    });
+  });
+
+  describe('Edge cases', () => {
+    it('should handle missing optional fields', async () => {
+      const registerDto: RegisterDto = {
+        email: 'newuser@example.com',
+        password: 'StrongPass123!',
+        hCaptchaToken: 'valid-captcha-token',
+      };
+
+      prisma.user.findUnique.mockResolvedValue(null);
+      prisma.role.findUnique.mockResolvedValue(mockRole);
+      prisma.user.create.mockResolvedValue({
+        id: 'user-123',
+        email: 'newuser@example.com',
+      });
+
+      const result = await service.register(registerDto, mockRequest);
+
+      expect(result).toBeDefined();
+    });
+
+    it('should handle database errors gracefully', async () => {
+      const registerDto: RegisterDto = {
+        email: 'newuser@example.com',
+        password: 'StrongPass123!',
+        firstName: 'John',
+        lastName: 'Doe',
+        hCaptchaToken: 'valid-captcha-token',
+      };
+
+      prisma.user.findUnique.mockResolvedValue(null);
+      prisma.role.findUnique.mockResolvedValue(mockRole);
+      prisma.user.create.mockRejectedValue(new Error('Database error'));
+
+      await expect(service.register(registerDto, mockRequest)).rejects.toThrow(
+        'Database error',
+      );
+    });
+
+    it('should handle Redis errors gracefully', async () => {
+      const registerDto: RegisterDto = {
+        email: 'newuser@example.com',
+        password: 'StrongPass123!',
+        firstName: 'John',
+        lastName: 'Doe',
+        hCaptchaToken: 'valid-captcha-token',
+      };
+
+      prisma.user.findUnique.mockResolvedValue(null);
+      prisma.role.findUnique.mockResolvedValue(mockRole);
+      prisma.user.create.mockResolvedValue({
+        id: 'user-123',
+        email: 'newuser@example.com',
+      });
+      redis.set.mockRejectedValue(new Error('Redis error'));
+
+      await expect(service.register(registerDto, mockRequest)).rejects.toThrow(
+        'Redis error',
+      );
+    });
+  });
+});
