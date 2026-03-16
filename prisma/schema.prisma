@@ -7,31 +7,123 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ==================== RBAC ====================
+model Role {
+  id          String   @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now()) @db.Timestamptz
+  updatedAt   DateTime @updatedAt @db.Timestamptz
+
+  rolePermissions RolePermission[]
+  users           User[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  resource    String
+  action      String
+  description String?
+  createdAt   DateTime @default(now()) @db.Timestamptz
+  updatedAt   DateTime @updatedAt @db.Timestamptz
+
+  rolePermissions RolePermission[]
+
+  @@unique([resource, action])
+  @@index([resource])
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String   @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  roleId       String   @db.Uuid
+  permissionId String   @db.Uuid
+  createdAt    DateTime @default(now()) @db.Timestamptz
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}
+
+model AuditLog {
+  id         String   @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  userId     String?  @db.Uuid
+  action     String
+  resource   String
+  resourceId String?  @db.Uuid
+  metadata   Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now()) @db.Timestamptz
+
+  @@index([userId])
+  @@index([action])
+  @@index([resource])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model UserSession {
+  id                String    @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  userId            String    @db.Uuid
+  tokenHash         String    @unique
+  deviceName        String?
+  deviceFingerprint String
+  ipAddress         String?
+  userAgent         String?
+  isRevoked         Boolean   @default(false)
+  expiresAt         DateTime  @db.Timestamptz
+  createdAt         DateTime  @default(now()) @db.Timestamptz
+  revokedAt         DateTime? @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@index([expiresAt])
+  @@index([isRevoked])
+  @@map("user_sessions")
+}
+
 // ==================== USER & AUTH ====================
 model User {
-  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email             String    @unique
-  username          String?   @unique
-  password          String?
-  firstName         String?
-  lastName          String?
-  phone             String?
-  avatar            String?
-  bio               String?   @db.Text
-  role              UserRole  @default(USER)
-  status            UserStatus @default(ACTIVE)
-  emailVerified     Boolean   @default(false)
-  emailVerifiedAt   DateTime?
-  twoFactorEnabled  Boolean   @default(false)
-  twoFactorSecret   String?
-  lastLoginAt       DateTime?
-  lastLoginIp       String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  deletedAt         DateTime?
+  id                  String     @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  email               String     @unique
+  username            String?    @unique
+  password            String?
+  firstName           String?
+  lastName            String?
+  phone               String?
+  avatar              String?
+  bio                 String?    @db.Text
+  roleId              String?    @db.Uuid
+  status              UserStatus @default(ACTIVE)
+  emailVerified       Boolean    @default(false)
+  emailVerifiedAt     DateTime?  @db.Timestamptz
+  emailVerifyToken    String?    @unique
+  twoFactorEnabled    Boolean    @default(false)
+  twoFactorSecret     String?
+  deviceFingerprint   String?
+  loginAttempts       Int        @default(0)
+  lockedUntil         DateTime?  @db.Timestamptz
+  lastLoginAt         DateTime?  @db.Timestamptz
+  lastLoginIp         String?
+  passwordResetToken  String?    @unique
+  passwordResetExpiry DateTime?  @db.Timestamptz
+  createdAt           DateTime   @default(now()) @db.Timestamptz
+  updatedAt           DateTime   @updatedAt @db.Timestamptz
+  deletedAt           DateTime?  @db.Timestamptz
 
+  role              Role?                 @relation(fields: [roleId], references: [id])
   profile           Profile?
   sessions          Session[]
+  userSessions      UserSession[]
   refreshTokens     RefreshToken[]
   oauthProviders    OAuthProvider[]
   documents         Document[]
@@ -46,17 +138,11 @@ model User {
 
   @@index([email])
   @@index([username])
-  @@index([role])
+  @@index([roleId])
   @@index([status])
+  @@index([emailVerifyToken])
+  @@index([passwordResetToken])
   @@map("users")
-}
-
-enum UserRole {
-  USER
-  RECRUITER
-  ADMIN
-  SUPER_ADMIN
-  B2B_CLIENT
 }
 
 enum UserStatus {
@@ -68,31 +154,31 @@ enum UserStatus {
 }
 
 model Profile {
-  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId            String    @unique @db.Uuid
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title             String?
-  company           String?
-  industry          String?
-  experience        Int?
-  salary            Int?
-  salaryCurrency    String?   @default("USD")
-  location          String?
-  country           String?
-  city              String?
-  remote            Boolean   @default(false)
-  skills            String[]
-  languages         String[]
-  education         Json?
-  certifications    Json?
-  linkedinUrl       String?
-  githubUrl         String?
-  portfolioUrl      String?
-  websiteUrl        String?
-  jobPreferences    Json?
-  visibility        ProfileVisibility @default(PUBLIC)
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  id             String            @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  userId         String            @unique @db.Uuid
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title          String?
+  company        String?
+  industry       String?
+  experience     Int?
+  salary         Int?
+  salaryCurrency String?           @default("USD")
+  location       String?
+  country        String?
+  city           String?
+  remote         Boolean           @default(false)
+  skills         String[]
+  languages      String[]
+  education      Json?
+  certifications Json?
+  linkedinUrl    String?
+  githubUrl      String?
+  portfolioUrl   String?
+  websiteUrl     String?
+  jobPreferences Json?
+  visibility     ProfileVisibility @default(PUBLIC)
+  createdAt      DateTime          @default(now()) @db.Timestamptz
+  updatedAt      DateTime          @updatedAt @db.Timestamptz
 
   @@index([userId])
   @@map("profiles")
@@ -105,14 +191,14 @@ enum ProfileVisibility {
 }
 
 model Session {
-  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId        String   @db.Uuid
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  token         String   @unique
-  ipAddress     String?
-  userAgent     String?
-  expiresAt     DateTime
-  createdAt     DateTime @default(now())
+  id        String   @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  expiresAt DateTime @db.Timestamptz
+  createdAt DateTime @default(now()) @db.Timestamptz
 
   @@index([userId])
   @@index([token])
@@ -120,12 +206,12 @@ model Session {
 }
 
 model RefreshToken {
-  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId        String   @db.Uuid
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  token         String   @unique
-  expiresAt     DateTime
-  createdAt     DateTime @default(now())
+  id        String   @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime @db.Timestamptz
+  createdAt DateTime @default(now()) @db.Timestamptz
 
   @@index([userId])
   @@index([token])
@@ -133,16 +219,16 @@ model RefreshToken {
 }
 
 model OAuthProvider {
-  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId        String   @db.Uuid
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  provider      String
-  providerId    String
-  accessToken   String?  @db.Text
-  refreshToken  String?  @db.Text
-  expiresAt     DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id           String    @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  userId       String    @db.Uuid
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider     String
+  providerId   String
+  accessToken  String?   @db.Text
+  refreshToken String?   @db.Text
+  expiresAt    DateTime? @db.Timestamptz
+  createdAt    DateTime  @default(now()) @db.Timestamptz
+  updatedAt    DateTime  @updatedAt @db.Timestamptz
 
   @@unique([provider, providerId])
   @@index([userId])
@@ -150,18 +236,18 @@ model OAuthProvider {
 }
 
 model Document {
-  id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId        String       @db.Uuid
-  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type          DocumentType
-  name          String
-  originalName  String
-  url           String
-  size          Int
-  mimeType      String
-  aiAnalysis    Json?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  id           String       @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  userId       String       @db.Uuid
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type         DocumentType
+  name         String
+  originalName String
+  url          String
+  size         Int
+  mimeType     String
+  aiAnalysis   Json?
+  createdAt    DateTime     @default(now()) @db.Timestamptz
+  updatedAt    DateTime     @updatedAt @db.Timestamptz
 
   @@index([userId])
   @@index([type])
@@ -178,40 +264,40 @@ enum DocumentType {
 }
 
 model Job {
-  id                String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  title             String
-  company           String
-  companyLogo       String?
-  description       String         @db.Text
-  requirements      String[]
-  responsibilities  String[]
-  benefits          String[]
-  location          String
-  country           String
-  city              String
-  remote            Boolean        @default(false)
-  salaryMin         Int?
-  salaryMax         Int?
-  salaryCurrency    String?        @default("USD")
-  salaryPeriod      String?        @default("year")
-  type              JobType
-  level             JobLevel
-  category          String
-  industry          String
-  skills            String[]
-  source            String
-  sourceUrl         String?
-  status            JobStatus      @default(ACTIVE)
-  views             Int            @default(0)
-  applications      Int            @default(0)
-  expiresAt         DateTime?
-  publishedAt       DateTime?
-  scrapedAt         DateTime?
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
+  id               String   @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  title            String
+  company          String
+  companyLogo      String?
+  description      String   @db.Text
+  requirements     String[]
+  responsibilities String[]
+  benefits         String[]
+  location         String
+  country          String
+  city             String
+  remote           Boolean  @default(false)
+  salaryMin        Int?
+  salaryMax        Int?
+  salaryCurrency   String?  @default("USD")
+  salaryPeriod     String?  @default("year")
+  type             JobType
+  level            JobLevel
+  category         String
+  industry         String
+  skills           String[]
+  source           String
+  sourceUrl        String?
+  status           JobStatus @default(ACTIVE)
+  views            Int       @default(0)
+  applications     Int       @default(0)
+  expiresAt        DateTime? @db.Timestamptz
+  publishedAt      DateTime? @db.Timestamptz
+  scrapedAt        DateTime? @db.Timestamptz
+  createdAt        DateTime  @default(now()) @db.Timestamptz
+  updatedAt        DateTime  @updatedAt @db.Timestamptz
 
-  jobApplications   JobApplication[]
-  savedJobs         SavedJob[]
+  jobApplications JobApplication[]
+  savedJobs       SavedJob[]
 
   @@index([status])
   @@index([type])
@@ -252,18 +338,18 @@ enum JobStatus {
 }
 
 model JobApplication {
-  id            String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId        String              @db.Uuid
-  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  jobId         String              @db.Uuid
-  job           Job                 @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  status        ApplicationStatus   @default(PENDING)
-  coverLetter   String?             @db.Text
-  resumeUrl     String?
-  aiScore       Float?
-  aiInsights    Json?
-  appliedAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
+  id          String            @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  userId      String            @db.Uuid
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId       String            @db.Uuid
+  job         Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  status      ApplicationStatus @default(PENDING)
+  coverLetter String?           @db.Text
+  resumeUrl   String?
+  aiScore     Float?
+  aiInsights  Json?
+  appliedAt   DateTime          @default(now()) @db.Timestamptz
+  updatedAt   DateTime          @updatedAt @db.Timestamptz
 
   @@unique([userId, jobId])
   @@index([userId])
@@ -284,13 +370,13 @@ enum ApplicationStatus {
 }
 
 model SavedJob {
-  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId        String   @db.Uuid
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  jobId         String   @db.Uuid
-  job           Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  notes         String?  @db.Text
-  createdAt     DateTime @default(now())
+  id        String   @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId     String   @db.Uuid
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  notes     String?  @db.Text
+  createdAt DateTime @default(now()) @db.Timestamptz
 
   @@unique([userId, jobId])
   @@index([userId])
@@ -299,16 +385,16 @@ model SavedJob {
 }
 
 model JobAlert {
-  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId        String   @db.Uuid
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name          String
-  criteria      Json
-  frequency     String   @default("daily")
-  active        Boolean  @default(true)
-  lastSentAt    DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id         String    @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  userId     String    @db.Uuid
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  criteria   Json
+  frequency  String    @default("daily")
+  active     Boolean   @default(true)
+  lastSentAt DateTime? @db.Timestamptz
+  createdAt  DateTime  @default(now()) @db.Timestamptz
+  updatedAt  DateTime  @updatedAt @db.Timestamptz
 
   @@index([userId])
   @@index([active])
@@ -316,23 +402,23 @@ model JobAlert {
 }
 
 model Subscription {
-  id                String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId            String             @db.Uuid
-  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plan              SubscriptionPlan
-  status            SubscriptionStatus @default(ACTIVE)
-  stripeSubscriptionId    String?  @unique
-  stripeCustomerId        String?
-  paypalSubscriptionId    String?  @unique
-  amount            Float
-  currency          String             @default("USD")
-  interval          String             @default("month")
-  currentPeriodStart DateTime
-  currentPeriodEnd   DateTime
-  cancelAt           DateTime?
-  canceledAt         DateTime?
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+  id                     String             @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  userId                 String             @db.Uuid
+  user                   User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan                   SubscriptionPlan
+  status                 SubscriptionStatus @default(ACTIVE)
+  stripeSubscriptionId   String?            @unique
+  stripeCustomerId       String?
+  paypalSubscriptionId   String?            @unique
+  amount                 Float
+  currency               String             @default("USD")
+  interval               String             @default("month")
+  currentPeriodStart     DateTime           @db.Timestamptz
+  currentPeriodEnd       DateTime           @db.Timestamptz
+  cancelAt               DateTime?          @db.Timestamptz
+  canceledAt             DateTime?          @db.Timestamptz
+  createdAt              DateTime           @default(now()) @db.Timestamptz
+  updatedAt              DateTime           @updatedAt @db.Timestamptz
 
   @@index([userId])
   @@index([status])
@@ -355,19 +441,19 @@ enum SubscriptionStatus {
 }
 
 model Payment {
-  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId            String        @db.Uuid
-  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  amount            Float
-  currency          String        @default("USD")
-  status            PaymentStatus @default(PENDING)
-  provider          String
-  stripePaymentIntentId String?   @unique
-  paypalOrderId         String?   @unique
-  description       String?
-  metadata          Json?
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  id                    String        @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  userId                String        @db.Uuid
+  user                  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount                Float
+  currency              String        @default("USD")
+  status                PaymentStatus @default(PENDING)
+  provider              String
+  stripePaymentIntentId String?       @unique
+  paypalOrderId         String?       @unique
+  description           String?
+  metadata              Json?
+  createdAt             DateTime      @default(now()) @db.Timestamptz
+  updatedAt             DateTime      @updatedAt @db.Timestamptz
 
   @@index([userId])
   @@index([status])
@@ -384,16 +470,16 @@ enum PaymentStatus {
 }
 
 model Notification {
-  id            String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId        String             @db.Uuid
-  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type          NotificationType
-  title         String
-  message       String             @db.Text
-  data          Json?
-  read          Boolean            @default(false)
-  readAt        DateTime?
-  createdAt     DateTime           @default(now())
+  id        String           @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  userId    String           @db.Uuid
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  message   String           @db.Text
+  data      Json?
+  read      Boolean          @default(false)
+  readAt    DateTime?        @db.Timestamptz
+  createdAt DateTime         @default(now()) @db.Timestamptz
 
   @@index([userId])
   @@index([read])
@@ -411,14 +497,14 @@ enum NotificationType {
 }
 
 model UserActivity {
-  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId        String   @db.Uuid
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  action        String
-  metadata      Json?
-  ipAddress     String?
-  userAgent     String?
-  createdAt     DateTime @default(now())
+  id        String   @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    String
+  metadata  Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now()) @db.Timestamptz
 
   @@index([userId])
   @@index([action])
@@ -427,20 +513,20 @@ model UserActivity {
 }
 
 model NetworkingAction {
-  id            String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId        String              @db.Uuid
-  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type          NetworkingType
-  platform      String
-  targetName    String
-  targetEmail   String?
+  id             String           @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  userId         String           @db.Uuid
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type           NetworkingType
+  platform       String
+  targetName     String
+  targetEmail    String?
   targetLinkedin String?
-  message       String?             @db.Text
-  status        NetworkingStatus    @default(PENDING)
-  sentAt        DateTime?
-  respondedAt   DateTime?
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
+  message        String?          @db.Text
+  status         NetworkingStatus @default(PENDING)
+  sentAt         DateTime?        @db.Timestamptz
+  respondedAt    DateTime?        @db.Timestamptz
+  createdAt      DateTime         @default(now()) @db.Timestamptz
+  updatedAt      DateTime         @updatedAt @db.Timestamptz
 
   @@index([userId])
   @@index([status])
@@ -463,17 +549,17 @@ enum NetworkingStatus {
 }
 
 model B2BClient {
-  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  companyName   String
-  contactEmail  String   @unique
-  contactName   String
-  apiKey        String   @unique
-  plan          SubscriptionPlan @default(BASIC)
-  rateLimit     Int      @default(1000)
-  active        Boolean  @default(true)
-  metadata      Json?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id           String           @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  companyName  String
+  contactEmail String           @unique
+  contactName  String
+  apiKey       String           @unique
+  plan         SubscriptionPlan @default(BASIC)
+  rateLimit    Int              @default(1000)
+  active       Boolean          @default(true)
+  metadata     Json?
+  createdAt    DateTime         @default(now()) @db.Timestamptz
+  updatedAt    DateTime         @updatedAt @db.Timestamptz
 
   @@index([apiKey])
   @@map("b2b_clients")
