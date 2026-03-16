@@ -43,7 +43,7 @@ export class GatewayController {
   @ApiOperation({ summary: 'Register new user' })
   @ApiResponse({ status: 201, description: 'User registered successfully' })
   @ApiResponse({ status: 400, description: 'Bad request' })
-  @Throttle({ short: { limit: 5, ttl: 60000 } }) // 5 requests per minute
+  @Throttle({ auth: { limit: 5, ttl: 60000 } }) // 5 requests per minute
   async register(@Body() dto: any) {
     return firstValueFrom(this.authClient.send('auth.register', dto));
   }
@@ -54,7 +54,7 @@ export class GatewayController {
   @ApiOperation({ summary: 'Login user' })
   @ApiResponse({ status: 200, description: 'Login successful' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @Throttle({ short: { limit: 10, ttl: 60000 } }) // 10 requests per minute
+  @Throttle({ auth: { limit: 5, ttl: 60000 } }) // 5 requests per minute
   async login(@Body() dto: any) {
     return firstValueFrom(this.authClient.send('auth.login', dto));
   }
@@ -82,7 +82,7 @@ export class GatewayController {
   @Version('1')
   @ApiTags('Authentication')
   @ApiOperation({ summary: 'Request password reset' })
-  @Throttle({ short: { limit: 3, ttl: 60000 } }) // 3 requests per minute
+  @Throttle({ auth: { limit: 5, ttl: 60000 } }) // 5 requests per minute
   async forgotPassword(@Body() dto: any) {
     return firstValueFrom(this.authClient.send('auth.forgotPassword', dto));
   }
