@@ -3,6 +3,8 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
+import { SessionModule } from './session/session.module';
+import { AuditModule } from './audit/audit.module';
 
 @Module({
   imports: [
@@ -12,6 +14,8 @@ import { RedisModule } from './redis/redis.module';
     }),
     PrismaModule,
     RedisModule,
+    SessionModule,
+    AuditModule,
     AuthModule,
   ],
 })
