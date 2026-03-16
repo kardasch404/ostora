@@ -1,0 +1,109 @@
+pipeline {
+  agent any
+
+  environment {
+    DOCKER_REGISTRY = 'your-registry.com'
+    DOCKER_CREDENTIALS = credentials('docker-hub-credentials')
+    KUBECONFIG = credentials('kubeconfig')
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+
+    stage('Install Dependencies') {
+      steps {
+        sh 'npm ci'
+      }
+    }
+
+    stage('Lint') {
+      steps {
+        sh 'npm run lint'
+      }
+    }
+
+    stage('Test') {
+      steps {
+        sh 'npm run test'
+      }
+    }
+
+    stage('Build') {
+      steps {
+        sh 'npm run build'
+      }
+    }
+
+    stage('Prisma Generate') {
+      steps {
+        sh 'npm run prisma:generate'
+      }
+    }
+
+    stage('Docker Build & Push') {
+      when {
+        branch 'develop'
+      }
+      steps {
+        script {
+          def services = [
+            'api-gateway',
+            'auth-service',
+            'user-service',
+            'job-service',
+            'scraping-service',
+            'email-service',
+            'ai-service',
+            'payment-service',
+            'analytics-service',
+            'b2b-service',
+            'notification-service',
+            'networking-service'
+          ]
+          
+          services.each { service ->
+            sh """
+              docker build -t ${DOCKER_REGISTRY}/ostora-${service}:${BUILD_NUMBER} -f devops/docker/${service}.Dockerfile .
+              docker push ${DOCKER_REGISTRY}/ostora-${service}:${BUILD_NUMBER}
+            """
+          }
+        }
+      }
+    }
+
+    stage('Deploy to Staging') {
+      when {
+        branch 'develop'
+      }
+      steps {
+        sh 'kubectl apply -f devops/k8s/staging/ --kubeconfig=${KUBECONFIG}'
+      }
+    }
+
+    stage('Deploy to Production') {
+      when {
+        branch 'main'
+      }
+      steps {
+        input message: 'Deploy to Production?', ok: 'Deploy'
+        sh 'kubectl apply -f devops/k8s/production/ --kubeconfig=${KUBECONFIG}'
+      }
+    }
+  }
+
+  post {
+    success {
+      echo 'Pipeline succeeded!'
+    }
+    failure {
+      echo 'Pipeline failed!'
+    }
+    always {
+      cleanWs()
+    }
+  }
+}

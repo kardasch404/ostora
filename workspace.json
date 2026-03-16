@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "projects": {
+    "api-gateway": "apps/api-gateway",
+    "auth-service": "apps/auth-service",
+    "user-service": "apps/user-service",
+    "job-service": "apps/job-service",
+    "scraping-service": "apps/scraping-service",
+    "email-service": "apps/email-service",
+    "ai-service": "apps/ai-service",
+    "payment-service": "apps/payment-service",
+    "analytics-service": "apps/analytics-service",
+    "b2b-service": "apps/b2b-service",
+    "notification-service": "apps/notification-service",
+    "networking-service": "apps/networking-service",
+    "shared-dto": "libs/shared-dto",
+    "shared-interfaces": "libs/shared-interfaces",
+    "shared-guards": "libs/shared-guards",
+    "shared-decorators": "libs/shared-decorators",
+    "shared-filters": "libs/shared-filters",
+    "shared-interceptors": "libs/shared-interceptors",
+    "shared-utils": "libs/shared-utils"
+  }
+}
