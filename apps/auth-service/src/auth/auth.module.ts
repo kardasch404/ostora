@@ -6,11 +6,16 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthController } from './auth.controller';
 import { TwoFactorController } from './controllers/two-factor.controller';
+import { OAuthController } from './controllers/oauth.controller';
 import { AuthService } from './auth.service';
 import { TokenService } from './services/token.service';
 import { TwoFactorService } from './services/two-factor.service';
 import { OtpService } from './services/otp.service';
+import { OAuthService } from './services/oauth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { GoogleStrategy } from './strategies/google.strategy';
+import { LinkedInStrategy } from './strategies/linkedin.strategy';
+import { GithubStrategy } from './strategies/github.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { AuthEventPublisher } from './events/auth.event-publisher';
 import { PrismaModule } from '../prisma/prisma.module';
@@ -56,19 +61,23 @@ import jwtConfig from '../config/jwt.config';
       },
     ]),
   ],
-  controllers: [AuthController, TwoFactorController],
+  controllers: [AuthController, TwoFactorController, OAuthController],
   providers: [
     AuthService,
     TokenService,
     TwoFactorService,
     OtpService,
+    OAuthService,
     JwtStrategy,
+    GoogleStrategy,
+    LinkedInStrategy,
+    GithubStrategy,
     AuthEventPublisher,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
     },
   ],
-  exports: [AuthService, TokenService, TwoFactorService, OtpService],
+  exports: [AuthService, TokenService, TwoFactorService, OtpService, OAuthService],
 })
 export class AuthModule {}
