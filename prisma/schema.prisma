@@ -1,0 +1,480 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== USER & AUTH ====================
+model User {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email             String    @unique
+  username          String?   @unique
+  password          String?
+  firstName         String?
+  lastName          String?
+  phone             String?
+  avatar            String?
+  bio               String?   @db.Text
+  role              UserRole  @default(USER)
+  status            UserStatus @default(ACTIVE)
+  emailVerified     Boolean   @default(false)
+  emailVerifiedAt   DateTime?
+  twoFactorEnabled  Boolean   @default(false)
+  twoFactorSecret   String?
+  lastLoginAt       DateTime?
+  lastLoginIp       String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  deletedAt         DateTime?
+
+  profile           Profile?
+  sessions          Session[]
+  refreshTokens     RefreshToken[]
+  oauthProviders    OAuthProvider[]
+  documents         Document[]
+  jobApplications   JobApplication[]
+  savedJobs         SavedJob[]
+  jobAlerts         JobAlert[]
+  subscriptions     Subscription[]
+  payments          Payment[]
+  notifications     Notification[]
+  activities        UserActivity[]
+  networkingActions NetworkingAction[]
+
+  @@index([email])
+  @@index([username])
+  @@index([role])
+  @@index([status])
+  @@map("users")
+}
+
+enum UserRole {
+  USER
+  RECRUITER
+  ADMIN
+  SUPER_ADMIN
+  B2B_CLIENT
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  BANNED
+  PENDING_VERIFICATION
+}
+
+model Profile {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String    @unique @db.Uuid
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title             String?
+  company           String?
+  industry          String?
+  experience        Int?
+  salary            Int?
+  salaryCurrency    String?   @default("USD")
+  location          String?
+  country           String?
+  city              String?
+  remote            Boolean   @default(false)
+  skills            String[]
+  languages         String[]
+  education         Json?
+  certifications    Json?
+  linkedinUrl       String?
+  githubUrl         String?
+  portfolioUrl      String?
+  websiteUrl        String?
+  jobPreferences    Json?
+  visibility        ProfileVisibility @default(PUBLIC)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("profiles")
+}
+
+enum ProfileVisibility {
+  PUBLIC
+  PRIVATE
+  RECRUITERS_ONLY
+}
+
+model Session {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String   @db.Uuid
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token         String   @unique
+  ipAddress     String?
+  userAgent     String?
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
+  @@map("sessions")
+}
+
+model RefreshToken {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String   @db.Uuid
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token         String   @unique
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
+  @@map("refresh_tokens")
+}
+
+model OAuthProvider {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String   @db.Uuid
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider      String
+  providerId    String
+  accessToken   String?  @db.Text
+  refreshToken  String?  @db.Text
+  expiresAt     DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([provider, providerId])
+  @@index([userId])
+  @@map("oauth_providers")
+}
+
+model Document {
+  id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String       @db.Uuid
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type          DocumentType
+  name          String
+  originalName  String
+  url           String
+  size          Int
+  mimeType      String
+  aiAnalysis    Json?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([userId])
+  @@index([type])
+  @@map("documents")
+}
+
+enum DocumentType {
+  CV
+  RESUME
+  COVER_LETTER
+  CERTIFICATE
+  PORTFOLIO
+  OTHER
+}
+
+model Job {
+  id                String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title             String
+  company           String
+  companyLogo       String?
+  description       String         @db.Text
+  requirements      String[]
+  responsibilities  String[]
+  benefits          String[]
+  location          String
+  country           String
+  city              String
+  remote            Boolean        @default(false)
+  salaryMin         Int?
+  salaryMax         Int?
+  salaryCurrency    String?        @default("USD")
+  salaryPeriod      String?        @default("year")
+  type              JobType
+  level             JobLevel
+  category          String
+  industry          String
+  skills            String[]
+  source            String
+  sourceUrl         String?
+  status            JobStatus      @default(ACTIVE)
+  views             Int            @default(0)
+  applications      Int            @default(0)
+  expiresAt         DateTime?
+  publishedAt       DateTime?
+  scrapedAt         DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  jobApplications   JobApplication[]
+  savedJobs         SavedJob[]
+
+  @@index([status])
+  @@index([type])
+  @@index([level])
+  @@index([category])
+  @@index([country])
+  @@index([remote])
+  @@index([createdAt])
+  @@map("jobs")
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  FREELANCE
+  INTERNSHIP
+  TEMPORARY
+}
+
+enum JobLevel {
+  ENTRY
+  JUNIOR
+  MID
+  SENIOR
+  LEAD
+  MANAGER
+  DIRECTOR
+  EXECUTIVE
+}
+
+enum JobStatus {
+  ACTIVE
+  INACTIVE
+  EXPIRED
+  FILLED
+  DRAFT
+}
+
+model JobApplication {
+  id            String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String              @db.Uuid
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId         String              @db.Uuid
+  job           Job                 @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  status        ApplicationStatus   @default(PENDING)
+  coverLetter   String?             @db.Text
+  resumeUrl     String?
+  aiScore       Float?
+  aiInsights    Json?
+  appliedAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@unique([userId, jobId])
+  @@index([userId])
+  @@index([jobId])
+  @@index([status])
+  @@map("job_applications")
+}
+
+enum ApplicationStatus {
+  PENDING
+  REVIEWING
+  SHORTLISTED
+  INTERVIEW
+  OFFER
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+model SavedJob {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String   @db.Uuid
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId         String   @db.Uuid
+  job           Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  notes         String?  @db.Text
+  createdAt     DateTime @default(now())
+
+  @@unique([userId, jobId])
+  @@index([userId])
+  @@index([jobId])
+  @@map("saved_jobs")
+}
+
+model JobAlert {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String   @db.Uuid
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  criteria      Json
+  frequency     String   @default("daily")
+  active        Boolean  @default(true)
+  lastSentAt    DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+  @@index([active])
+  @@map("job_alerts")
+}
+
+model Subscription {
+  id                String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String             @db.Uuid
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan              SubscriptionPlan
+  status            SubscriptionStatus @default(ACTIVE)
+  stripeSubscriptionId    String?  @unique
+  stripeCustomerId        String?
+  paypalSubscriptionId    String?  @unique
+  amount            Float
+  currency          String             @default("USD")
+  interval          String             @default("month")
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  cancelAt           DateTime?
+  canceledAt         DateTime?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+enum SubscriptionPlan {
+  FREE
+  BASIC
+  PRO
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  UNPAID
+  TRIALING
+}
+
+model Payment {
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String        @db.Uuid
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount            Float
+  currency          String        @default("USD")
+  status            PaymentStatus @default(PENDING)
+  provider          String
+  stripePaymentIntentId String?   @unique
+  paypalOrderId         String?   @unique
+  description       String?
+  metadata          Json?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@map("payments")
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  CANCELED
+  REFUNDED
+}
+
+model Notification {
+  id            String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String             @db.Uuid
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type          NotificationType
+  title         String
+  message       String             @db.Text
+  data          Json?
+  read          Boolean            @default(false)
+  readAt        DateTime?
+  createdAt     DateTime           @default(now())
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  JOB_MATCH
+  APPLICATION_UPDATE
+  MESSAGE
+  PAYMENT
+  SYSTEM
+  ALERT
+}
+
+model UserActivity {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String   @db.Uuid
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action        String
+  metadata      Json?
+  ipAddress     String?
+  userAgent     String?
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("user_activities")
+}
+
+model NetworkingAction {
+  id            String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String              @db.Uuid
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type          NetworkingType
+  platform      String
+  targetName    String
+  targetEmail   String?
+  targetLinkedin String?
+  message       String?             @db.Text
+  status        NetworkingStatus    @default(PENDING)
+  sentAt        DateTime?
+  respondedAt   DateTime?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@map("networking_actions")
+}
+
+enum NetworkingType {
+  CONNECTION_REQUEST
+  MESSAGE
+  INMAIL
+  EMAIL_OUTREACH
+}
+
+enum NetworkingStatus {
+  PENDING
+  SENT
+  ACCEPTED
+  REJECTED
+  NO_RESPONSE
+}
+
+model B2BClient {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyName   String
+  contactEmail  String   @unique
+  contactName   String
+  apiKey        String   @unique
+  plan          SubscriptionPlan @default(BASIC)
+  rateLimit     Int      @default(1000)
+  active        Boolean  @default(true)
+  metadata      Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([apiKey])
+  @@map("b2b_clients")
+}
