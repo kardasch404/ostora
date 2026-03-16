@@ -148,4 +148,19 @@ export class AuthEventPublisher {
       timestamp: new Date().toISOString(),
     });
   }
+
+  async publishOtpRequested(data: {
+    userId: string;
+    email: string;
+    code: string;
+    firstName?: string;
+  }): Promise<void> {
+    this.kafkaClient.emit(AuthEvents.OTP_REQUESTED, {
+      userId: data.userId,
+      email: data.email,
+      code: data.code,
+      firstName: data.firstName,
+      timestamp: new Date().toISOString(),
+    });
+  }
 }
