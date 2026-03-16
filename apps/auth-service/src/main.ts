@@ -2,17 +2,14 @@ import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { ValidationPipe } from './common/pipes/validation.pipe';
-import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
-import { ResponseTransformInterceptor } from './common/interceptors/response-transform.interceptor';
-import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
-import helmet from 'helmet';
+
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Security
   app.use(helmet());
+
   app.enableCors({
     origin: process.env.CORS_ORIGIN || '*',
     credentials: true,
@@ -22,21 +19,12 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1');
 
   // Global pipes
-  app.useGlobalPipes(new ValidationPipe());
 
-  // Global filters
-  app.useGlobalFilters(new AllExceptionsFilter());
-
-  // Global interceptors
-  app.useGlobalInterceptors(new LoggingInterceptor());
-  app.useGlobalInterceptors(new ResponseTransformInterceptor());
 
   // Swagger documentation
   const config = new DocumentBuilder()
     .setTitle('Ostora Auth Service')
-    .setDescription('Authentication and authorization microservice')
-    .setVersion('1.0')
-    .addBearerAuth()
+
     .addTag('Authentication')
     .build();
 

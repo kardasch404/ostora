@@ -1,15 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { ClientsModule, Transport } from '@nestjs/microservices';
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
-import { AuthEventPublisher } from './events/auth.event-publisher';
-import { PrismaModule } from '../prisma/prisma.module';
-import { RedisModule } from '../redis/redis.module';
 
-@Module({
-  imports: [
-    ConfigModule,
     PrismaModule,
     RedisModule,
     ClientsModule.register([
@@ -29,7 +19,6 @@ import { RedisModule } from '../redis/redis.module';
     ]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, AuthEventPublisher],
-  exports: [AuthService],
+
 })
 export class AuthModule {}
