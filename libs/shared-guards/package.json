@@ -1,5 +1,11 @@
 {
   "name": "@ostora/shared-guards",
   "version": "1.0.0",
-  "main": "src/index.ts"
+  "main": "src/index.ts",
+  "dependencies": {
+    "@nestjs/common": "^10.3.0",
+    "@nestjs/core": "^10.3.0",
+    "rxjs": "^7.8.1",
+    "@ostora/shared-decorators": "1.0.0"
+  }
 }

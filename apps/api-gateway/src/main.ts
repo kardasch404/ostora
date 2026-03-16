@@ -7,6 +7,7 @@ import * as winston from 'winston';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { RequestLoggerInterceptor } from './common/interceptors/request-logger.interceptor';
+import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 
 async function bootstrap() {
   // Winston Logger Configuration
@@ -62,9 +63,9 @@ async function bootstrap() {
   });
 
   // Global Prefix
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api/v1');
 
-  // API Versioning
+  // API Versioning (URI-based)
   app.enableVersioning({
     type: VersioningType.URI,
     defaultVersion: '1',
@@ -89,11 +90,11 @@ async function bootstrap() {
   // Global Interceptors
   app.useGlobalInterceptors(new RequestLoggerInterceptor());
 
-  // Swagger Documentation
+  // Swagger Documentation Aggregation
   if (process.env.NODE_ENV !== 'production') {
     const config = new DocumentBuilder()
       .setTitle('Ostora API Gateway')
-      .setDescription('Enterprise Job Platform - Microservices API Gateway')
+      .setDescription('Enterprise Job Platform - Microservices API Gateway with GraphQL Federation')
       .setVersion('1.0')
       .addBearerAuth(
         {
@@ -117,7 +118,7 @@ async function bootstrap() {
       .build();
 
     const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('api/docs', app, document, {
+    SwaggerModule.setup('docs', app, document, {
       swaggerOptions: {
         persistAuthorization: true,
         tagsSorter: 'alpha',
@@ -133,9 +134,10 @@ async function bootstrap() {
   await app.listen(port);
 
   logger.log(`🚀 API Gateway running on port ${port}`, 'Bootstrap');
-  logger.log(`📚 Swagger docs available at http://localhost:${port}/api/docs`, 'Bootstrap');
-  logger.log(`🏥 Health check available at http://localhost:${port}/api/health`, 'Bootstrap');
+  logger.log(`📚 Swagger docs available at http://localhost:${port}/docs`, 'Bootstrap');
+  logger.log(`🏥 Health check available at http://localhost:${port}/health`, 'Bootstrap');
   logger.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`, 'Bootstrap');
+  logger.log(`🔗 GraphQL Federation endpoint: http://localhost:${port}/graphql`, 'Bootstrap');
 }
 
 bootstrap().catch((error) => {
