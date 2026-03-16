@@ -6,6 +6,9 @@ import { EducationModule } from './education/education.module';
 import { MessageTemplateModule } from './message-template/template.module';
 import { EmailConfigModule } from './email-config/email-config.module';
 import { BundleModule } from './bundle/bundle.module';
+import { RedisModule } from './redis/redis.module';
+import { SocialModule } from './social/social.module';
+import { ProfileSettingsModule } from './profile-settings/profile-settings.module';
 
 @Module({
   imports: [
@@ -14,11 +17,14 @@ import { BundleModule } from './bundle/bundle.module';
       envFilePath: '.env',
     }),
     PrismaModule,
+    RedisModule,
     ProfileModule,
     EducationModule,
     MessageTemplateModule,
     EmailConfigModule,
     BundleModule,
+    SocialModule,
+    ProfileSettingsModule,
     // ExperienceModule,
     // SkillModule,
     // LanguageModule,
