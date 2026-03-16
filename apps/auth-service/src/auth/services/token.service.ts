@@ -19,18 +19,16 @@ export class TokenService {
   ) {}
 
   async generateTokenPair(
-    userId: string,
-    email: string,
-    role: string,
-    permissions: string[],
+    user: any,
     fingerprint: string,
   ): Promise<TokenPair> {
-    // Generate JWT access token with RS256
     const payload: Omit<JwtPayload, 'iat' | 'exp'> = {
-      sub: userId,
-      email,
-      role,
-      permissions,
+      sub: user.id,
+      email: user.email,
+      role: user.role?.name || 'USER',
+      permissions: user.role?.rolePermissions?.map(
+        (rp) => `${rp.permission.resource}:${rp.permission.action}`,
+      ) || [],
       fingerprint,
     };
 
@@ -50,7 +48,7 @@ export class TokenService {
 
     // Store hashed token in Redis with 7d TTL
     await this.redis.set(
-      `refresh:${userId}:${tokenId}`,
+      `refresh:${user.id}:${tokenId}`,
       JSON.stringify({
         hash: tokenHash,
         fingerprint,

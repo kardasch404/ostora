@@ -7,16 +7,20 @@ import { APP_GUARD } from '@nestjs/core';
 import { AuthController } from './auth.controller';
 import { TwoFactorController } from './controllers/two-factor.controller';
 import { OAuthController } from './controllers/oauth.controller';
+import { RoleManagementController } from './controllers/role-management.controller';
 import { AuthService } from './auth.service';
 import { TokenService } from './services/token.service';
 import { TwoFactorService } from './services/two-factor.service';
 import { OtpService } from './services/otp.service';
 import { OAuthService } from './services/oauth.service';
+import { RbacService } from './services/rbac.service';
+import { RoleManagementService } from './services/role-management.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { LinkedInStrategy } from './strategies/linkedin.strategy';
 import { GithubStrategy } from './strategies/github.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { RolesGuard } from './guards/roles.guard';
 import { AuthEventPublisher } from './events/auth.event-publisher';
 import { PrismaModule } from '../prisma/prisma.module';
 import { RedisModule } from '../redis/redis.module';
@@ -61,23 +65,26 @@ import jwtConfig from '../config/jwt.config';
       },
     ]),
   ],
-  controllers: [AuthController, TwoFactorController, OAuthController],
+  controllers: [AuthController, TwoFactorController, OAuthController, RoleManagementController],
   providers: [
     AuthService,
     TokenService,
     TwoFactorService,
     OtpService,
     OAuthService,
+    RbacService,
+    RoleManagementService,
     JwtStrategy,
     GoogleStrategy,
     LinkedInStrategy,
     GithubStrategy,
     AuthEventPublisher,
+    RolesGuard,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
     },
   ],
-  exports: [AuthService, TokenService, TwoFactorService, OtpService, OAuthService],
+  exports: [AuthService, TokenService, TwoFactorService, OtpService, OAuthService, RbacService, RoleManagementService],
 })
 export class AuthModule {}

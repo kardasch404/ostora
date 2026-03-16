@@ -33,7 +33,16 @@ async function main() {
     },
   });
 
-  console.log('✅ Roles created:', { adminRole, userRole, b2bRole });
+  const premiumRole = await prisma.role.upsert({
+    where: { name: 'PREMIUM_USER' },
+    update: {},
+    create: {
+      name: 'PREMIUM_USER',
+      description: 'Premium user with extended features and AI access',
+    },
+  });
+
+  console.log('✅ Roles created:', { adminRole, userRole, b2bRole, premiumRole });
 
   // Create Permissions
   const permissions = [
@@ -54,7 +63,12 @@ async function main() {
     { resource: 'payments', action: 'update', description: 'Update payments' },
     { resource: 'payments', action: 'delete', description: 'Delete payments' },
     { resource: 'analytics', action: 'read', description: 'Read analytics' },
-    { resource: 'api', action: 'access', description: 'Access API' },
+    { resource: 'ai', action: 'access', description: 'Access AI features' },
+    { resource: 'roles', action: 'create', description: 'Create roles' },
+    { resource: 'roles', action: 'read', description: 'Read roles' },
+    { resource: 'roles', action: 'update', description: 'Update roles' },
+    { resource: 'roles', action: 'delete', description: 'Delete roles' },
+    { resource: 'b2b', action: 'api:access', description: 'B2B API access' },
   ];
 
   const createdPermissions = [];
@@ -139,6 +153,33 @@ async function main() {
   }
 
   console.log('✅ B2B_CLIENT role assigned permissions');
+
+  // Assign permissions to PREMIUM_USER (all USER permissions + AI access)
+  const premiumPermissions = createdPermissions.filter(
+    (p) =>
+      (p.resource === 'jobs' && p.action === 'read') ||
+      (p.resource === 'applications' && ['create', 'read', 'update'].includes(p.action)) ||
+      (p.resource === 'users' && ['read', 'update'].includes(p.action)) ||
+      (p.resource === 'ai' && p.action === 'access'),
+  );
+
+  for (const permission of premiumPermissions) {
+    await prisma.rolePermission.upsert({
+      where: {
+        roleId_permissionId: {
+          roleId: premiumRole.id,
+          permissionId: permission.id,
+        },
+      },
+      update: {},
+      create: {
+        roleId: premiumRole.id,
+        permissionId: permission.id,
+      },
+    });
+  }
+
+  console.log('✅ PREMIUM_USER role assigned permissions');
   console.log('🎉 Seeding completed successfully!');
 }
 
