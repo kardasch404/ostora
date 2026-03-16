@@ -124,6 +124,8 @@ model User {
   notifications     Notification[]
   activities        UserActivity[]
   networkingActions NetworkingAction[]
+  messageTemplates  MessageTemplate[]
+  emailConfigs      EmailConfig[]
 
   @@index([email])
   @@index([username])
@@ -692,4 +694,56 @@ model B2BClient {
 
   @@index([apiKey])
   @@map("b2b_clients")
+}
+
+// ==================== MESSAGE TEMPLATES & EMAIL ====================
+model MessageTemplate {
+  id            String   @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  userId        String?  @db.Uuid
+  user          User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name          String
+  subject       String
+  body          String   @db.Text
+  language      String   @default("en")
+  isDefault     Boolean  @default(false)
+  isActive      Boolean  @default(true)
+  
+  createdAt     DateTime @default(now()) @db.Timestamptz
+  updatedAt     DateTime @updatedAt @db.Timestamptz
+
+  @@index([userId])
+  @@index([language])
+  @@index([isDefault])
+  @@map("message_templates")
+}
+
+model EmailConfig {
+  id            String          @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  userId        String          @db.Uuid
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  email         String
+  passwordEncrypted String      @db.Text
+  smtpHost      String
+  smtpPort      Int
+  encryption    EmailEncryption @default(TLS)
+  fromName      String
+  isActive      Boolean         @default(true)
+  lastTestedAt  DateTime?       @db.Timestamptz
+  
+  createdAt     DateTime        @default(now()) @db.Timestamptz
+  updatedAt     DateTime        @updatedAt @db.Timestamptz
+
+  @@unique([userId, email])
+  @@index([userId])
+  @@index([isActive])
+  @@map("email_configs")
+}
+
+enum EmailEncryption {
+  SSL
+  TLS
+  STARTTLS
+  NONE
 }
