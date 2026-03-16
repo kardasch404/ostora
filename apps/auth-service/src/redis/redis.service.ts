@@ -4,7 +4,7 @@ import Redis from 'ioredis';
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
-  public client: Redis;
+
 
   constructor(private configService: ConfigService) {}
 
@@ -51,8 +51,4 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     return result === 1;
   }
 
-  async scan(cursor: string, pattern: string, count: number): Promise<[string, string[]]> {
-    const result = await this.client.scan(cursor, 'MATCH', pattern, 'COUNT', count);
-    return result;
-  }
 }

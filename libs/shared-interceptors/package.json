@@ -1,5 +1,10 @@
 {
   "name": "@ostora/shared-interceptors",
   "version": "1.0.0",
-  "main": "src/index.ts"
+  "main": "src/index.ts",
+  "dependencies": {
+    "@nestjs/common": "^10.3.0",
+    "rxjs": "^7.8.1",
+    "@ostora/shared-dto": "1.0.0"
+  }
 }

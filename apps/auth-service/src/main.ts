@@ -2,16 +2,14 @@ import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
-import helmet from 'helmet';
-import * as cookieParser from 'cookie-parser';
+
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Security
   app.use(helmet());
-  app.use(cookieParser());
+
   app.enableCors({
     origin: process.env.CORS_ORIGIN || '*',
     credentials: true,
@@ -21,21 +19,12 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1');
 
   // Global pipes
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  );
+
 
   // Swagger documentation
   const config = new DocumentBuilder()
     .setTitle('Ostora Auth Service')
-    .setDescription('Authentication and authorization microservice with JWT RS256')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .addCookieAuth('refreshToken')
+
     .addTag('Authentication')
     .build();
 
