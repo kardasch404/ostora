@@ -339,4 +339,210 @@ export class AuthService {
     }
     return req.ip || req.socket.remoteAddress || '0.0.0.0';
   }
+
+  async forgotPassword(email: string, req: Request): Promise<{ message: string }> {
+    const emailVO = new Email(email);
+    const ip = this.extractIp(req);
+    const userAgent = req.headers['user-agent'] || 'unknown';
+
+    const user = await this.prisma.user.findUnique({
+      where: { email: emailVO.value },
+    });
+
+    if (!user) {
+      return { message: 'If the email exists, a reset link has been sent' };
+    }
+
+    const resetToken = require('uuid').v4();
+    await this.redis.set(`password-reset:${resetToken}`, user.id, 3600); // 1 hour TTL
+
+    await this.eventPublisher.publishPasswordResetRequested({
+      userId: user.id,
+      email: user.email,
+      token: resetToken,
+      firstName: user.firstName,
+    });
+
+    await this.auditService.logPasswordResetRequest(user.id, user.email, ip, userAgent);
+
+    return { message: 'If the email exists, a reset link has been sent' };
+  }
+
+  async resetPassword(token: string, newPassword: string, req: Request): Promise<{ message: string }> {
+    const ip = this.extractIp(req);
+    const userAgent = req.headers['user-agent'] || 'unknown';
+
+    const userId = await this.redis.get(`password-reset:${token}`);
+
+    if (!userId) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const password = await Password.create(newPassword);
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        password: password.hash,
+      },
+    });
+
+    await this.redis.del(`password-reset:${token}`);
+    await this.sessionService.revokeAllSessions(userId);
+
+    await this.eventPublisher.publishPasswordResetCompleted({
+      userId: user.id,
+      email: user.email,
+      ip,
+      device: userAgent,
+      time: new Date().toISOString(),
+    });
+
+    await this.auditService.logPasswordResetComplete(userId, ip, userAgent);
+
+    return { message: 'Password reset successfully. All sessions have been invalidated.' };
+  }
+
+  async changePassword(userId: string, currentPassword: string, newPassword: string, req: Request): Promise<{ message: string }> {
+    const ip = this.extractIp(req);
+    const userAgent = req.headers['user-agent'] || 'unknown';
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const password = Password.fromHash(user.password);
+    const isValid = await password.compare(currentPassword);
+
+    if (!isValid) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    const newPasswordVO = await Password.create(newPassword);
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        password: newPasswordVO.hash,
+      },
+    });
+
+    await this.eventPublisher.publishPasswordChanged({
+      userId: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      ip,
+      device: userAgent,
+      time: new Date().toISOString(),
+    });
+
+    await this.auditService.logPasswordChange(userId, ip, userAgent);
+
+    return { message: 'Password changed successfully' };
+  }
+
+  async changeEmail(userId: string, newEmail: string, password: string, req: Request): Promise<{ message: string }> {
+    const ip = this.extractIp(req);
+    const userAgent = req.headers['user-agent'] || 'unknown';
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const passwordVO = Password.fromHash(user.password);
+    const isValid = await passwordVO.compare(password);
+
+    if (!isValid) {
+      throw new UnauthorizedException('Password is incorrect');
+    }
+
+    const emailVO = new Email(newEmail);
+
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: emailVO.value },
+    });
+
+    if (existingUser) {
+      throw new BadRequestException('Email already in use');
+    }
+
+    const changeToken = require('uuid').v4();
+    await this.redis.set(
+      `email-change:${changeToken}`,
+      JSON.stringify({ userId, oldEmail: user.email, newEmail: emailVO.value }),
+      3600, // 1 hour TTL
+    );
+
+    await this.eventPublisher.publishEmailChangeRequested({
+      userId: user.id,
+      oldEmail: user.email,
+      newEmail: emailVO.value,
+      token: changeToken,
+      firstName: user.firstName,
+    });
+
+    await this.auditService.logEmailChangeRequest(userId, user.email, emailVO.value, ip, userAgent);
+
+    return { message: 'Verification email sent to new address' };
+  }
+
+  async verifyEmailChange(token: string, req: Request): Promise<{ message: string }> {
+    const ip = this.extractIp(req);
+    const userAgent = req.headers['user-agent'] || 'unknown';
+
+    const data = await this.redis.get(`email-change:${token}`);
+
+    if (!data) {
+      throw new BadRequestException('Invalid or expired token');
+    }
+
+    const { userId, oldEmail, newEmail } = JSON.parse(data);
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        email: newEmail,
+      },
+    });
+
+    await this.redis.del(`email-change:${token}`);
+
+    await this.eventPublisher.publishEmailChanged({
+      userId: user.id,
+      oldEmail,
+      newEmail,
+      firstName: user.firstName,
+      ip,
+      device: userAgent,
+      time: new Date().toISOString(),
+    });
+
+    await this.auditService.logEmailChange(userId, oldEmail, newEmail, ip, userAgent);
+
+    return { message: 'Email changed successfully' };
+  }
 }

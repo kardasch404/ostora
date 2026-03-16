@@ -1,5 +1,4 @@
 import { IsString, MinLength, Matches } from 'class-validator';
-import { Match } from '../decorators/match.decorator';
 
 export class ResetPasswordDto {
   @IsString()
@@ -11,8 +10,4 @@ export class ResetPasswordDto {
     message: 'Password must contain uppercase, lowercase, number, and special character',
   })
   newPassword: string;
-
-  @IsString()
-  @Match('newPassword', { message: 'Passwords do not match' })
-  confirmPassword: string;
 }

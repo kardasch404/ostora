@@ -137,4 +137,63 @@ export class AuthController {
   async revokeAllSessions(@CurrentUser() user: any, @Req() req: Request) {
     return this.authService.revokeAllSessions(user.userId, req);
   }
+
+  @Public()
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Request password reset' })
+  @ApiResponse({ status: 200, description: 'Reset link sent if email exists' })
+  async forgotPassword(@Body() dto: any, @Req() req: Request) {
+    return this.authService.forgotPassword(dto.email, req);
+  }
+
+  @Public()
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Reset password with token' })
+  @ApiResponse({ status: 200, description: 'Password reset successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid or expired token' })
+  async resetPassword(@Body() dto: any, @Req() req: Request) {
+    return this.authService.resetPassword(dto.token, dto.newPassword, req);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('change-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Change password' })
+  @ApiResponse({ status: 200, description: 'Password changed successfully' })
+  @ApiResponse({ status: 401, description: 'Current password incorrect' })
+  async changePassword(
+    @Body() dto: any,
+    @CurrentUser() user: any,
+    @Req() req: Request,
+  ) {
+    return this.authService.changePassword(user.userId, dto.currentPassword, dto.newPassword, req);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('change-email')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Request email change' })
+  @ApiResponse({ status: 200, description: 'Verification email sent' })
+  @ApiResponse({ status: 400, description: 'Email already in use' })
+  async changeEmail(
+    @Body() dto: any,
+    @CurrentUser() user: any,
+    @Req() req: Request,
+  ) {
+    return this.authService.changeEmail(user.userId, dto.newEmail, dto.password, req);
+  }
+
+  @Public()
+  @Post('verify-email-change')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verify email change' })
+  @ApiResponse({ status: 200, description: 'Email changed successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid or expired token' })
+  async verifyEmailChange(@Body() dto: any, @Req() req: Request) {
+    return this.authService.verifyEmailChange(dto.token, req);
+  }
 }
