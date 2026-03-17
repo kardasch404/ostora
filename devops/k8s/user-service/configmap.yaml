@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-service-config
+  namespace: ostora
+  labels:
+    app: user-service
+data:
+  NODE_ENV: "production"
+  PORT: "4719"
+  LOG_LEVEL: "info"
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+  AWS_REGION: "us-east-1"
+  AWS_S3_BUCKET: "ostora-documents"
