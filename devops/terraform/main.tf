@@ -9,219 +9,206 @@ terraform {
   }
 
   backend "s3" {
-    bucket = "ostora-terraform-state"
-    key    = "ostora/terraform.tfstate"
-    region = "us-east-1"
+    bucket         = "ostora-terraform-state"
+    key            = "production/terraform.tfstate"
+    region         = "us-east-1"
+    encrypt        = true
+    dynamodb_table = "ostora-terraform-locks"
   }
 }
 
 provider "aws" {
   region = var.aws_region
+
+  default_tags {
+    tags = {
+      Project     = "Ostora"
+      Environment = var.environment
+      ManagedBy   = "Terraform"
+    }
+  }
 }
 
-# VPC
-resource "aws_vpc" "ostora_vpc" {
-  cidr_block           = "10.0.0.0/16"
+# ==================== ECR Repositories ====================
+
+module "ecr" {
+  source = "./modules/ecr"
+
+  project_name = var.project_name
+  environment  = var.environment
+  
+  repositories = [
+    "api-gateway",
+    "auth-service",
+    "user-service",
+    "job-service",
+    "email-service",
+    "scraping-service",
+    "ai-service",
+    "payment-service",
+    "analytics-service",
+    "b2b-service",
+    "notification-service",
+    "networking-service"
+  ]
+}
+
+# ==================== VPC ====================
+
+module "vpc" {
+  source = "terraform-aws-modules/vpc/aws"
+  version = "5.1.2"
+
+  name = "${var.project_name}-vpc-${var.environment}"
+  cidr = var.vpc_cidr
+
+  azs             = var.availability_zones
+  private_subnets = var.private_subnet_cidrs
+  public_subnets  = var.public_subnet_cidrs
+
+  enable_nat_gateway   = true
+  single_nat_gateway   = var.environment != "production"
   enable_dns_hostnames = true
   enable_dns_support   = true
 
   tags = {
-    Name        = "ostora-vpc"
-    Environment = var.environment
+    "kubernetes.io/cluster/${var.project_name}-eks-${var.environment}" = "shared"
+  }
+
+  public_subnet_tags = {
+    "kubernetes.io/role/elb" = "1"
+  }
+
+  private_subnet_tags = {
+    "kubernetes.io/role/internal-elb" = "1"
   }
 }
 
-# Subnets
-resource "aws_subnet" "public_subnet_1" {
-  vpc_id                  = aws_vpc.ostora_vpc.id
-  cidr_block              = "10.0.1.0/24"
-  availability_zone       = "${var.aws_region}a"
-  map_public_ip_on_launch = true
+# ==================== EKS Cluster ====================
 
-  tags = {
-    Name = "ostora-public-subnet-1"
+module "eks" {
+  source = "./modules/eks"
+
+  project_name = var.project_name
+  environment  = var.environment
+  
+  vpc_id          = module.vpc.vpc_id
+  subnet_ids      = module.vpc.private_subnets
+  
+  cluster_version = "1.28"
+  
+  node_groups = {
+    general = {
+      desired_size = 3
+      min_size     = 2
+      max_size     = 10
+      instance_types = ["t3.large"]
+      capacity_type  = "ON_DEMAND"
+    }
+    spot = {
+      desired_size = 2
+      min_size     = 0
+      max_size     = 5
+      instance_types = ["t3.large", "t3a.large"]
+      capacity_type  = "SPOT"
+    }
   }
 }
 
-resource "aws_subnet" "public_subnet_2" {
-  vpc_id                  = aws_vpc.ostora_vpc.id
-  cidr_block              = "10.0.2.0/24"
-  availability_zone       = "${var.aws_region}b"
-  map_public_ip_on_launch = true
+# ==================== RDS PostgreSQL ====================
 
-  tags = {
-    Name = "ostora-public-subnet-2"
-  }
+module "rds" {
+  source = "./modules/rds"
+
+  project_name = var.project_name
+  environment  = var.environment
+  
+  vpc_id              = module.vpc.vpc_id
+  subnet_ids          = module.vpc.private_subnets
+  allowed_cidr_blocks = module.vpc.private_subnets_cidr_blocks
+  
+  engine_version      = "16.1"
+  instance_class      = var.environment == "production" ? "db.t3.large" : "db.t3.medium"
+  allocated_storage   = var.environment == "production" ? 100 : 20
+  max_allocated_storage = var.environment == "production" ? 500 : 100
+  
+  database_name       = "ostora"
+  master_username     = "postgres"
+  
+  backup_retention_period = var.environment == "production" ? 30 : 7
+  multi_az               = var.environment == "production"
+  deletion_protection    = var.environment == "production"
 }
 
-resource "aws_subnet" "private_subnet_1" {
-  vpc_id            = aws_vpc.ostora_vpc.id
-  cidr_block        = "10.0.10.0/24"
-  availability_zone = "${var.aws_region}a"
+# ==================== ElastiCache Redis ====================
 
-  tags = {
-    Name = "ostora-private-subnet-1"
-  }
+module "elasticache" {
+  source = "./modules/elasticache"
+
+  project_name = var.project_name
+  environment  = var.environment
+  
+  vpc_id              = module.vpc.vpc_id
+  subnet_ids          = module.vpc.private_subnets
+  allowed_cidr_blocks = module.vpc.private_subnets_cidr_blocks
+  
+  node_type           = var.environment == "production" ? "cache.t3.medium" : "cache.t3.micro"
+  num_cache_nodes     = var.environment == "production" ? 3 : 1
+  engine_version      = "7.0"
+  
+  automatic_failover_enabled = var.environment == "production"
 }
 
-resource "aws_subnet" "private_subnet_2" {
-  vpc_id            = aws_vpc.ostora_vpc.id
-  cidr_block        = "10.0.11.0/24"
-  availability_zone = "${var.aws_region}b"
+# ==================== MSK Kafka ====================
 
-  tags = {
-    Name = "ostora-private-subnet-2"
-  }
+module "msk" {
+  source = "./modules/msk"
+
+  project_name = var.project_name
+  environment  = var.environment
+  
+  vpc_id     = module.vpc.vpc_id
+  subnet_ids = module.vpc.private_subnets
+  
+  kafka_version      = "3.5.1"
+  number_of_brokers  = var.environment == "production" ? 3 : 2
+  instance_type      = var.environment == "production" ? "kafka.m5.large" : "kafka.t3.small"
+  
+  ebs_volume_size    = var.environment == "production" ? 100 : 50
 }
 
-# Internet Gateway
-resource "aws_internet_gateway" "ostora_igw" {
-  vpc_id = aws_vpc.ostora_vpc.id
+# ==================== Outputs ====================
 
-  tags = {
-    Name = "ostora-igw"
-  }
+output "ecr_repository_urls" {
+  description = "ECR repository URLs"
+  value       = module.ecr.repository_urls
 }
 
-# RDS PostgreSQL
-resource "aws_db_instance" "ostora_postgres" {
-  identifier             = "ostora-postgres"
-  engine                 = "postgres"
-  engine_version         = "16.1"
-  instance_class         = var.db_instance_class
-  allocated_storage      = 100
-  storage_type           = "gp3"
-  db_name                = "ostora_db"
-  username               = var.db_username
-  password               = var.db_password
-  vpc_security_group_ids = [aws_security_group.db_sg.id]
-  db_subnet_group_name   = aws_db_subnet_group.ostora_db_subnet.name
-  skip_final_snapshot    = var.environment == "production" ? false : true
-  multi_az               = var.environment == "production" ? true : false
-
-  tags = {
-    Name = "ostora-postgres"
-  }
+output "eks_cluster_endpoint" {
+  description = "EKS cluster endpoint"
+  value       = module.eks.cluster_endpoint
+  sensitive   = true
 }
 
-# ElastiCache Redis
-resource "aws_elasticache_cluster" "ostora_redis" {
-  cluster_id           = "ostora-redis"
-  engine               = "redis"
-  node_type            = var.redis_node_type
-  num_cache_nodes      = 1
-  parameter_group_name = "default.redis7"
-  port                 = 6379
-  security_group_ids   = [aws_security_group.redis_sg.id]
-  subnet_group_name    = aws_elasticache_subnet_group.ostora_redis_subnet.name
-
-  tags = {
-    Name = "ostora-redis"
-  }
+output "eks_cluster_name" {
+  description = "EKS cluster name"
+  value       = module.eks.cluster_name
 }
 
-# EKS Cluster
-resource "aws_eks_cluster" "ostora_eks" {
-  name     = "ostora-cluster"
-  role_arn = aws_iam_role.eks_cluster_role.arn
-  version  = "1.28"
-
-  vpc_config {
-    subnet_ids = [
-      aws_subnet.private_subnet_1.id,
-      aws_subnet.private_subnet_2.id
-    ]
-  }
-
-  depends_on = [
-    aws_iam_role_policy_attachment.eks_cluster_policy
-  ]
+output "rds_endpoint" {
+  description = "RDS endpoint"
+  value       = module.rds.endpoint
+  sensitive   = true
 }
 
-# S3 Bucket for uploads
-resource "aws_s3_bucket" "ostora_uploads" {
-  bucket = "ostora-uploads-${var.environment}"
-
-  tags = {
-    Name        = "ostora-uploads"
-    Environment = var.environment
-  }
+output "redis_endpoint" {
+  description = "Redis endpoint"
+  value       = module.elasticache.endpoint
+  sensitive   = true
 }
 
-# Security Groups
-resource "aws_security_group" "db_sg" {
-  name        = "ostora-db-sg"
-  description = "Security group for RDS"
-  vpc_id      = aws_vpc.ostora_vpc.id
-
-  ingress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = ["10.0.0.0/16"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-resource "aws_security_group" "redis_sg" {
-  name        = "ostora-redis-sg"
-  description = "Security group for Redis"
-  vpc_id      = aws_vpc.ostora_vpc.id
-
-  ingress {
-    from_port   = 6379
-    to_port     = 6379
-    protocol    = "tcp"
-    cidr_blocks = ["10.0.0.0/16"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-# DB Subnet Group
-resource "aws_db_subnet_group" "ostora_db_subnet" {
-  name       = "ostora-db-subnet"
-  subnet_ids = [aws_subnet.private_subnet_1.id, aws_subnet.private_subnet_2.id]
-
-  tags = {
-    Name = "ostora-db-subnet"
-  }
-}
-
-# ElastiCache Subnet Group
-resource "aws_elasticache_subnet_group" "ostora_redis_subnet" {
-  name       = "ostora-redis-subnet"
-  subnet_ids = [aws_subnet.private_subnet_1.id, aws_subnet.private_subnet_2.id]
-}
-
-# IAM Role for EKS
-resource "aws_iam_role" "eks_cluster_role" {
-  name = "ostora-eks-cluster-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Action = "sts:AssumeRole"
-      Effect = "Allow"
-      Principal = {
-        Service = "eks.amazonaws.com"
-      }
-    }]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "eks_cluster_policy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-  role       = aws_iam_role.eks_cluster_role.name
+output "kafka_bootstrap_brokers" {
+  description = "Kafka bootstrap brokers"
+  value       = module.msk.bootstrap_brokers
+  sensitive   = true
 }

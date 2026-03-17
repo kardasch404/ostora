@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { JobSource } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { JobIndexingService } from '../search/job-indexing.service';
 
@@ -9,7 +10,7 @@ export class JobDedupService {
     private jobIndexing: JobIndexingService
   ) {}
 
-  async findDuplicate(externalId: string, source: string) {
+  async findDuplicate(externalId: string, source: JobSource) {
     return this.prisma.jobPost.findUnique({
       where: {
         externalId_source: { externalId, source },
@@ -34,7 +35,7 @@ export class JobDedupService {
     return job;
   }
 
-  async markDuplicatesInactive(externalId: string, source: string, keepId: string) {
+  async markDuplicatesInactive(externalId: string, source: JobSource, keepId: string) {
     const updated = await this.prisma.jobPost.updateMany({
       where: {
         externalId,
