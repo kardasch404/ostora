@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
+import { BullModule } from '@nestjs/bull';
 import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
 import { JobModule } from './job/job.module';
 import { KafkaModule } from './kafka/kafka.module';
+import { ApplicationModule } from './application/application.module';
 import { FavoriteController } from './favorite/favorite.controller';
 import { FavoriteService } from './favorite/favorite.service';
 import { CompanyService } from './company/company.service';
@@ -19,10 +21,19 @@ import { JobEventListener } from './kafka/job-event.listener';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ScheduleModule.forRoot(),
+    BullModule.forRootAsync({
+      useFactory: () => ({
+        redis: {
+          host: process.env.REDIS_HOST || 'localhost',
+          port: parseInt(process.env.REDIS_PORT) || 6345,
+        },
+      }),
+    }),
     PrismaModule,
     RedisModule,
     KafkaModule,
     JobModule,
+    ApplicationModule,
   ],
   controllers: [FavoriteController],
   providers: [
