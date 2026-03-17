@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>New Device Login</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+    <h1 style="color: white; margin: 0;">New Device Login Detected</h1>
+  </div>
+  
+  <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+    <p>Hi {{name}},</p>
+    
+    <p>We detected a new login to your account from a device we don't recognize.</p>
+    
+    <div style="background: white; padding: 20px; border-radius: 5px; margin: 20px 0;">
+      <p><strong>Time:</strong> {{loginTime}}</p>
+      <p><strong>Device:</strong> {{device}}</p>
+      <p><strong>Browser:</strong> {{browser}}</p>
+      <p><strong>Location:</strong> {{location}}</p>
+      <p><strong>IP Address:</strong> {{ipAddress}}</p>
+    </div>
+    
+    <p>If this was you, you can safely ignore this email.</p>
+    
+    <p>If you don't recognize this activity, please secure your account immediately:</p>
+    
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="{{secureAccountUrl}}" style="background: #fa709a; color: white; padding: 15px 40px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">Secure My Account</a>
+    </div>
+    
+    <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+    
+    <p style="font-size: 12px; color: #999; text-align: center;">
+      © 2024 Ostora. All rights reserved.
+    </p>
+  </div>
+</body>
+</html>

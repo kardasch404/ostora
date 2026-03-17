@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Your OTP Code</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+    <h1 style="color: #333; margin: 0;">Your OTP Code</h1>
+  </div>
+  
+  <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+    <p>Hi {{name}},</p>
+    
+    <p>Your One-Time Password (OTP) code is:</p>
+    
+    <div style="text-align: center; margin: 30px 0;">
+      <div style="background: white; display: inline-block; padding: 20px 40px; border-radius: 10px; border: 2px dashed #a8edea;">
+        <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #333;">{{otpCode}}</span>
+      </div>
+    </div>
+    
+    <p style="text-align: center; color: #f5576c; font-weight: bold;">This code will expire in {{expiryMinutes}} minutes.</p>
+    
+    <p>Enter this code to complete your action. Do not share this code with anyone.</p>
+    
+    <p>If you didn't request this code, please ignore this email.</p>
+    
+    <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+    
+    <p style="font-size: 12px; color: #999; text-align: center;">
+      © 2024 Ostora. All rights reserved.
+    </p>
+  </div>
+</body>
+</html>
