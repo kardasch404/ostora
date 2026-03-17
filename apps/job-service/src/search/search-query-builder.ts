@@ -57,8 +57,6 @@ export class SearchQueryBuilder {
 
     // Salary range filter - check if job salary range overlaps with user range
     if (this.dto.salaryMin || this.dto.salaryMax) {
-      const should: any[] = [];
-      
       if (this.dto.salaryMin && this.dto.salaryMax) {
         // User wants jobs where salaryMax >= user_min AND salaryMin <= user_max
         filter.push({

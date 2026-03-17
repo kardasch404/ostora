@@ -2,7 +2,8 @@ import { Controller, Get, Query, Param, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { JobService } from './job.service';
 import { SearchJobsDto } from './dto/search-jobs.dto';
-import { PaginatedJobsResponse, JobResponse } from './dto/job.response';
+import { JobResponse } from './dto/job.response';
+import { PaginatedJobsResponse } from './dto/paginated-jobs.response';
 
 @ApiTags('jobs')
 @Controller('jobs')

@@ -11,44 +11,61 @@ export class JobSearchQuery {
   toESQuery(): object {
     const must: any[] = [];
     const filter: any[] = [];
+    const should: any[] = [];
 
-    // Text search on title and description
+    // Full-text search on title and description
     if (this.dto.q) {
       must.push({
         multi_match: {
           query: this.dto.q,
-          fields: ['title^2', 'description'],
+          fields: ['title^3', 'description^1', 'requirements^1', 'company^2'],
           type: 'best_fields',
+          fuzziness: 'AUTO',
+          operator: 'or',
+        },
+      });
+
+      // Boost exact matches
+      should.push({
+        match_phrase: {
+          title: {
+            query: this.dto.q,
+            boost: 5,
+          },
         },
       });
     }
 
-    // Filters
+    // City filter
     if (this.dto.city) {
-      filter.push({ term: { 'city.keyword': this.dto.city } });
+      filter.push({ term: { city: this.dto.city } });
     }
 
+    // Country filter
     if (this.dto.country) {
-      filter.push({ term: { 'country.keyword': this.dto.country } });
+      filter.push({ term: { country: this.dto.country } });
     }
 
+    // Remote filter
     if (this.dto.remote !== undefined) {
       filter.push({ term: { remote: this.dto.remote } });
     }
 
+    // Contract type filter
     if (this.dto.contractType) {
-      filter.push({ term: { 'contractType.keyword': this.dto.contractType } });
+      filter.push({ term: { contractType: this.dto.contractType } });
     }
 
-    // Salary range
+    // Salary range filter using SalaryRange VO
     if (this.dto.salaryMin || this.dto.salaryMax) {
       const salaryRange = new SalaryRange(this.dto.salaryMin, this.dto.salaryMax);
-      filter.push({ range: { salary: salaryRange.toESRangeFilter() } });
+      filter.push({ range: { salaryMin: salaryRange.toESRangeFilter() } });
     }
 
-    // Active jobs only
+    // Only active jobs
     filter.push({ term: { isActive: true } });
 
+    // Build query
     const query: any = {
       bool: {
         must: must.length > 0 ? must : [{ match_all: {} }],
@@ -56,11 +73,25 @@ export class JobSearchQuery {
       },
     };
 
+    if (should.length > 0) {
+      query.bool.should = should;
+      query.bool.minimum_should_match = 0;
+    }
+
+    // Pagination
+    const page = this.dto.page || 1;
+    const limit = this.dto.limit || 20;
+    const from = (page - 1) * limit;
+
     return {
       query,
-      from: ((this.dto.page || 1) - 1) * (this.dto.limit || 20),
-      size: this.dto.limit || 20,
-      sort: [{ postedAt: { order: 'desc' } }],
+      from,
+      size: limit,
+      sort: [
+        { _score: { order: 'desc' } },
+        { postedAt: { order: 'desc' } },
+      ],
+      track_total_hits: true,
     };
   }
 }

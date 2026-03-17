@@ -10,7 +10,7 @@ export class MySQLReaderService {
 
   async connect() {
     this.connection = await mysql.createConnection({
-      host: this.config.get('MYSQL_HOST', 'localhost'),
+      host: this.config.get('MYSQL_HOST', 'data-server25'),
       port: this.config.get('MYSQL_PORT', 3345),
       user: this.config.get('MYSQL_USER', 'root'),
       password: this.config.get('MYSQL_PASSWORD', 'root'),

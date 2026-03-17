@@ -1,4 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { ContractType, JobSource } from '@prisma/client';
+import { SalaryRange } from '../value-objects/salary-range.vo';
 
 export class CompanyMiniResponse {
   @ApiProperty()
@@ -28,40 +30,26 @@ export class JobResponse {
   country?: string;
 
   @ApiProperty({ required: false })
-  salary?: string;
+  salary: SalaryRange | null;
 
   @ApiProperty()
   remote: boolean;
 
-  @ApiProperty({ required: false })
-  contractType?: string;
+  @ApiProperty({ enum: ContractType, required: false, nullable: true })
+  contractType: ContractType | null;
 
-  @ApiProperty()
-  source: string;
+  @ApiProperty({ enum: JobSource })
+  source: JobSource;
 
   @ApiProperty()
   url: string;
 
-  @ApiProperty()
-  postedAt?: Date;
+  @ApiProperty({ required: false, nullable: true })
+  postedAt: Date | null;
 
   @ApiProperty()
   isFavorited: boolean;
-}
 
-export class PaginatedJobsResponse {
-  @ApiProperty({ type: [JobResponse] })
-  data: JobResponse[];
-
-  @ApiProperty()
-  total: number;
-
-  @ApiProperty()
-  page: number;
-
-  @ApiProperty()
-  limit: number;
-
-  @ApiProperty()
-  totalPages: number;
+  @ApiProperty({ required: false })
+  score?: number;
 }
