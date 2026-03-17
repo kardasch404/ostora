@@ -127,6 +127,8 @@ model User {
   messageTemplates  MessageTemplate[]
   emailConfigs      EmailConfig[]
   applicationBundles ApplicationBundle[]
+  socialLinks       UserSocialLink[]
+  profileSettings   ProfileSettings?
 
   @@index([email])
   @@index([username])
@@ -795,4 +797,67 @@ enum ApplicationDocumentType {
   COVER_LETTER
   PORTFOLIO
   OTHER
+}
+
+// ==================== SOCIAL LINKS & PROFILE SETTINGS ====================
+model UserSocialLink {
+  id            String              @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  userId        String              @db.Uuid
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  platform      SocialPlatform
+  username      String?
+  url           String
+  
+  createdAt     DateTime            @default(now()) @db.Timestamptz
+  updatedAt     DateTime            @updatedAt @db.Timestamptz
+
+  @@unique([userId, platform])
+  @@index([userId])
+  @@index([platform])
+  @@map("user_social_links")
+}
+
+enum SocialPlatform {
+  LINKEDIN
+  GITHUB
+  XING
+  PORTFOLIO
+  TWITTER
+  OTHER
+}
+
+model ProfileSettings {
+  id                    String              @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  userId                String              @unique @db.Uuid
+  user                  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  jobSearchStatus       JobSearchStatus     @default(ACTIVE)
+  desiredSalary         Int?
+  desiredSalaryCurrency String?             @default("USD")
+  desiredContractType   EmploymentType?
+  desiredLocations      String[]
+  remotePreference      RemotePreference    @default(HYBRID)
+  visibility            ProfileVisibility   @default(PUBLIC)
+  
+  createdAt             DateTime            @default(now()) @db.Timestamptz
+  updatedAt             DateTime            @updatedAt @db.Timestamptz
+
+  @@index([userId])
+  @@index([jobSearchStatus])
+  @@index([visibility])
+  @@map("profile_settings")
+}
+
+enum JobSearchStatus {
+  ACTIVE
+  PASSIVE
+  NOT_LOOKING
+}
+
+enum RemotePreference {
+  REMOTE_ONLY
+  HYBRID
+  ONSITE
+  NO_PREFERENCE
 }
