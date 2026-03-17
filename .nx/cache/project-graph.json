@@ -1,0 +1,336 @@
+{
+  "nodes": {
+    "@ostora/shared-interceptors": {
+      "name": "@ostora/shared-interceptors",
+      "type": "lib",
+      "data": {
+        "root": "libs/shared-interceptors",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "sourceRoot": "libs/shared-interceptors",
+        "name": "@ostora/shared-interceptors",
+        "projectType": "library",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "@ostora/shared-decorators": {
+      "name": "@ostora/shared-decorators",
+      "type": "lib",
+      "data": {
+        "root": "libs/shared-decorators",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "sourceRoot": "libs/shared-decorators",
+        "name": "@ostora/shared-decorators",
+        "projectType": "library",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "@ostora/shared-interfaces": {
+      "name": "@ostora/shared-interfaces",
+      "type": "lib",
+      "data": {
+        "root": "libs/shared-interfaces",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "sourceRoot": "libs/shared-interfaces",
+        "name": "@ostora/shared-interfaces",
+        "projectType": "library",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "@ostora/shared-filters": {
+      "name": "@ostora/shared-filters",
+      "type": "lib",
+      "data": {
+        "root": "libs/shared-filters",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "sourceRoot": "libs/shared-filters",
+        "name": "@ostora/shared-filters",
+        "projectType": "library",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "@ostora/shared-guards": {
+      "name": "@ostora/shared-guards",
+      "type": "lib",
+      "data": {
+        "root": "libs/shared-guards",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "sourceRoot": "libs/shared-guards",
+        "name": "@ostora/shared-guards",
+        "projectType": "library",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "@ostora/shared-logger": {
+      "name": "@ostora/shared-logger",
+      "type": "lib",
+      "data": {
+        "root": "libs/shared-logger",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "sourceRoot": "libs/shared-logger",
+        "name": "@ostora/shared-logger",
+        "projectType": "library",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "@ostora/auth-service": {
+      "name": "@ostora/auth-service",
+      "type": "lib",
+      "data": {
+        "root": "apps/auth-service",
+        "targets": {
+          "start": {
+            "executor": "nx:run-script",
+            "options": {
+              "script": "start"
+            },
+            "configurations": {}
+          },
+          "start:dev": {
+            "executor": "nx:run-script",
+            "options": {
+              "script": "start:dev"
+            },
+            "configurations": {}
+          },
+          "start:debug": {
+            "executor": "nx:run-script",
+            "options": {
+              "script": "start:debug"
+            },
+            "configurations": {}
+          },
+          "start:prod": {
+            "executor": "nx:run-script",
+            "options": {
+              "script": "start:prod"
+            },
+            "configurations": {}
+          },
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "sourceRoot": "apps/auth-service",
+        "name": "@ostora/auth-service",
+        "projectType": "library",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "@ostora/shared-utils": {
+      "name": "@ostora/shared-utils",
+      "type": "lib",
+      "data": {
+        "root": "libs/shared-utils",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "sourceRoot": "libs/shared-utils",
+        "name": "@ostora/shared-utils",
+        "projectType": "library",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    },
+    "api-gateway": {
+      "name": "api-gateway",
+      "type": "app",
+      "data": {
+        "root": "apps/api-gateway",
+        "name": "api-gateway",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          },
+          "build": {
+            "dependsOn": [
+              "^build"
+            ],
+            "inputs": [
+              "production",
+              "^production"
+            ],
+            "executor": "@nrwl/node:build",
+            "outputs": [
+              "{options.outputPath}"
+            ],
+            "options": {
+              "outputPath": "dist/apps/api-gateway",
+              "main": "apps/api-gateway/src/main.ts",
+              "tsConfig": "apps/api-gateway/tsconfig.app.json"
+            },
+            "configurations": {}
+          },
+          "test": {
+            "inputs": [
+              "default",
+              "^production",
+              "{workspaceRoot}/jest.preset.js"
+            ],
+            "executor": "@nrwl/jest:jest",
+            "options": {
+              "jestConfig": "apps/api-gateway/jest.config.js"
+            },
+            "configurations": {}
+          },
+          "lint": {
+            "inputs": [
+              "default",
+              "{workspaceRoot}/.eslintrc.json"
+            ],
+            "executor": "@nrwl/linter:eslint",
+            "options": {
+              "lintFilePatterns": [
+                "apps/api-gateway/**/*.ts"
+              ]
+            },
+            "configurations": {}
+          },
+          "serve": {
+            "executor": "@nrwl/node:execute",
+            "options": {
+              "buildTarget": "api-gateway:build"
+            },
+            "configurations": {}
+          }
+        },
+        "sourceRoot": "apps/api-gateway/src",
+        "projectType": "application",
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "tags": [],
+        "implicitDependencies": []
+      }
+    },
+    "@ostora/shared-dto": {
+      "name": "@ostora/shared-dto",
+      "type": "lib",
+      "data": {
+        "root": "libs/shared-dto",
+        "targets": {
+          "nx-release-publish": {
+            "dependsOn": [
+              "^nx-release-publish"
+            ],
+            "executor": "@nx/js:release-publish",
+            "options": {},
+            "configurations": {}
+          }
+        },
+        "sourceRoot": "libs/shared-dto",
+        "name": "@ostora/shared-dto",
+        "projectType": "library",
+        "implicitDependencies": [],
+        "tags": []
+      }
+    }
+  },
+  "externalNodes": {},
+  "dependencies": {
+    "@ostora/shared-interceptors": [
+      {
+        "source": "@ostora/shared-interceptors",
+        "target": "@ostora/shared-dto",
+        "type": "static"
+      }
+    ],
+    "@ostora/shared-decorators": [],
+    "@ostora/shared-interfaces": [],
+    "@ostora/shared-filters": [
+      {
+        "source": "@ostora/shared-filters",
+        "target": "@ostora/shared-dto",
+        "type": "static"
+      }
+    ],
+    "@ostora/shared-guards": [
+      {
+        "source": "@ostora/shared-guards",
+        "target": "@ostora/shared-decorators",
+        "type": "static"
+      }
+    ],
+    "@ostora/shared-logger": [],
+    "@ostora/auth-service": [],
+    "@ostora/shared-utils": [],
+    "api-gateway": [],
+    "@ostora/shared-dto": []
+  },
+  "version": "6.0"
+}

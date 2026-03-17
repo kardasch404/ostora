@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ostora-config
+  namespace: ostora
+data:
+  NODE_ENV: "production"
+  KAFKA_BROKER: "kafka-service:9092"
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+  ELASTICSEARCH_NODE: "http://elasticsearch-service:9200"
+  CORS_ORIGIN: "https://ostora.com"
+  LOG_LEVEL: "info"

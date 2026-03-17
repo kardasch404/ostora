@@ -1,0 +1,9 @@
+{
+  "name": "@ostora/shared-filters",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "dependencies": {
+    "@nestjs/common": "^10.3.0",
+    "@ostora/shared-dto": "1.0.0"
+  }
+}

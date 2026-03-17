@@ -1,0 +1,208 @@
+pipeline {
+  agent any
+
+  environment {
+    SERVICE_NAME = 'auth-service'
+    DOCKER_REGISTRY = credentials('docker-registry-url')
+    ECR_REGISTRY = credentials('aws-ecr-registry')
+    AWS_REGION = 'us-east-1'
+    DOCKER_IMAGE = "${ECR_REGISTRY}/ostora-auth-service"
+    KUBECONFIG = credentials('kubeconfig')
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+        script {
+          env.GIT_COMMIT_SHORT = sh(
+            script: "git rev-parse --short HEAD",
+            returnStdout: true
+          ).trim()
+          env.BUILD_TAG = "${env.GIT_COMMIT_SHORT}-${env.BUILD_NUMBER}"
+        }
+      }
+    }
+
+    stage('Install Dependencies') {
+      steps {
+        dir('apps/auth-service') {
+          sh 'npm ci'
+        }
+      }
+    }
+
+    stage('Lint') {
+      steps {
+        dir('apps/auth-service') {
+          sh 'npm run lint || true'
+        }
+      }
+    }
+
+    stage('Unit Tests') {
+      steps {
+        dir('apps/auth-service') {
+          sh 'npm run test -- --coverage --passWithNoTests'
+        }
+      }
+      post {
+        always {
+          junit 'apps/auth-service/coverage/junit.xml'
+          publishHTML([
+            reportDir: 'apps/auth-service/coverage',
+            reportFiles: 'index.html',
+            reportName: 'Coverage Report'
+          ])
+        }
+      }
+    }
+
+    stage('E2E Tests') {
+      steps {
+        script {
+          sh '''
+            docker-compose -f docker-compose.test.yml up -d
+            sleep 10
+          '''
+          dir('apps/auth-service') {
+            sh 'npm run test:e2e || true'
+          }
+          sh 'docker-compose -f docker-compose.test.yml down -v'
+        }
+      }
+    }
+
+    stage('Build Docker Image') {
+      steps {
+        script {
+          sh """
+            docker build \
+              -t ${DOCKER_IMAGE}:${BUILD_TAG} \
+              -t ${DOCKER_IMAGE}:latest \
+              -f devops/docker/auth-service.Dockerfile \
+              .
+          """
+        }
+      }
+    }
+
+    stage('Security Scan') {
+      steps {
+        script {
+          sh """
+            docker run --rm \
+              -v /var/run/docker.sock:/var/run/docker.sock \
+              aquasec/trivy image \
+              --severity HIGH,CRITICAL \
+              ${DOCKER_IMAGE}:${BUILD_TAG} || true
+          """
+        }
+      }
+    }
+
+    stage('Push to ECR') {
+      when {
+        anyOf {
+          branch 'develop'
+          branch 'main'
+        }
+      }
+      steps {
+        script {
+          sh """
+            aws ecr get-login-password --region ${AWS_REGION} | \
+              docker login --username AWS --password-stdin ${ECR_REGISTRY}
+            
+            docker push ${DOCKER_IMAGE}:${BUILD_TAG}
+            docker push ${DOCKER_IMAGE}:latest
+          """
+        }
+      }
+    }
+
+    stage('Deploy to Staging') {
+      when {
+        branch 'develop'
+      }
+      steps {
+        script {
+          sh """
+            kubectl set image deployment/auth-service \
+              auth-service=${DOCKER_IMAGE}:${BUILD_TAG} \
+              -n ostora-staging \
+              --kubeconfig=${KUBECONFIG}
+            
+            kubectl rollout status deployment/auth-service \
+              -n ostora-staging \
+              --kubeconfig=${KUBECONFIG} \
+              --timeout=5m
+          """
+        }
+      }
+    }
+
+    stage('Deploy to Production') {
+      when {
+        branch 'main'
+      }
+      steps {
+        input message: 'Deploy to Production?', ok: 'Deploy'
+        script {
+          sh """
+            kubectl set image deployment/auth-service \
+              auth-service=${DOCKER_IMAGE}:${BUILD_TAG} \
+              -n ostora \
+              --kubeconfig=${KUBECONFIG}
+            
+            kubectl rollout status deployment/auth-service \
+              -n ostora \
+              --kubeconfig=${KUBECONFIG} \
+              --timeout=5m
+          """
+        }
+      }
+    }
+
+    stage('Smoke Tests') {
+      when {
+        anyOf {
+          branch 'develop'
+          branch 'main'
+        }
+      }
+      steps {
+        script {
+          def namespace = env.BRANCH_NAME == 'main' ? 'ostora' : 'ostora-staging'
+          sh """
+            kubectl run smoke-test-${BUILD_NUMBER} \
+              --image=curlimages/curl:latest \
+              --rm -i --restart=Never \
+              -n ${namespace} \
+              -- curl -f http://auth-service:4718/api/v1/auth/health
+          """
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      echo "✅ Pipeline succeeded for ${SERVICE_NAME}!"
+      slackSend(
+        color: 'good',
+        message: "✅ ${SERVICE_NAME} build ${BUILD_TAG} succeeded"
+      )
+    }
+    failure {
+      echo "❌ Pipeline failed for ${SERVICE_NAME}!"
+      slackSend(
+        color: 'danger',
+        message: "❌ ${SERVICE_NAME} build ${BUILD_TAG} failed"
+      )
+    }
+    always {
+      cleanWs()
+    }
+  }
+}

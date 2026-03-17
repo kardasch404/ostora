@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  namespace: ostora
+spec:
+  replicas: 3
+  template:
+    spec:
+      containers:
+      - name: auth-service
+        image: your-registry/ostora-auth-service:latest
+        env:
+        - name: NODE_ENV
+          value: "production"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: auth-service-hpa
+  namespace: ostora
+spec:
+  minReplicas: 3
+  maxReplicas: 20
+  

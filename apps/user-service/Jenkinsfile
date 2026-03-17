@@ -1,0 +1,307 @@
+pipeline {
+    agent {
+        kubernetes {
+            yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    jenkins: agent
+spec:
+  containers:
+  - name: node
+    image: node:18-alpine
+    command:
+    - cat
+    tty: true
+  - name: docker
+    image: docker:24-dind
+    command:
+    - cat
+    tty: true
+    volumeMounts:
+    - name: docker-sock
+      mountPath: /var/run/docker.sock
+  - name: kubectl
+    image: bitnami/kubectl:latest
+    command:
+    - cat
+    tty: true
+  volumes:
+  - name: docker-sock
+    hostPath:
+      path: /var/run/docker.sock
+"""
+        }
+    }
+
+    environment {
+        DOCKER_REGISTRY = 'docker.io'
+        DOCKER_IMAGE = 'ostora/user-service'
+        DOCKER_CREDENTIALS_ID = 'docker-hub-credentials'
+        KUBECONFIG_CREDENTIALS_ID = 'kubeconfig'
+        GIT_COMMIT_SHORT = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+        IMAGE_TAG = "${env.BRANCH_NAME}-${env.GIT_COMMIT_SHORT}-${env.BUILD_NUMBER}"
+    }
+
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        timeout(time: 30, unit: 'MINUTES')
+        timestamps()
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+                script {
+                    env.GIT_COMMIT_MSG = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
+                }
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                container('node') {
+                    sh '''
+                        echo "Installing dependencies..."
+                        npm ci
+                        echo "Generating Prisma client..."
+                        npx prisma generate
+                    '''
+                }
+            }
+        }
+
+        stage('Lint') {
+            steps {
+                container('node') {
+                    sh '''
+                        echo "Running ESLint..."
+                        npm run lint:check
+                    '''
+                }
+            }
+        }
+
+        stage('Unit Tests') {
+            steps {
+                container('node') {
+                    sh '''
+                        echo "Running unit tests..."
+                        npm run test -- --testPathPattern=test/unit --coverage --coverageDirectory=coverage/unit
+                    '''
+                }
+            }
+            post {
+                always {
+                    junit 'test-results/unit/*.xml'
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'coverage/unit',
+                        reportFiles: 'index.html',
+                        reportName: 'Unit Test Coverage'
+                    ])
+                }
+            }
+        }
+
+        stage('Integration Tests') {
+            steps {
+                container('node') {
+                    sh '''
+                        echo "Running integration tests..."
+                        npm run test -- --testPathPattern=test/integration --coverage --coverageDirectory=coverage/integration
+                    '''
+                }
+            }
+            post {
+                always {
+                    junit 'test-results/integration/*.xml'
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'coverage/integration',
+                        reportFiles: 'index.html',
+                        reportName: 'Integration Test Coverage'
+                    ])
+                }
+            }
+        }
+
+        stage('E2E Tests') {
+            when {
+                anyOf {
+                    branch 'develop'
+                    branch 'main'
+                }
+            }
+            steps {
+                container('node') {
+                    sh '''
+                        echo "Running E2E tests..."
+                        npm run test:e2e -- --coverage --coverageDirectory=coverage/e2e
+                    '''
+                }
+            }
+            post {
+                always {
+                    junit 'test-results/e2e/*.xml'
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'coverage/e2e',
+                        reportFiles: 'index.html',
+                        reportName: 'E2E Test Coverage'
+                    ])
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                container('node') {
+                    sh '''
+                        echo "Building application..."
+                        npm run build
+                    '''
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                container('docker') {
+                    script {
+                        docker.withRegistry("https://${DOCKER_REGISTRY}", DOCKER_CREDENTIALS_ID) {
+                            sh """
+                                echo "Building Docker image..."
+                                docker build -t ${DOCKER_IMAGE}:${IMAGE_TAG} -f apps/user-service/Dockerfile .
+                                docker tag ${DOCKER_IMAGE}:${IMAGE_TAG} ${DOCKER_IMAGE}:latest
+                            """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Security Scan') {
+            steps {
+                container('docker') {
+                    sh '''
+                        echo "Running security scan with Trivy..."
+                        docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+                            aquasec/trivy:latest image --severity HIGH,CRITICAL \
+                            ${DOCKER_IMAGE}:${IMAGE_TAG}
+                    '''
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            when {
+                anyOf {
+                    branch 'develop'
+                    branch 'main'
+                }
+            }
+            steps {
+                container('docker') {
+                    script {
+                        docker.withRegistry("https://${DOCKER_REGISTRY}", DOCKER_CREDENTIALS_ID) {
+                            sh """
+                                echo "Pushing Docker image..."
+                                docker push ${DOCKER_IMAGE}:${IMAGE_TAG}
+                                docker push ${DOCKER_IMAGE}:latest
+                            """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to Staging') {
+            when {
+                branch 'develop'
+            }
+            steps {
+                container('kubectl') {
+                    withCredentials([file(credentialsId: KUBECONFIG_CREDENTIALS_ID, variable: 'KUBECONFIG')]) {
+                        sh """
+                            echo "Deploying to staging..."
+                            kubectl set image deployment/user-service \
+                                user-service=${DOCKER_IMAGE}:${IMAGE_TAG} \
+                                -n ostora-staging
+                            kubectl rollout status deployment/user-service -n ostora-staging --timeout=5m
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to Production') {
+            when {
+                branch 'main'
+            }
+            steps {
+                input message: 'Deploy to production?', ok: 'Deploy'
+                container('kubectl') {
+                    withCredentials([file(credentialsId: KUBECONFIG_CREDENTIALS_ID, variable: 'KUBECONFIG')]) {
+                        sh """
+                            echo "Deploying to production..."
+                            kubectl set image deployment/user-service \
+                                user-service=${DOCKER_IMAGE}:${IMAGE_TAG} \
+                                -n ostora
+                            kubectl rollout status deployment/user-service -n ostora --timeout=5m
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Smoke Tests') {
+            when {
+                anyOf {
+                    branch 'develop'
+                    branch 'main'
+                }
+            }
+            steps {
+                container('node') {
+                    sh '''
+                        echo "Running smoke tests..."
+                        npm run test:smoke
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Pipeline completed successfully!"
+            script {
+                if (env.BRANCH_NAME == 'main') {
+                    slackSend(
+                        color: 'good',
+                        message: "✅ user-service deployed to production: ${env.IMAGE_TAG}\nCommit: ${env.GIT_COMMIT_MSG}"
+                    )
+                }
+            }
+        }
+        failure {
+            echo "Pipeline failed!"
+            slackSend(
+                color: 'danger',
+                message: "❌ user-service pipeline failed: ${env.BUILD_URL}\nBranch: ${env.BRANCH_NAME}"
+            )
+        }
+        always {
+            cleanWs()
+        }
+    }
+}
