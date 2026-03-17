@@ -13,7 +13,7 @@ export class TemplateRendererService {
   }
 
   private loadTemplates() {
-    const templateDir = path.join(__dirname, '../hbs');
+    const templateDir = path.join(__dirname, 'hbs');
     const files = [
       'verification.hbs',
       'password-reset.hbs',

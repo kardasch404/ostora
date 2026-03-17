@@ -144,3 +144,17 @@ export class ApiKeyGuard implements CanActivate {
     return false;
   }
 }
+
+// ==================== PUBLIC GUARD ====================
+
+@Injectable()
+export class PublicGuard implements CanActivate {
+  constructor(private reflector: Reflector) {}
+
+  canActivate(context: ExecutionContext): boolean {
+    return this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]) ?? false;
+  }
+}

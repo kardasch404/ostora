@@ -1,14 +1,15 @@
-version: '3.9'
+version: '3.8'
 
 services:
-  # ==================== DATABASES ====================
+  # ==================== Databases ====================
+  
   postgres:
     image: postgres:16-alpine
     container_name: ostora-postgres
     environment:
-      POSTGRES_USER: ostora
-      POSTGRES_PASSWORD: ostora_secret_2024
-      POSTGRES_DB: ostora_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ostora
     ports:
       - "5445:5432"
     volumes:
@@ -16,7 +17,7 @@ services:
     networks:
       - ostora-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ostora"]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -25,10 +26,8 @@ services:
     image: mysql:8.0
     container_name: ostora-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: root_secret_2024
-      MYSQL_DATABASE: ostora_analytics
-      MYSQL_USER: ostora
-      MYSQL_PASSWORD: ostora_secret_2024
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: data_server25
     ports:
       - "3345:3306"
     volumes:
@@ -45,9 +44,8 @@ services:
     image: mongo:7
     container_name: ostora-mongodb
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ostora
-      MONGO_INITDB_ROOT_PASSWORD: ostora_secret_2024
-      MONGO_INITDB_DATABASE: ostora_logs
+      MONGO_INITDB_ROOT_USERNAME: mongo
+      MONGO_INITDB_ROOT_PASSWORD: mongo
     ports:
       - "27045:27017"
     volumes:
@@ -63,7 +61,6 @@ services:
   redis:
     image: redis:7-alpine
     container_name: ostora-redis
-    command: redis-server --requirepass ostora_redis_2024
     ports:
       - "6345:6379"
     volumes:
@@ -77,7 +74,7 @@ services:
       retries: 5
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.3
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
     container_name: ostora-elasticsearch
     environment:
       - discovery.type=single-node
@@ -85,7 +82,6 @@ services:
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ports:
       - "9245:9200"
-      - "9345:9300"
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     networks:
@@ -96,23 +92,30 @@ services:
       timeout: 10s
       retries: 5
 
-  # ==================== MESSAGE BROKER ====================
+  # ==================== Kafka Stack ====================
+  
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.5.3
+    image: confluentinc/cp-zookeeper:7.5.0
     container_name: ostora-zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
     networks:
       - ostora-network
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   kafka:
-    image: confluentinc/cp-kafka:7.5.3
+    image: confluentinc/cp-kafka:7.5.0
     container_name: ostora-kafka
     depends_on:
-      - zookeeper
-    ports:
-      - "9095:9092"
+      zookeeper:
+        condition: service_healthy
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -121,10 +124,12 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    ports:
+      - "9095:9095"
     networks:
       - ostora-network
     healthcheck:
-      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9095"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -133,334 +138,170 @@ services:
     image: obsidiandynamics/kafdrop:latest
     container_name: ostora-kafdrop
     depends_on:
-      - kafka
-    ports:
-      - "9000:9000"
+      kafka:
+        condition: service_healthy
     environment:
       KAFKA_BROKERCONNECT: kafka:29092
-      JVM_OPTS: "-Xms32M -Xmx64M"
+    ports:
+      - "9000:9000"
     networks:
       - ostora-network
 
-  # ==================== MICROSERVICES ====================
+  # ==================== Microservices ====================
+  
   api-gateway:
     build:
-      context: .
-      dockerfile: ./infra/docker/api-gateway.Dockerfile
+      context: ./apps/api-gateway
+      dockerfile: ../../devops/docker/Dockerfile.gateway
     container_name: ostora-api-gateway
+    environment:
+      PORT: 4717
+      NODE_ENV: production
+      AUTH_SERVICE_URL: http://auth-service:4718
+      USER_SERVICE_URL: http://user-service:4719
+      JOB_SERVICE_URL: http://job-service:4720
+      EMAIL_SERVICE_URL: http://email-service:4721
     ports:
       - "4717:4717"
-    environment:
-      NODE_ENV: development
-      PORT: 4717
-      JWT_SECRET: ${JWT_SECRET}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ostora_redis_2024
     depends_on:
-      - redis
-      - kafka
+      - auth-service
+      - user-service
+      - job-service
+      - email-service
     networks:
       - ostora-network
-    volumes:
-      - ./apps/api-gateway:/app/apps/api-gateway
-      - ./libs:/app/libs
     restart: unless-stopped
 
   auth-service:
     build:
-      context: .
-      dockerfile: ./infra/docker/auth-service.Dockerfile
+      context: ./apps/auth-service
+      dockerfile: ../../devops/docker/Dockerfile.auth
     container_name: ostora-auth-service
-    ports:
-      - "4718:4718"
     environment:
-      NODE_ENV: development
       PORT: 4718
-      DATABASE_URL: postgresql://ostora:ostora_secret_2024@postgres:5432/ostora_db
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/ostora
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      REDIS_PASSWORD: ostora_redis_2024
-      KAFKA_BROKER: kafka:29092
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      JWT_EXPIRES_IN: 7d
+    ports:
+      - "4718:4718"
     depends_on:
-      - postgres
-      - redis
-      - kafka
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - ostora-network
-    volumes:
-      - ./apps/auth-service:/app/apps/auth-service
-      - ./libs:/app/libs
     restart: unless-stopped
 
   user-service:
     build:
-      context: .
-      dockerfile: ./infra/docker/user-service.Dockerfile
+      context: ./apps/user-service
+      dockerfile: ../../devops/docker/Dockerfile.user
     container_name: ostora-user-service
-    ports:
-      - "4719:4719"
     environment:
-      NODE_ENV: development
       PORT: 4719
-      DATABASE_URL: postgresql://ostora:ostora_secret_2024@postgres:5432/ostora_db
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/ostora
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      REDIS_PASSWORD: ostora_redis_2024
-      KAFKA_BROKER: kafka:29092
+      AWS_REGION: us-east-1
+      AWS_S3_BUCKET: ostora-documents
+    ports:
+      - "4719:4719"
     depends_on:
-      - postgres
-      - redis
-      - kafka
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - ostora-network
-    volumes:
-      - ./apps/user-service:/app/apps/user-service
-      - ./libs:/app/libs
     restart: unless-stopped
 
   job-service:
     build:
-      context: .
-      dockerfile: ./infra/docker/job-service.Dockerfile
+      context: ./apps/job-service
+      dockerfile: ../../devops/docker/Dockerfile.job
     container_name: ostora-job-service
-    ports:
-      - "4720:4720"
     environment:
-      NODE_ENV: development
       PORT: 4720
-      DATABASE_URL: postgresql://ostora:ostora_secret_2024@postgres:5432/ostora_db
-      ELASTICSEARCH_NODE: http://elasticsearch:9200
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/ostora
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+      MYSQL_DATABASE: data_server25
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      REDIS_PASSWORD: ostora_redis_2024
+      ELASTICSEARCH_URL: http://elasticsearch:9200
       KAFKA_BROKER: kafka:29092
+    ports:
+      - "4720:4720"
     depends_on:
-      - postgres
-      - elasticsearch
-      - redis
-      - kafka
+      postgres:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
     networks:
       - ostora-network
-    volumes:
-      - ./apps/job-service:/app/apps/job-service
-      - ./libs:/app/libs
     restart: unless-stopped
 
   email-service:
     build:
-      context: .
-      dockerfile: ./infra/docker/email-service.Dockerfile
+      context: ./apps/email-service
+      dockerfile: ../../devops/docker/Dockerfile.email
     container_name: ostora-email-service
-    ports:
-      - "4721:4721"
     environment:
-      NODE_ENV: development
       PORT: 4721
-      SMTP_HOST: ${SMTP_HOST}
-      SMTP_PORT: ${SMTP_PORT}
-      SMTP_USER: ${SMTP_USER}
-      SMTP_PASS: ${SMTP_PASS}
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/ostora
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      REDIS_PASSWORD: ostora_redis_2024
       KAFKA_BROKER: kafka:29092
+      AWS_REGION: us-east-1
+      AWS_SES_FROM_EMAIL: noreply@ostora.com
+    ports:
+      - "4721:4721"
     depends_on:
-      - redis
-      - kafka
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
     networks:
       - ostora-network
-    volumes:
-      - ./apps/email-service:/app/apps/email-service
-      - ./libs:/app/libs
     restart: unless-stopped
 
   scraping-service:
     build:
-      context: .
-      dockerfile: ./infra/docker/scraping-service.Dockerfile
+      context: ./apps/scraping-service
+      dockerfile: ../../devops/docker/Dockerfile.scraping
     container_name: ostora-scraping-service
-    ports:
-      - "4722:4722"
     environment:
-      NODE_ENV: development
       PORT: 4722
-      DATABASE_URL: postgresql://ostora:ostora_secret_2024@postgres:5432/ostora_db
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ostora_redis_2024
-      KAFKA_BROKER: kafka:29092
-    depends_on:
-      - postgres
-      - redis
-      - kafka
-    networks:
-      - ostora-network
-    volumes:
-      - ./apps/scraping-service:/app/apps/scraping-service
-      - ./scripts/scraper:/app/scripts/scraper
-      - ./libs:/app/libs
-    restart: unless-stopped
-
-  ai-service:
-    build:
-      context: .
-      dockerfile: ./infra/docker/ai-service.Dockerfile
-    container_name: ostora-ai-service
-    ports:
-      - "4723:4723"
-    environment:
-      NODE_ENV: development
-      PORT: 4723
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ostora_redis_2024
-      KAFKA_BROKER: kafka:29092
-    depends_on:
-      - redis
-      - kafka
-    networks:
-      - ostora-network
-    volumes:
-      - ./apps/ai-service:/app/apps/ai-service
-      - ./libs:/app/libs
-    restart: unless-stopped
-
-  payment-service:
-    build:
-      context: .
-      dockerfile: ./infra/docker/payment-service.Dockerfile
-    container_name: ostora-payment-service
-    ports:
-      - "4724:4724"
-    environment:
-      NODE_ENV: development
-      PORT: 4724
-      DATABASE_URL: postgresql://ostora:ostora_secret_2024@postgres:5432/ostora_db
-      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
-      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ostora_redis_2024
-      KAFKA_BROKER: kafka:29092
-    depends_on:
-      - postgres
-      - redis
-      - kafka
-    networks:
-      - ostora-network
-    volumes:
-      - ./apps/payment-service:/app/apps/payment-service
-      - ./libs:/app/libs
-    restart: unless-stopped
-
-  analytics-service:
-    build:
-      context: .
-      dockerfile: ./infra/docker/analytics-service.Dockerfile
-    container_name: ostora-analytics-service
-    ports:
-      - "4725:4725"
-    environment:
-      NODE_ENV: development
-      PORT: 4725
+      NODE_ENV: production
       MYSQL_HOST: mysql
       MYSQL_PORT: 3306
-      MYSQL_USER: ostora
-      MYSQL_PASSWORD: ostora_secret_2024
-      MYSQL_DATABASE: ostora_analytics
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ostora_redis_2024
-      KAFKA_BROKER: kafka:29092
-    depends_on:
-      - mysql
-      - redis
-      - kafka
-    networks:
-      - ostora-network
-    volumes:
-      - ./apps/analytics-service:/app/apps/analytics-service
-      - ./libs:/app/libs
-    restart: unless-stopped
-
-  b2b-service:
-    build:
-      context: .
-      dockerfile: ./infra/docker/b2b-service.Dockerfile
-    container_name: ostora-b2b-service
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+      MYSQL_DATABASE: data_server25
     ports:
-      - "4726:4726"
-    environment:
-      NODE_ENV: development
-      PORT: 4726
-      DATABASE_URL: postgresql://ostora:ostora_secret_2024@postgres:5432/ostora_db
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ostora_redis_2024
-      KAFKA_BROKER: kafka:29092
+      - "4722:4722"
     depends_on:
-      - postgres
-      - redis
-      - kafka
+      mysql:
+        condition: service_healthy
     networks:
       - ostora-network
-    volumes:
-      - ./apps/b2b-service:/app/apps/b2b-service
-      - ./libs:/app/libs
-    restart: unless-stopped
-
-  notification-service:
-    build:
-      context: .
-      dockerfile: ./infra/docker/notification-service.Dockerfile
-    container_name: ostora-notification-service
-    ports:
-      - "4727:4727"
-    environment:
-      NODE_ENV: development
-      PORT: 4727
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ostora_redis_2024
-      KAFKA_BROKER: kafka:29092
-    depends_on:
-      - redis
-      - kafka
-    networks:
-      - ostora-network
-    volumes:
-      - ./apps/notification-service:/app/apps/notification-service
-      - ./libs:/app/libs
-    restart: unless-stopped
-
-  networking-service:
-    build:
-      context: .
-      dockerfile: ./infra/docker/networking-service.Dockerfile
-    container_name: ostora-networking-service
-    ports:
-      - "4728:4728"
-    environment:
-      NODE_ENV: development
-      PORT: 4728
-      DATABASE_URL: postgresql://ostora:ostora_secret_2024@postgres:5432/ostora_db
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ostora_redis_2024
-      KAFKA_BROKER: kafka:29092
-    depends_on:
-      - postgres
-      - redis
-      - kafka
-    networks:
-      - ostora-network
-    volumes:
-      - ./apps/networking-service:/app/apps/networking-service
-      - ./libs:/app/libs
     restart: unless-stopped
 
 networks:

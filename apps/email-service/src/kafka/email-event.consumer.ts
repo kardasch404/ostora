@@ -15,7 +15,7 @@ export class EmailEventConsumer implements OnModuleInit {
   private consumer: Consumer;
 
   constructor(
-    private config: ConfigService,
+    config: ConfigService,
     private templateRenderer: TemplateRendererService,
     @InjectQueue(EMAIL_QUEUE) private emailQueue: Queue
   ) {
@@ -31,8 +31,13 @@ export class EmailEventConsumer implements OnModuleInit {
     await this.consumer.subscribe({ topic: 'email.events', fromBeginning: false });
 
     await this.consumer.run({
-      eachMessage: async ({ topic, partition, message }) => {
+      eachMessage: async ({ message }) => {
         try {
+          if (!message.value) {
+            this.logger.warn('Received Kafka email event with empty payload');
+            return;
+          }
+
           const event: EmailEventPayload = JSON.parse(message.value.toString());
           this.logger.log(`Received email event: ${event.eventType}`);
           await this.handleEmailEvent(event);

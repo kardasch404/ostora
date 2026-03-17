@@ -28,8 +28,9 @@ export class EmailProcessor {
 
       this.logger.log(`Email sent successfully: ${to}`);
       return { success: true };
-    } catch (error) {
-      this.logger.error(`Email send failed (attempt ${attempt}): ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown email send error';
+      this.logger.error(`Email send failed (attempt ${attempt}): ${message}`);
 
       if (attempt < this.MAX_ATTEMPTS) {
         // Exponential backoff: 2^attempt minutes
@@ -41,6 +42,7 @@ export class EmailProcessor {
         );
 
         this.logger.log(`Scheduled retry in ${delay / 1000}s`);
+        return { success: false, retryScheduled: true, nextAttempt: attempt + 1 };
       } else {
         this.logger.error(`Max retry attempts reached for email: ${to}`);
         throw error;

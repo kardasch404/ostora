@@ -1,4 +1,5 @@
 import * as bcrypt from 'bcrypt';
+import { createHash, createHmac } from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import { v7 as uuidv7 } from 'uuidv7';
 
@@ -213,6 +214,26 @@ export class UuidUtil {
    */
   static short(): string {
     return uuidv4().split('-')[0];
+  }
+}
+
+// ==================== HASH UTIL ====================
+
+export class HashUtil {
+  static sha256(value: string): string {
+    return createHash('sha256').update(value).digest('hex');
+  }
+
+  static sha512(value: string): string {
+    return createHash('sha512').update(value).digest('hex');
+  }
+
+  static md5(value: string): string {
+    return createHash('md5').update(value).digest('hex');
+  }
+
+  static hmacSha256(value: string, secret: string): string {
+    return createHmac('sha256', secret).update(value).digest('hex');
   }
 }
 

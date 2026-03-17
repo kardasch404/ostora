@@ -29,7 +29,7 @@ export class ElasticsearchService implements OnModuleInit {
         this.logger.log(`Creating index: ${this.indexName}`);
         await this.client.indices.create({
           index: this.indexName,
-          body: JOB_INDEX_MAPPING,
+          body: JOB_INDEX_MAPPING as any,
         });
         this.logger.log(`Index created: ${this.indexName}`);
       }

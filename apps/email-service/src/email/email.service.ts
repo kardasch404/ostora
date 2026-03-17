@@ -57,15 +57,15 @@ export class EmailService {
       } else {
         throw new Error(result.error);
       }
-    } catch (error) {
-      await this.emailLog.record(userId, dto.to, dto.subject, EmailStatus.FAILED, provider, error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown email send error';
+      await this.emailLog.record(userId, dto.to, dto.subject, EmailStatus.FAILED, provider, errorMessage);
       throw error;
     }
   }
 
   async sendApplication(dto: SendApplicationDto, userId: string) {
-    // Fetch email config, template, and bundle from user-service via gRPC
-    const emailConfig = await this.fetchEmailConfig(dto.emailConfigId);
+    // Fetch template and bundle from user-service via gRPC
     const template = await this.fetchTemplate(dto.templateId);
     const bundle = await this.fetchBundle(dto.bundleId);
 
@@ -98,6 +98,7 @@ export class EmailService {
   }
 
   private async fetchEmailConfig(emailConfigId: string): Promise<any> {
+    void emailConfigId;
     // TODO: Implement gRPC call to user-service
     // For now, return mock data
     return {
@@ -110,6 +111,7 @@ export class EmailService {
   }
 
   private async fetchTemplate(templateId: string): Promise<any> {
+    void templateId;
     // TODO: Implement gRPC call to user-service
     return {
       subject: 'Job Application',
@@ -118,6 +120,7 @@ export class EmailService {
   }
 
   private async fetchBundle(bundleId: string): Promise<any> {
+    void bundleId;
     // TODO: Implement gRPC call to user-service
     return {
       documents: ['cv.pdf', 'cover-letter.pdf'],

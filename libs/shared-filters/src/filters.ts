@@ -104,3 +104,80 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     return formatted;
   }
 }
+
+@Catch()
+export class PrismaExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(PrismaExceptionFilter.name);
+
+  catch(exception: unknown, host: ArgumentsHost) {
+    const ctx = host.switchToHttp();
+    const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<Request>();
+
+    const parsed = this.parsePrismaException(exception);
+    if (!parsed) {
+      throw exception;
+    }
+
+    const correlationId =
+      (request.headers['x-correlation-id'] as string) ||
+      (request.headers['x-request-id'] as string);
+
+    this.logger.warn(
+      `${request.method} ${request.url} - ${parsed.statusCode} - ${parsed.message}`,
+    );
+
+    response
+      .status(parsed.statusCode)
+      .json(
+        new ErrorDto(
+          parsed.statusCode,
+          parsed.message,
+          parsed.error,
+          request.url,
+          request.method,
+          correlationId,
+        ),
+      );
+  }
+
+  private parsePrismaException(
+    exception: unknown,
+  ): { statusCode: number; message: string; error: string } | null {
+    if (!exception || typeof exception !== 'object') {
+      return null;
+    }
+
+    const code = (exception as { code?: string }).code;
+    if (!code || typeof code !== 'string' || !code.startsWith('P')) {
+      return null;
+    }
+
+    switch (code) {
+      case 'P2002':
+        return {
+          statusCode: HttpStatus.CONFLICT,
+          message: 'A record with this value already exists',
+          error: 'UniqueConstraintViolation',
+        };
+      case 'P2025':
+        return {
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'The requested record was not found',
+          error: 'RecordNotFound',
+        };
+      case 'P2003':
+        return {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Invalid relation or foreign key reference',
+          error: 'ForeignKeyConstraintViolation',
+        };
+      default:
+        return {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Database request could not be completed',
+          error: 'PrismaRequestError',
+        };
+    }
+  }
+}
