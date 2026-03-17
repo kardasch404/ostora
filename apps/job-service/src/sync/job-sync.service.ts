@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { MySQLReaderService } from './mysql-reader.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { ElasticsearchService } from '../search/elasticsearch.service';
 import { JobDedupService } from '../job/job-dedup.service';
+import { KafkaService } from '../kafka/kafka.service';
 
 @Injectable()
 export class JobSyncService {
@@ -11,8 +11,8 @@ export class JobSyncService {
   constructor(
     private mysqlReader: MySQLReaderService,
     private prisma: PrismaService,
-    private elasticsearch: ElasticsearchService,
-    private dedup: JobDedupService
+    private dedup: JobDedupService,
+    private kafka: KafkaService
   ) {}
 
   async syncAll() {
@@ -68,17 +68,8 @@ export class JobSyncService {
       isActive: true,
     });
 
-    // Index in Elasticsearch
-    await this.elasticsearch.indexJob(jobPost.id, {
-      title: jobPost.title,
-      description: jobPost.description,
-      city: jobPost.city,
-      country: jobPost.country,
-      remote: jobPost.remote,
-      contractType: jobPost.contractType,
-      postedAt: jobPost.postedAt,
-      isActive: jobPost.isActive,
-    });
+    // Emit event to Kafka for Elasticsearch indexing
+    await this.kafka.emit('job.upserted', { jobId: jobPost.id });
   }
 
   private mapContractType(type?: string): string | null {

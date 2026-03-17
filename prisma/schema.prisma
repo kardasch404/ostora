@@ -905,7 +905,7 @@ model JobPost {
   updatedAt     DateTime    @updatedAt @db.Timestamptz
 
   favorites     JobFavorite[]
-  applications  JobApplication[]
+  applications  JobPostApplication[]
 
   @@unique([externalId, source])
   @@index([source])
@@ -948,7 +948,7 @@ model JobFavorite {
   @@map("job_favorites")
 }
 
-model JobApplication {
+model JobPostApplication {
   id            String              @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
   userId        String              @db.Uuid
   jobPostId     String              @db.Uuid
@@ -956,7 +956,7 @@ model JobApplication {
   emailConfigId String?             @db.Uuid
   templateId    String?             @db.Uuid
   sentAt        DateTime?           @db.Timestamptz
-  status        JobApplicationStatus @default(PENDING)
+  status        JobPostApplicationStatus @default(PENDING)
   createdAt     DateTime            @default(now()) @db.Timestamptz
   updatedAt     DateTime            @updatedAt @db.Timestamptz
 
@@ -966,10 +966,10 @@ model JobApplication {
   @@index([userId])
   @@index([jobPostId])
   @@index([status])
-  @@map("job_applications")
+  @@map("job_post_applications")
 }
 
-enum JobApplicationStatus {
+enum JobPostApplicationStatus {
   PENDING
   SENT
   FAILED

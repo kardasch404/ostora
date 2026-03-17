@@ -1,14 +1,13 @@
-import { SearchJobsDto } from '../dto/search-jobs.dto';
-import { SalaryRange } from './salary-range.vo';
+import { SearchJobsDto } from '../job/dto/search-jobs.dto';
 
-export class JobSearchQuery {
+export class SearchQueryBuilder {
   private dto: SearchJobsDto;
 
   constructor(dto: SearchJobsDto) {
     this.dto = dto;
   }
 
-  toESQuery(): object {
+  build(): object {
     const must: any[] = [];
     const filter: any[] = [];
     const should: any[] = [];
@@ -56,10 +55,25 @@ export class JobSearchQuery {
       filter.push({ term: { contractType: this.dto.contractType } });
     }
 
-    // Salary range filter using SalaryRange VO
+    // Salary range filter - check if job salary range overlaps with user range
     if (this.dto.salaryMin || this.dto.salaryMax) {
-      const salaryRange = new SalaryRange(this.dto.salaryMin, this.dto.salaryMax);
-      filter.push({ range: { salaryMin: salaryRange.toESRangeFilter() } });
+      if (this.dto.salaryMin && this.dto.salaryMax) {
+        // User wants jobs where salaryMax >= user_min AND salaryMin <= user_max
+        filter.push({
+          bool: {
+            must: [
+              { range: { salaryMax: { gte: this.dto.salaryMin } } },
+              { range: { salaryMin: { lte: this.dto.salaryMax } } },
+            ],
+          },
+        });
+      } else if (this.dto.salaryMin) {
+        // User wants jobs where salaryMax >= user_min
+        filter.push({ range: { salaryMax: { gte: this.dto.salaryMin } } });
+      } else if (this.dto.salaryMax) {
+        // User wants jobs where salaryMin <= user_max
+        filter.push({ range: { salaryMin: { lte: this.dto.salaryMax } } });
+      }
     }
 
     // Only active jobs
@@ -93,5 +107,16 @@ export class JobSearchQuery {
       ],
       track_total_hits: true,
     };
+  }
+
+  buildWithCursor(searchAfter?: any[]): object {
+    const baseQuery = this.build() as any;
+    
+    if (searchAfter) {
+      delete baseQuery.from;
+      baseQuery.search_after = searchAfter;
+    }
+
+    return baseQuery;
   }
 }
