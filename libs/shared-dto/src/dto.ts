@@ -185,6 +185,29 @@ export class ErrorDto {
   }
 }
 
+// ==================== API VERSION DTO ====================
+
+export class ApiVersionDto {
+  @ApiProperty({ description: 'API version identifier', example: 'v1' })
+  @IsString()
+  version: string;
+
+  @ApiPropertyOptional({ description: 'Deprecation status for this version', default: false })
+  @IsOptional()
+  deprecated?: boolean = false;
+
+  @ApiPropertyOptional({ description: 'Sunset date in ISO format' })
+  @IsOptional()
+  @IsString()
+  sunsetAt?: string;
+
+  constructor(version: string, deprecated: boolean = false, sunsetAt?: string) {
+    this.version = version;
+    this.deprecated = deprecated;
+    this.sunsetAt = sunsetAt;
+  }
+}
+
 // ==================== ID PARAM DTO ====================
 
 export class IdParamDto {

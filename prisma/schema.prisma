@@ -861,3 +861,117 @@ enum RemotePreference {
   ONSITE
   NO_PREFERENCE
 }
+
+// ==================== JOB SERVICE ====================
+model Company {
+  id            String    @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  name          String    @unique
+  website       String?
+  industry      String?
+  size          String?
+  country       String?
+  city          String?
+  logoUrl       String?
+  description   String?   @db.Text
+  createdAt     DateTime  @default(now()) @db.Timestamptz
+  updatedAt     DateTime  @updatedAt @db.Timestamptz
+
+  jobPosts      JobPost[]
+
+  @@index([name])
+  @@map("companies")
+}
+
+model JobPost {
+  id            String      @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  externalId    String
+  source        JobSource
+  title         String
+  companyId     String      @db.Uuid
+  company       Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  location      String?
+  city          String?
+  country       String?
+  salary        String?
+  contractType  ContractType?
+  remote        Boolean     @default(false)
+  description   String      @db.Text
+  requirements  String?     @db.Text
+  url           String
+  postedAt      DateTime?   @db.Timestamptz
+  scrapedAt     DateTime    @default(now()) @db.Timestamptz
+  isActive      Boolean     @default(true)
+  createdAt     DateTime    @default(now()) @db.Timestamptz
+  updatedAt     DateTime    @updatedAt @db.Timestamptz
+
+  favorites     JobFavorite[]
+  applications  JobPostApplication[]
+
+  @@unique([externalId, source])
+  @@index([source])
+  @@index([companyId])
+  @@index([city])
+  @@index([country])
+  @@index([remote])
+  @@index([isActive])
+  @@index([postedAt])
+  @@map("job_posts")
+}
+
+enum JobSource {
+  LINKEDIN
+  INDEED
+  STELLEN
+  OTHER
+}
+
+enum ContractType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  FREELANCE
+  INTERNSHIP
+  TEMPORARY
+}
+
+model JobFavorite {
+  id            String    @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  userId        String    @db.Uuid
+  jobPostId     String    @db.Uuid
+  savedAt       DateTime  @default(now()) @db.Timestamptz
+
+  jobPost       JobPost   @relation(fields: [jobPostId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobPostId])
+  @@index([userId])
+  @@index([jobPostId])
+  @@map("job_favorites")
+}
+
+model JobPostApplication {
+  id            String              @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  userId        String              @db.Uuid
+  jobPostId     String              @db.Uuid
+  bundleId      String?             @db.Uuid
+  emailConfigId String?             @db.Uuid
+  templateId    String?             @db.Uuid
+  sentAt        DateTime?           @db.Timestamptz
+  status        JobPostApplicationStatus @default(PENDING)
+  createdAt     DateTime            @default(now()) @db.Timestamptz
+  updatedAt     DateTime            @updatedAt @db.Timestamptz
+
+  jobPost       JobPost             @relation(fields: [jobPostId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobPostId])
+  @@index([userId])
+  @@index([jobPostId])
+  @@index([status])
+  @@map("job_post_applications")
+}
+
+enum JobPostApplicationStatus {
+  PENDING
+  SENT
+  FAILED
+  REPLIED
+}
