@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class LinkedInStrategy extends PassportStrategy(Strategy, 'linkedin') {
-  constructor(private configService: ConfigService) {
+  constructor(configService: ConfigService) {
     super({
       clientID: configService.get<string>('LINKEDIN_CLIENT_ID'),
       clientSecret: configService.get<string>('LINKEDIN_CLIENT_SECRET'),

@@ -55,4 +55,8 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     const result = await this.client.scan(cursor, 'MATCH', pattern, 'COUNT', count);
     return result;
   }
+
+  async ping(): Promise<string> {
+    return this.client.ping();
+  }
 }

@@ -39,6 +39,11 @@ export class EmailService {
       emailConfig = await this.fetchEmailConfig(emailConfigId);
     }
 
+    // Fallback to service-level SMTP configuration
+    if (!emailConfig) {
+      emailConfig = this.getDefaultEmailConfig();
+    }
+
     // Get appropriate transport (SMTP or SES)
     const transport = await this.transportFactory.getTransport(emailConfig);
     const provider = emailConfig ? EmailProvider.SMTP : EmailProvider.SES;
@@ -100,13 +105,28 @@ export class EmailService {
   private async fetchEmailConfig(emailConfigId: string): Promise<any> {
     void emailConfigId;
     // TODO: Implement gRPC call to user-service
-    // For now, return mock data
+    return null;
+  }
+
+  private getDefaultEmailConfig(): any {
+    const smtpHost = this.config.get<string>('SMTP_HOST');
+    const smtpPort = Number(this.config.get<string>('SMTP_PORT', '587'));
+    const smtpSecure = this.config.get<string>('SMTP_SECURE', 'false') === 'true';
+    const smtpUser = this.config.get<string>('SMTP_USER');
+    const smtpPassword = this.config.get<string>('SMTP_PASSWORD');
+    const fromEmail = this.config.get<string>('SMTP_FROM_EMAIL') || smtpUser;
+
+    if (!smtpHost || !smtpUser || !smtpPassword) {
+      return null;
+    }
+
     return {
-      smtpHost: 'smtp.gmail.com',
-      smtpPort: 587,
-      smtpSecure: false,
-      smtpUser: 'user@example.com',
-      smtpPassword: 'password',
+      smtpHost,
+      smtpPort,
+      smtpSecure,
+      smtpUser,
+      smtpPassword,
+      fromEmail,
     };
   }
 

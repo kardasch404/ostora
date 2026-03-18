@@ -7,6 +7,5 @@ import { RedisModule } from '../redis/redis.module';
 @Module({
   imports: [PrismaModule, RedisModule],
   controllers: [HealthController, MetricsController],
-  exports: [MetricsController],
 })
 export class HealthModule {}

@@ -8,6 +8,15 @@ export class EmailLogService {
 
   constructor(private prisma: PrismaService) {}
 
+  private get emailLogModel() {
+    const model = (this.prisma as any).emailLog;
+    if (!model) {
+      this.logger.warn('Prisma model emailLog is not available; skipping email log persistence');
+      return null;
+    }
+    return model;
+  }
+
   async record(
     userId: string,
     to: string,
@@ -16,8 +25,13 @@ export class EmailLogService {
     provider: EmailProvider,
     errorMessage?: string
   ) {
+    const emailLog = this.emailLogModel;
+    if (!emailLog) {
+      return;
+    }
+
     try {
-      await this.prisma.emailLog.create({
+      await emailLog.create({
         data: {
           userId,
           to,
@@ -35,7 +49,12 @@ export class EmailLogService {
   }
 
   async findByUserId(userId: string, limit = 50) {
-    return this.prisma.emailLog.findMany({
+    const emailLog = this.emailLogModel;
+    if (!emailLog) {
+      return [];
+    }
+
+    return emailLog.findMany({
       where: { userId },
       orderBy: { sentAt: 'desc' },
       take: limit,
@@ -43,10 +62,15 @@ export class EmailLogService {
   }
 
   async getStats(userId: string) {
+    const emailLog = this.emailLogModel;
+    if (!emailLog) {
+      return { sent: 0, failed: 0, retry: 0, total: 0 };
+    }
+
     const [sent, failed, retry] = await Promise.all([
-      this.prisma.emailLog.count({ where: { userId, status: EmailStatus.SENT } }),
-      this.prisma.emailLog.count({ where: { userId, status: EmailStatus.FAILED } }),
-      this.prisma.emailLog.count({ where: { userId, status: EmailStatus.RETRY } }),
+      emailLog.count({ where: { userId, status: EmailStatus.SENT } }),
+      emailLog.count({ where: { userId, status: EmailStatus.FAILED } }),
+      emailLog.count({ where: { userId, status: EmailStatus.RETRY } }),
     ]);
 
     return { sent, failed, retry, total: sent + failed + retry };

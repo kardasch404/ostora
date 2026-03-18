@@ -62,7 +62,7 @@ export class TwoFactorService {
       throw new BadRequestException('2FA setup not initiated or expired');
     }
 
-    const { secret, backupCodes } = JSON.parse(setupData);
+    const { secret } = JSON.parse(setupData);
 
     // Verify TOTP code
     const isValid = speakeasy.totp.verify({

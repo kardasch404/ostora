@@ -52,6 +52,7 @@ export class EmailEventConsumer implements OnModuleInit {
 
   private async handleEmailEvent(event: EmailEventPayload) {
     const { eventType, userId, to, data, attachments } = event;
+    const templateData = { ...data };
 
     let templateName: string;
     let subject: string;
@@ -75,7 +76,10 @@ export class EmailEventConsumer implements OnModuleInit {
         break;
       case EmailEventEnum.OTP_CODE:
         templateName = 'otp';
-        subject = 'Your OTP Code';
+        subject = 'Verify your identity';
+        templateData.otpCode = templateData.otpCode || templateData.code;
+        templateData.expiryMinutes = templateData.expiryMinutes || 10;
+        templateData.supportEmail = templateData.supportEmail || 'noreplayostora@gmail.com';
         break;
       case EmailEventEnum.APPLICATION_SENT:
         templateName = 'application';
@@ -90,7 +94,7 @@ export class EmailEventConsumer implements OnModuleInit {
         return;
     }
 
-    const body = this.templateRenderer.render(templateName, data);
+    const body = this.templateRenderer.render(templateName, templateData);
 
     await this.emailQueue.add({
       userId,
