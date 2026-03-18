@@ -1,10 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { authReducer } from "@/store/slices/auth-slice";
+import { bewerbungReducer } from "@/store/slices/bewerbung-slice";
 
 export const makeStore = () =>
   configureStore({
     reducer: {
       auth: authReducer,
+      bewerbung: bewerbungReducer,
     },
   });
 
