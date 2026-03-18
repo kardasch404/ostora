@@ -3,6 +3,7 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { RedisService } from '../redis/redis.service';
@@ -10,6 +11,7 @@ import { TokenService } from './services/token.service';
 import { SessionService } from '../session/session.service';
 import { AuditService } from '../audit/audit.service';
 import { AuthEventPublisher } from './events/auth.event-publisher';
+import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { Email } from './value-objects/email.vo';
 import { Password } from './value-objects/password.vo';
@@ -19,9 +21,12 @@ import { SessionListResponse, SessionResponse } from './responses/session-list.r
 import { Request } from 'express';
 import * as speakeasy from 'speakeasy';
 import { createHash } from 'crypto';
+import { AuditEvent } from '../audit/audit-event.enum';
+import { OtpService } from './services/otp.service';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   private readonly MAX_LOGIN_ATTEMPTS = 5;
   private readonly LOCKOUT_DURATION = 900; // 15 minutes
   private readonly FAILED_ATTEMPT_TTL = 1800; // 30 minutes
@@ -33,10 +38,134 @@ export class AuthService {
     private sessionService: SessionService,
     private auditService: AuditService,
     private eventPublisher: AuthEventPublisher,
+    private otpService: OtpService,
   ) {}
 
+  async register(dto: RegisterDto, req: Request): Promise<AuthTokenResponse> {
+    let email: Email;
+    try {
+      email = new Email(dto.email);
+    } catch (error) {
+      throw new BadRequestException(error instanceof Error ? error.message : 'Invalid email');
+    }
+    const ip = this.extractIp(req);
+    const userAgent = req.headers['user-agent'] || 'unknown';
+
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: email.value },
+    });
+
+    if (existingUser) {
+      throw new BadRequestException('Email already in use');
+    }
+
+    let passwordHash: string;
+    try {
+      const password = await Password.create(dto.password);
+      passwordHash = password.hash;
+    } catch (error) {
+      throw new BadRequestException(error instanceof Error ? error.message : 'Invalid password');
+    }
+
+    const userRole = await this.prisma.role.findUnique({
+      where: { name: 'USER' },
+    });
+
+    const user = await this.prisma.user.create({
+      data: {
+        email: email.value,
+        password: passwordHash,
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+        roleId: userRole?.id,
+        status: 'ACTIVE',
+        // Keep signup flow functional immediately until full email-verification workflow is enabled.
+        emailVerified: true,
+        emailVerifiedAt: new Date(),
+      },
+      include: {
+        role: {
+          include: {
+            rolePermissions: {
+              include: {
+                permission: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const fingerprint = new DeviceFingerprint(req);
+    const permissions = user.role?.rolePermissions.map((rp) => `${rp.permission.resource}:${rp.permission.action}`) || [];
+
+    const tokens = await this.tokenService.generateTokenPair(
+      user.id,
+      user.email,
+      user.role?.name || 'USER',
+      permissions,
+      fingerprint.hash,
+    );
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        lastLoginAt: new Date(),
+        lastLoginIp: ip,
+      },
+    });
+
+    await this.auditService.log(
+      AuditEvent.REGISTER,
+      user.id,
+      'auth',
+      null,
+      { email: user.email },
+      ip,
+      userAgent,
+    );
+
+    await this.eventPublisher.publishUserRegistered({
+      userId: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      ip,
+      userAgent,
+    });
+
+    // Best-effort OTP dispatch for email verification UX.
+    try {
+      await this.otpService.sendOtp(user.email);
+    } catch (error) {
+      this.logger.warn(`Failed to trigger registration OTP for ${user.email}: ${(error as Error).message}`);
+    }
+
+    return {
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      expiresIn: tokens.expiresIn,
+      tokenType: 'Bearer',
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        avatar: user.avatar,
+        role: user.role?.name || 'USER',
+        emailVerified: user.emailVerified,
+        twoFactorEnabled: user.twoFactorEnabled,
+      },
+    };
+  }
+
   async login(dto: LoginDto, req: Request): Promise<AuthTokenResponse> {
-    const email = new Email(dto.email);
+    let email: Email;
+    try {
+      email = new Email(dto.email);
+    } catch (error) {
+      throw new BadRequestException(error instanceof Error ? error.message : 'Invalid email');
+    }
     const ip = this.extractIp(req);
     const userAgent = req.headers['user-agent'] || 'unknown';
 
@@ -132,8 +261,6 @@ export class AuthService {
       data: {
         lastLoginAt: new Date(),
         lastLoginIp: ip,
-        deviceFingerprint: fingerprint.hash,
-        loginAttempts: 0,
       },
     });
 

@@ -18,7 +18,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
       secretOrKey: process.env.JWT_ACCESS_SECRET || 'secret',
-      algorithms: ['RS256'],
+      algorithms: ['HS256'],
       issuer: 'ostora-auth-service',
       audience: 'ostora-platform',
       passReqToCallback: true,

@@ -18,6 +18,7 @@ export class TransportFactoryService {
       host: emailConfig.smtpHost,
       port: emailConfig.smtpPort,
       secure: emailConfig.smtpSecure,
+      defaultFrom: emailConfig.fromEmail,
       auth: {
         user: emailConfig.smtpUser,
         pass: emailConfig.smtpPassword,
@@ -41,16 +42,25 @@ export class TransportFactoryService {
   }
 
   async getTransport(emailConfig?: any): Promise<SmtpTransport | SesTransport> {
-    // Try user's SMTP config first
+    const allowSesFallback = this.config.get<string>('ALLOW_SES_FALLBACK', 'false') === 'true';
+
+    // Try SMTP config first
     if (emailConfig) {
       try {
         return await this.createSmtpTransport(emailConfig);
       } catch (error) {
+        if (!allowSesFallback) {
+          this.logger.error('SMTP transport is configured but failed to initialize');
+          throw error;
+        }
         this.logger.warn('Failed to create SMTP transport, falling back to SES');
       }
     }
 
-    // Fallback to AWS SES
+    // Fallback to AWS SES only when explicitly enabled
+    if (!allowSesFallback) {
+      throw new Error('No valid SMTP transport available and ALLOW_SES_FALLBACK is disabled');
+    }
     return this.getSesTransport();
   }
 }

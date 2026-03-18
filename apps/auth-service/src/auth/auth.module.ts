@@ -38,7 +38,7 @@ import jwtConfig from '../config/jwt.config';
         secret: configService.get('JWT_ACCESS_SECRET'),
         signOptions: {
           expiresIn: configService.get('JWT_ACCESS_EXPIRY', '15m'),
-          algorithm: 'RS256',
+          algorithm: 'HS256',
           issuer: 'ostora-auth-service',
           audience: 'ostora-platform',
         },

@@ -1,18 +1,47 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
 import { Inject } from '@nestjs/common';
 import { AuthEvents } from './auth-events.enum';
 
 @Injectable()
 export class AuthEventPublisher {
+  private readonly logger = new Logger(AuthEventPublisher.name);
+  private readonly kafkaEnabled = process.env.KAFKA_ENABLED !== 'false';
+  private isConnected = false;
+
   constructor(@Inject('KAFKA_CLIENT') private kafkaClient: ClientKafka) {}
 
   async onModuleInit() {
+    if (!this.kafkaEnabled) {
+      return;
+    }
+
     const events = Object.values(AuthEvents);
     events.forEach((event) => {
       this.kafkaClient.subscribeToResponseOf(event);
     });
-    await this.kafkaClient.connect();
+
+    try {
+      await this.kafkaClient.connect();
+      this.isConnected = true;
+    } catch (error) {
+      this.logger.warn(`Kafka connection skipped: ${(error as Error).message}`);
+      this.isConnected = false;
+    }
+  }
+
+  private emitEvent(event: AuthEvents, payload: Record<string, unknown>) {
+    if (!this.kafkaEnabled || !this.isConnected) {
+      return;
+    }
+    this.kafkaClient.emit(event, payload);
+  }
+
+  private emitTopic(topic: string, payload: Record<string, unknown>) {
+    if (!this.kafkaEnabled || !this.isConnected) {
+      return;
+    }
+    this.kafkaClient.emit(topic, payload);
   }
 
   async publishUserLogin(data: {
@@ -21,11 +50,32 @@ export class AuthEventPublisher {
     ip: string;
     userAgent: string;
   }): Promise<void> {
-    this.kafkaClient.emit(AuthEvents.USER_LOGIN, {
+    this.emitEvent(AuthEvents.USER_LOGIN, {
       userId: data.userId,
       email: data.email,
       ip: data.ip,
       userAgent: data.userAgent,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  async publishUserRegistered(data: {
+    userId: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    ip?: string;
+    userAgent?: string;
+    provider?: string;
+  }): Promise<void> {
+    this.emitEvent(AuthEvents.USER_REGISTERED, {
+      userId: data.userId,
+      email: data.email,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      ip: data.ip,
+      userAgent: data.userAgent,
+      provider: data.provider,
       timestamp: new Date().toISOString(),
     });
   }
@@ -37,7 +87,7 @@ export class AuthEventPublisher {
     userAgent: string;
     fingerprint: string;
   }): Promise<void> {
-    this.kafkaClient.emit(AuthEvents.NEW_DEVICE_LOGIN, {
+    this.emitEvent(AuthEvents.NEW_DEVICE_LOGIN, {
       userId: data.userId,
       email: data.email,
       ip: data.ip,
@@ -52,7 +102,7 @@ export class AuthEventPublisher {
     email: string;
     reason: string;
   }): Promise<void> {
-    this.kafkaClient.emit(AuthEvents.ACCOUNT_LOCKED, {
+    this.emitEvent(AuthEvents.ACCOUNT_LOCKED, {
       userId: data.userId,
       email: data.email,
       reason: data.reason,
@@ -66,7 +116,7 @@ export class AuthEventPublisher {
     token: string;
     firstName?: string;
   }): Promise<void> {
-    this.kafkaClient.emit(AuthEvents.PASSWORD_RESET_REQUESTED, {
+    this.emitEvent(AuthEvents.PASSWORD_RESET_REQUESTED, {
       userId: data.userId,
       email: data.email,
       token: data.token,
@@ -82,7 +132,7 @@ export class AuthEventPublisher {
     device: string;
     time: string;
   }): Promise<void> {
-    this.kafkaClient.emit(AuthEvents.PASSWORD_RESET_COMPLETED, {
+    this.emitEvent(AuthEvents.PASSWORD_RESET_COMPLETED, {
       userId: data.userId,
       email: data.email,
       ip: data.ip,
@@ -100,7 +150,7 @@ export class AuthEventPublisher {
     device: string;
     time: string;
   }): Promise<void> {
-    this.kafkaClient.emit(AuthEvents.PASSWORD_CHANGED, {
+    this.emitEvent(AuthEvents.PASSWORD_CHANGED, {
       userId: data.userId,
       email: data.email,
       firstName: data.firstName,
@@ -118,7 +168,7 @@ export class AuthEventPublisher {
     token: string;
     firstName?: string;
   }): Promise<void> {
-    this.kafkaClient.emit(AuthEvents.EMAIL_CHANGE_REQUESTED, {
+    this.emitEvent(AuthEvents.EMAIL_CHANGE_REQUESTED, {
       userId: data.userId,
       oldEmail: data.oldEmail,
       newEmail: data.newEmail,
@@ -137,7 +187,7 @@ export class AuthEventPublisher {
     device: string;
     time: string;
   }): Promise<void> {
-    this.kafkaClient.emit(AuthEvents.EMAIL_CHANGED, {
+    this.emitEvent(AuthEvents.EMAIL_CHANGED, {
       userId: data.userId,
       oldEmail: data.oldEmail,
       newEmail: data.newEmail,
@@ -155,12 +205,26 @@ export class AuthEventPublisher {
     code: string;
     firstName?: string;
   }): Promise<void> {
-    this.kafkaClient.emit(AuthEvents.OTP_REQUESTED, {
+    // Backward-compatible auth event topic
+    this.emitEvent(AuthEvents.OTP_REQUESTED, {
       userId: data.userId,
       email: data.email,
       code: data.code,
       firstName: data.firstName,
       timestamp: new Date().toISOString(),
+    });
+
+    // Email-service canonical topic payload
+    this.emitTopic('email.events', {
+      eventType: 'OTP_CODE',
+      userId: data.userId,
+      to: data.email,
+      data: {
+        name: data.firstName || 'User',
+        otpCode: data.code,
+        expiryMinutes: 10,
+        supportEmail: 'noreplayostora@gmail.com',
+      },
     });
   }
 }

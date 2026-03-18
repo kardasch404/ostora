@@ -180,11 +180,14 @@ services:
     environment:
       PORT: 4718
       NODE_ENV: production
+      CORS_ORIGIN: http://localhost:8080
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/ostora
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      JWT_SECRET: your-super-secret-jwt-key-change-in-production
-      JWT_EXPIRES_IN: 7d
+      KAFKA_ENABLED: "false"
+      JWT_ACCESS_SECRET: your-super-secret-jwt-key-change-in-production
+      JWT_ACCESS_EXPIRY: 15m
+      JWT_REFRESH_EXPIRY: 7d
     ports:
       - "4718:4718"
     depends_on:
@@ -300,6 +303,25 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+    networks:
+      - ostora-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ostora-frontend
+    environment:
+      NODE_ENV: production
+      PORT: 6000
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:4717
+      NEXT_PUBLIC_AUTH_API_BASE_URL: http://localhost:4718/api/v1/auth
+      NEXT_SERVER_API_BASE_URL: http://api-gateway:4717
+    ports:
+      - "8080:6000"
+    depends_on:
+      - api-gateway
     networks:
       - ostora-network
     restart: unless-stopped

@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, TooManyRequestsException } from '@nestjs/common';
+import { Injectable, BadRequestException, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RedisService } from '../../redis/redis.service';
 import { AuthEventPublisher } from '../events/auth.event-publisher';
@@ -61,7 +61,7 @@ export class OtpService {
     // Check max attempts
     if (attempts >= this.MAX_ATTEMPTS) {
       await this.redis.del(`otp:${userId}`);
-      throw new TooManyRequestsException('Maximum OTP attempts exceeded');
+      throw new HttpException('Maximum OTP attempts exceeded', HttpStatus.TOO_MANY_REQUESTS);
     }
 
     // Verify code
@@ -84,6 +84,19 @@ export class OtpService {
     await this.redis.del(`otp:${userId}`);
 
     return { message: 'OTP verified successfully' };
+  }
+
+  async verifyOtpByEmail(email: string, code: string): Promise<{ message: string }> {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      select: { id: true },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Invalid verification request');
+    }
+
+    return this.verifyOtp(user.id, code);
   }
 
   private generateOtp(): string {
