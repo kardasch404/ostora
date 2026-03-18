@@ -5,6 +5,7 @@ import { GoogleAuthGuard, LinkedInAuthGuard, GithubAuthGuard } from '../guards/o
 import { OAuthService } from '../services/oauth.service';
 import { Public } from '../decorators/public.decorator';
 import { DeviceFingerprint } from '../value-objects/device-fingerprint.vo';
+import { DeviceInfo } from '../interfaces/device-info.interface';
 
 @ApiTags('OAuth')
 @Controller('auth')
@@ -22,10 +23,10 @@ export class OAuthController {
   @UseGuards(GoogleAuthGuard)
   @ApiOperation({ summary: 'Google OAuth callback' })
   async googleAuthCallback(@Req() req: Request, @Res() res: Response) {
-    const deviceInfo = {
-      ipAddress: req.ip,
-      userAgent: req.headers['user-agent'],
-      fingerprint: DeviceFingerprint.create(req.headers['user-agent'], req.ip).getValue(),
+    const deviceInfo: DeviceInfo = {
+      ip: req.ip || req.socket.remoteAddress || '0.0.0.0',
+      userAgent: (req.headers['user-agent'] as string) || 'unknown',
+      fingerprint: new DeviceFingerprint(req).hash,
     };
 
     const tokens = await this.oauthService.handleOAuthLogin(req.user as any, deviceInfo);
@@ -44,7 +45,7 @@ export class OAuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000/dashboard');
+    res.redirect(process.env.FRONTEND_URL || 'http://localhost:8080/dashboard');
   }
 
   @Public()
@@ -58,10 +59,10 @@ export class OAuthController {
   @UseGuards(LinkedInAuthGuard)
   @ApiOperation({ summary: 'LinkedIn OAuth callback' })
   async linkedinAuthCallback(@Req() req: Request, @Res() res: Response) {
-    const deviceInfo = {
-      ipAddress: req.ip,
-      userAgent: req.headers['user-agent'],
-      fingerprint: DeviceFingerprint.create(req.headers['user-agent'], req.ip).getValue(),
+    const deviceInfo: DeviceInfo = {
+      ip: req.ip || req.socket.remoteAddress || '0.0.0.0',
+      userAgent: (req.headers['user-agent'] as string) || 'unknown',
+      fingerprint: new DeviceFingerprint(req).hash,
     };
 
     const tokens = await this.oauthService.handleOAuthLogin(req.user as any, deviceInfo);
@@ -80,7 +81,7 @@ export class OAuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000/dashboard');
+    res.redirect(process.env.FRONTEND_URL || 'http://localhost:8080/dashboard');
   }
 
   @Public()
@@ -94,10 +95,10 @@ export class OAuthController {
   @UseGuards(GithubAuthGuard)
   @ApiOperation({ summary: 'GitHub OAuth callback' })
   async githubAuthCallback(@Req() req: Request, @Res() res: Response) {
-    const deviceInfo = {
-      ipAddress: req.ip,
-      userAgent: req.headers['user-agent'],
-      fingerprint: DeviceFingerprint.create(req.headers['user-agent'], req.ip).getValue(),
+    const deviceInfo: DeviceInfo = {
+      ip: req.ip || req.socket.remoteAddress || '0.0.0.0',
+      userAgent: (req.headers['user-agent'] as string) || 'unknown',
+      fingerprint: new DeviceFingerprint(req).hash,
     };
 
     const tokens = await this.oauthService.handleOAuthLogin(req.user as any, deviceInfo);
@@ -116,6 +117,6 @@ export class OAuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000/dashboard');
+    res.redirect(process.env.FRONTEND_URL || 'http://localhost:8080/dashboard');
   }
 }

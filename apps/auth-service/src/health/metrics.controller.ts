@@ -11,10 +11,6 @@ export class MetricsController {
   @Public()
   @Get('metrics')
   async metrics(@Res() res: Response) {
-    const avgDuration = this.requestDurations.length > 0
-      ? this.requestDurations.reduce((a, b) => a + b, 0) / this.requestDurations.length
-      : 0;
-
     const metrics = `
 # HELP auth_service_requests_total Total number of requests
 # TYPE auth_service_requests_total counter

@@ -7,8 +7,10 @@ import { SmtpTransportInterface, EmailTransportResult } from '../email/interface
 export class SmtpTransport {
   private readonly logger = new Logger(SmtpTransport.name);
   private transporter: Transporter;
+  private readonly defaultFrom?: string;
 
   constructor(config: SmtpTransportInterface) {
+    this.defaultFrom = config.defaultFrom || config.auth.user;
     this.transporter = nodemailer.createTransport({
       host: config.host,
       port: config.port,
@@ -22,7 +24,10 @@ export class SmtpTransport {
 
   async send(mailOptions: any): Promise<EmailTransportResult> {
     try {
-      const info = await this.transporter.sendMail(mailOptions);
+      const info = await this.transporter.sendMail({
+        ...mailOptions,
+        from: mailOptions.from || this.defaultFrom,
+      });
       this.logger.log(`Email sent: ${info.messageId}`);
       return {
         success: true,

@@ -55,7 +55,8 @@ Kafka (email.events) → Consumer → BullMQ Queue → Processor → Transport (
   "data": {
     "name": "John Doe",
     "otpCode": "123456",
-    "expiryMinutes": "5"
+    "expiryMinutes": "10",
+    "supportEmail": "noreplayostora@gmail.com"
   }
 }
 ```

@@ -36,7 +36,7 @@ export class TokenService {
 
     const accessToken = this.jwtService.sign(payload, {
       expiresIn: this.configService.get('JWT_ACCESS_EXPIRY', '15m'),
-      algorithm: 'RS256',
+      algorithm: 'HS256',
       issuer: 'ostora-auth-service',
       audience: 'ostora-platform',
     });

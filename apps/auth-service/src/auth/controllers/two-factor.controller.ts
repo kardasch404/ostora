@@ -16,6 +16,7 @@ import { Enable2FaDto } from '../dto/enable-2fa.dto';
 import { Disable2FaDto } from '../dto/disable-2fa.dto';
 import { SendOtpDto } from '../dto/send-otp.dto';
 import { VerifyOtpDto } from '../dto/verify-otp.dto';
+import { VerifyEmailOtpDto } from '../dto/verify-email-otp.dto';
 
 @ApiTags('Two-Factor Authentication')
 @Controller('auth')
@@ -76,5 +77,16 @@ export class TwoFactorController {
   @ApiResponse({ status: 429, description: 'Maximum attempts exceeded' })
   async verifyOtp(@Body() dto: VerifyOtpDto, @CurrentUser() user: any) {
     return this.otpService.verifyOtp(user.userId, dto.code);
+  }
+
+  @Public()
+  @Post('otp/verify-email')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verify email OTP code' })
+  @ApiResponse({ status: 200, description: 'Email OTP verified successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid OTP code or invalid request' })
+  @ApiResponse({ status: 429, description: 'Maximum attempts exceeded' })
+  async verifyEmailOtp(@Body() dto: VerifyEmailOtpDto) {
+    return this.otpService.verifyOtpByEmail(dto.email, dto.code);
   }
 }
