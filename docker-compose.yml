@@ -27,7 +27,7 @@ services:
     container_name: ostora-mysql
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: data_server25
+      MYSQL_DATABASE: stellen
     ports:
       - "3345:3306"
     volumes:
@@ -151,31 +151,36 @@ services:
   
   api-gateway:
     build:
-      context: ./apps/api-gateway
-      dockerfile: ../../devops/docker/Dockerfile.gateway
+      context: .
+      dockerfile: ./devops/docker/api-gateway.Dockerfile
     container_name: ostora-api-gateway
     environment:
       PORT: 4717
       NODE_ENV: production
-      AUTH_SERVICE_URL: http://auth-service:4718
-      USER_SERVICE_URL: http://user-service:4719
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KAFKA_BROKER: kafka:29092
       JOB_SERVICE_URL: http://job-service:4720
-      EMAIL_SERVICE_URL: http://email-service:4721
+      USER_SERVICE_URL: http://user-service:4719
     ports:
       - "4717:4717"
     depends_on:
-      - auth-service
-      - user-service
-      - job-service
-      - email-service
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+      job-service:
+        condition: service_started
     networks:
       - ostora-network
     restart: unless-stopped
 
   auth-service:
     build:
-      context: ./apps/auth-service
-      dockerfile: ../../devops/docker/Dockerfile.auth
+      context: .
+      dockerfile: ./devops/docker/auth-service.Dockerfile
     container_name: ostora-auth-service
     environment:
       PORT: 4718
@@ -184,10 +189,20 @@ services:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/ostora
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      KAFKA_ENABLED: "false"
+      KAFKA_ENABLED: "true"
+      KAFKA_BROKER: kafka:29092
       JWT_ACCESS_SECRET: your-super-secret-jwt-key-change-in-production
       JWT_ACCESS_EXPIRY: 15m
       JWT_REFRESH_EXPIRY: 7d
+      GOOGLE_CLIENT_ID: placeholder-google-client-id
+      GOOGLE_CLIENT_SECRET: placeholder-google-client-secret
+      GOOGLE_CALLBACK_URL: http://localhost:4718/api/v1/auth/google/callback
+      GITHUB_CLIENT_ID: placeholder-github-client-id
+      GITHUB_CLIENT_SECRET: placeholder-github-client-secret
+      GITHUB_CALLBACK_URL: http://localhost:4718/api/v1/auth/github/callback
+      LINKEDIN_CLIENT_ID: placeholder-linkedin-client-id
+      LINKEDIN_CLIENT_SECRET: placeholder-linkedin-client-secret
+      LINKEDIN_CALLBACK_URL: http://localhost:4718/api/v1/auth/linkedin/callback
     ports:
       - "4718:4718"
     depends_on:
@@ -201,8 +216,8 @@ services:
 
   user-service:
     build:
-      context: ./apps/user-service
-      dockerfile: ../../devops/docker/Dockerfile.user
+      context: .
+      dockerfile: ./devops/docker/user-service.Dockerfile
     container_name: ostora-user-service
     environment:
       PORT: 4719
@@ -225,34 +240,25 @@ services:
 
   job-service:
     build:
-      context: ./apps/job-service
-      dockerfile: ../../devops/docker/Dockerfile.job
+      context: .
+      dockerfile: ./devops/docker/job-service.Dockerfile
     container_name: ostora-job-service
     environment:
       PORT: 4720
       NODE_ENV: production
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/ostora
-      MYSQL_HOST: mysql
+      MYSQL_HOST: host.docker.internal
       MYSQL_PORT: 3306
       MYSQL_USER: root
-      MYSQL_PASSWORD: root
-      MYSQL_DATABASE: data_server25
+      MYSQL_PASSWORD: 
+      MYSQL_DATABASE: stellen
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      ELASTICSEARCH_URL: http://elasticsearch:9200
-      KAFKA_BROKER: kafka:29092
     ports:
       - "4720:4720"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
-      postgres:
-        condition: service_healthy
-      mysql:
-        condition: service_healthy
       redis:
-        condition: service_healthy
-      elasticsearch:
-        condition: service_healthy
-      kafka:
         condition: service_healthy
     networks:
       - ostora-network
@@ -260,8 +266,8 @@ services:
 
   email-service:
     build:
-      context: ./apps/email-service
-      dockerfile: ../../devops/docker/Dockerfile.email
+      context: .
+      dockerfile: ./devops/docker/email-service.Dockerfile
     container_name: ostora-email-service
     environment:
       PORT: 4721
@@ -270,8 +276,13 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       KAFKA_BROKER: kafka:29092
-      AWS_REGION: us-east-1
-      AWS_SES_FROM_EMAIL: noreply@ostora.com
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: "false"
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL}
+      ALLOW_SES_FALLBACK: "false"
     ports:
       - "4721:4721"
     depends_on:
@@ -285,6 +296,16 @@ services:
       - ostora-network
     restart: unless-stopped
 
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: ostora-mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - ostora-network
+    restart: unless-stopped
+
   scraping-service:
     build:
       context: ./apps/scraping-service
@@ -293,16 +314,13 @@ services:
     environment:
       PORT: 4722
       NODE_ENV: production
-      MYSQL_HOST: mysql
+      MYSQL_HOST: host.docker.internal
       MYSQL_PORT: 3306
       MYSQL_USER: root
-      MYSQL_PASSWORD: root
-      MYSQL_DATABASE: data_server25
+      MYSQL_PASSWORD: 
+      MYSQL_DATABASE: stellen
     ports:
       - "4722:4722"
-    depends_on:
-      mysql:
-        condition: service_healthy
     networks:
       - ostora-network
     restart: unless-stopped
@@ -320,8 +338,6 @@ services:
       NEXT_SERVER_API_BASE_URL: http://api-gateway:4717
     ports:
       - "8080:6000"
-    depends_on:
-      - api-gateway
     networks:
       - ostora-network
     restart: unless-stopped

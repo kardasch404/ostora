@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { apiClient } from "@/lib/api-client";
-import { TOKEN_COOKIE, ROLE_COOKIE } from "@/lib/constants";
+import { TOKEN_COOKIE, ROLE_COOKIE, TOKEN_STORAGE_KEY, ROLE_STORAGE_KEY } from "@/lib/constants";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { logout } from "@/store/slices/auth-slice";
 
@@ -31,6 +31,10 @@ export default function DashboardHeader() {
   const handleLogout = () => {
     Cookies.remove(TOKEN_COOKIE);
     Cookies.remove(ROLE_COOKIE);
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+      window.localStorage.removeItem(ROLE_STORAGE_KEY);
+    }
     dispatch(logout());
     router.push("/login");
   };

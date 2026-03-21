@@ -33,4 +33,8 @@ export class RedisService {
   async setex(key: string, ttl: number, value: string): Promise<void> {
     await this.client.setex(key, ttl, value);
   }
+
+  async keys(pattern: string): Promise<string[]> {
+    return this.client.keys(pattern);
+  }
 }

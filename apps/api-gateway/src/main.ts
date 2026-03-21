@@ -7,7 +7,6 @@ import * as winston from 'winston';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { RequestLoggerInterceptor } from './common/interceptors/request-logger.interceptor';
-import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 
 async function bootstrap() {
   // Winston Logger Configuration
@@ -55,15 +54,15 @@ async function bootstrap() {
 
   // CORS Configuration
   app.enableCors({
-    origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3000'],
+    origin: process.env['CORS_ORIGIN']?.split(',') || ['http://localhost:3000', 'http://localhost:8080'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID', 'X-Correlation-ID'],
     exposedHeaders: ['X-Request-ID', 'X-Correlation-ID'],
   });
 
-  // Global Prefix
-  app.setGlobalPrefix('api/v1');
+  // Global Prefix (versioning adds /v1)
+  app.setGlobalPrefix('api');
 
   // API Versioning (URI-based)
   app.enableVersioning({
@@ -80,7 +79,7 @@ async function bootstrap() {
       transformOptions: {
         enableImplicitConversion: true,
       },
-      disableErrorMessages: process.env.NODE_ENV === 'production',
+      disableErrorMessages: process.env['NODE_ENV'] === 'production',
     }),
   );
 
@@ -91,7 +90,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new RequestLoggerInterceptor());
 
   // Swagger Documentation Aggregation
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env['NODE_ENV'] !== 'production') {
     const config = new DocumentBuilder()
       .setTitle('Ostora API Gateway')
       .setDescription('Enterprise Job Platform - Microservices API Gateway with GraphQL Federation')
@@ -130,13 +129,13 @@ async function bootstrap() {
   // Graceful Shutdown
   app.enableShutdownHooks();
 
-  const port = process.env.API_GATEWAY_PORT || 4717;
+  const port = process.env['API_GATEWAY_PORT'] || 4717;
   await app.listen(port);
 
   logger.log(`🚀 API Gateway running on port ${port}`, 'Bootstrap');
   logger.log(`📚 Swagger docs available at http://localhost:${port}/docs`, 'Bootstrap');
   logger.log(`🏥 Health check available at http://localhost:${port}/health`, 'Bootstrap');
-  logger.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`, 'Bootstrap');
+  logger.log(`🌍 Environment: ${process.env['NODE_ENV'] || 'development'}`, 'Bootstrap');
   logger.log(`🔗 GraphQL Federation endpoint: http://localhost:${port}/graphql`, 'Bootstrap');
 }
 

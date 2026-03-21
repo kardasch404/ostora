@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailEncryptorService } from './email-encryptor.service';
 import { SmtpTesterService } from './smtp-tester.service';
@@ -14,6 +14,15 @@ export class EmailConfigService {
   ) {}
 
   async create(userId: string, dto: CreateEmailConfigDto): Promise<EmailConfigResponse> {
+    // Support both 'password' and 'appPassword' field names
+    const password = dto.password || dto.appPassword;
+    if (!password) {
+      throw new BadRequestException('Password or appPassword is required');
+    }
+
+    // Auto-detect SMTP settings if not provided
+    const smtpConfig = this.autoDetectSmtpConfig(dto.email, dto);
+
     // Check if email config already exists
     const existing = await this.prisma.emailConfig.findUnique({
       where: {
@@ -25,21 +34,21 @@ export class EmailConfigService {
     });
 
     if (existing) {
-      throw new BadRequestException('Email configuration already exists');
+      throw new ConflictException('Email configuration already exists');
     }
 
     // Encrypt password
-    const passwordEncrypted = this.encryptor.encrypt(dto.password);
+    const passwordEncrypted = this.encryptor.encrypt(password);
 
     const config = await this.prisma.emailConfig.create({
       data: {
         userId,
         email: dto.email,
         passwordEncrypted,
-        smtpHost: dto.smtpHost,
-        smtpPort: dto.smtpPort,
-        encryption: dto.encryption,
-        fromName: dto.fromName,
+        smtpHost: smtpConfig.smtpHost,
+        smtpPort: smtpConfig.smtpPort,
+        encryption: smtpConfig.encryption,
+        fromName: smtpConfig.fromName,
         isActive: dto.isActive ?? true,
       },
     });
@@ -77,9 +86,11 @@ export class EmailConfigService {
 
     const updateData: any = { ...dto };
 
-    if (dto.password) {
-      updateData.passwordEncrypted = this.encryptor.encrypt(dto.password);
+    const password = dto.password || dto.appPassword;
+    if (password) {
+      updateData.passwordEncrypted = this.encryptor.encrypt(password);
       delete updateData.password;
+      delete updateData.appPassword;
     }
 
     const config = await this.prisma.emailConfig.update({
@@ -91,11 +102,43 @@ export class EmailConfigService {
   }
 
   async remove(userId: string, id: string): Promise<void> {
-    await this.findOne(userId, id);
+    const toDelete = await this.findOne(userId, id);
 
     await this.prisma.emailConfig.delete({
       where: { id },
     });
+
+    if (toDelete.isActive) {
+      const fallback = await this.prisma.emailConfig.findFirst({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (fallback) {
+        await this.prisma.emailConfig.update({
+          where: { id: fallback.id },
+          data: { isActive: true },
+        });
+      }
+    }
+  }
+
+  async setDefault(userId: string, id: string): Promise<EmailConfigResponse> {
+    await this.findOne(userId, id);
+
+    await this.prisma.$transaction([
+      this.prisma.emailConfig.updateMany({
+        where: { userId, isActive: true },
+        data: { isActive: false },
+      }),
+      this.prisma.emailConfig.update({
+        where: { id },
+        data: { isActive: true },
+      }),
+    ]);
+
+    const config = await this.prisma.emailConfig.findUnique({ where: { id } });
+    return this.sanitizeResponse(config);
   }
 
   async testConnection(userId: string, id: string) {
@@ -161,6 +204,78 @@ export class EmailConfigService {
       throw new NotFoundException('Provider not found');
     }
     return config;
+  }
+
+  async resolveSenderSmtpConfig(userId: string, email?: string) {
+    const config = email
+      ? await this.prisma.emailConfig.findFirst({
+          where: { userId, email },
+        })
+      : await this.prisma.emailConfig.findFirst({
+          where: { userId, isActive: true },
+          orderBy: { updatedAt: 'desc' },
+        });
+
+    if (!config) {
+      throw new NotFoundException(email ? 'Sender email configuration not found' : 'No active sender email configuration found');
+    }
+
+    const smtpPassword = this.encryptor.decrypt(config.passwordEncrypted);
+
+    return {
+      emailConfigId: config.id,
+      fromEmail: config.email,
+      fromName: config.fromName,
+      smtpHost: config.smtpHost,
+      smtpPort: config.smtpPort,
+      smtpSecure: config.encryption === 'SSL',
+      smtpUser: config.email,
+      smtpPassword,
+    };
+  }
+
+  private autoDetectSmtpConfig(email: string, dto: CreateEmailConfigDto) {
+    const domain = email.split('@')[1]?.toLowerCase();
+    const username = email.split('@')[0];
+
+    // Use provided values if available
+    if (dto.smtpHost && dto.smtpPort && dto.encryption) {
+      return {
+        smtpHost: dto.smtpHost,
+        smtpPort: dto.smtpPort,
+        encryption: dto.encryption,
+        fromName: dto.fromName || username,
+      };
+    }
+
+    // Auto-detect based on domain
+    const providerConfigs: Record<string, any> = {
+      'gmail.com': { host: 'smtp.gmail.com', port: 587, encryption: 'TLS' },
+      'outlook.com': { host: 'smtp-mail.outlook.com', port: 587, encryption: 'STARTTLS' },
+      'hotmail.com': { host: 'smtp-mail.outlook.com', port: 587, encryption: 'STARTTLS' },
+      'live.com': { host: 'smtp-mail.outlook.com', port: 587, encryption: 'STARTTLS' },
+      'yahoo.com': { host: 'smtp.mail.yahoo.com', port: 587, encryption: 'TLS' },
+      'icloud.com': { host: 'smtp.mail.me.com', port: 587, encryption: 'TLS' },
+      'zoho.com': { host: 'smtp.zoho.com', port: 587, encryption: 'TLS' },
+      'aol.com': { host: 'smtp.aol.com', port: 587, encryption: 'TLS' },
+      'gmx.com': { host: 'smtp.gmx.com', port: 587, encryption: 'STARTTLS' },
+      'mail.com': { host: 'smtp.mail.com', port: 587, encryption: 'TLS' },
+      'yandex.com': { host: 'smtp.yandex.com', port: 587, encryption: 'TLS' },
+    };
+
+    const config = providerConfigs[domain];
+    if (!config) {
+      throw new BadRequestException(
+        `Unable to auto-detect SMTP settings for ${domain}. Please provide smtpHost, smtpPort, and encryption manually.`
+      );
+    }
+
+    return {
+      smtpHost: dto.smtpHost || config.host,
+      smtpPort: dto.smtpPort || config.port,
+      encryption: dto.encryption || config.encryption,
+      fromName: dto.fromName || username,
+    };
   }
 
   private sanitizeResponse(config: any): EmailConfigResponse {

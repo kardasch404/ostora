@@ -16,6 +16,7 @@ import { BundleService } from './bundle.service';
 import { CreateBundleDto } from './dto/create-bundle.dto';
 import { UpdateBundleDto } from './dto/update-bundle.dto';
 import { UploadDocumentDto } from './dto/upload-document.dto';
+import { UpdateDocumentDto } from './dto/update-document.dto';
 import { BundleResponse, DocumentResponse, PresignedUrlResponse, DownloadUrlResponse } from './dto/bundle.response';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -138,6 +139,18 @@ export class BundleController {
     @Param('documentId') documentId: string,
   ): Promise<DownloadUrlResponse> {
     return this.bundleService.generateDownloadUrl(userId, bundleId, documentId);
+  }
+
+  @Patch(':id/documents/:documentId')
+  @ApiOperation({ summary: 'Update document metadata' })
+  @ApiResponse({ status: 200, description: 'Document updated', type: DocumentResponse })
+  async updateDocument(
+    @CurrentUser('userId') userId: string,
+    @Param('id') bundleId: string,
+    @Param('documentId') documentId: string,
+    @Body() dto: UpdateDocumentDto,
+  ): Promise<DocumentResponse> {
+    return this.bundleService.updateDocument(userId, bundleId, documentId, dto);
   }
 
   @Delete(':id/documents/:documentId')

@@ -1,6 +1,21 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ContractType, JobSource } from '@prisma/client';
 import { SalaryRange } from '../value-objects/salary-range.vo';
+
+export enum ContractType {
+  FULL_TIME = 'FULL_TIME',
+  PART_TIME = 'PART_TIME',
+  CONTRACT = 'CONTRACT',
+  FREELANCE = 'FREELANCE',
+  INTERNSHIP = 'INTERNSHIP',
+  TEMPORARY = 'TEMPORARY'
+}
+
+export enum JobSource {
+  LINKEDIN = 'LINKEDIN',
+  INDEED = 'INDEED',
+  STELLEN = 'STELLEN',
+  OTHER = 'OTHER'
+}
 
 export class CompanyMiniResponse {
   @ApiProperty()

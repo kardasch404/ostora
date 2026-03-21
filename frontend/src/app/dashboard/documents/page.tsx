@@ -1,11 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import {
-  createMappe, updateMappe, deleteMappe,
-  addDocument, updateDocument, deleteDocument,
-} from "@/store/slices/bewerbung-slice";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { apiClient } from "@/lib/api-client";
 import { Bewerbungsmappe, BewerbungDocument, CreateMappeDto, CreateDocumentDto, DocumentFileType } from "@/types/bewerbung";
 import MappeForm from "@/components/dashboard/documents/MappeForm";
 import DocumentForm from "@/components/dashboard/documents/DocumentForm";
@@ -27,6 +23,52 @@ const FILE_TYPE_LABEL: Record<DocumentFileType, string> = {
   other: "Other",
 };
 
+const DEFAULT_LOGOS = ["💼", "🎓", "🚀", "🏢", "⭐", "🔥", "💡", "🎯", "📁", "🌟"] as const;
+
+type ApiDocumentType = "CV" | "COVER_LETTER" | "PORTFOLIO" | "OTHER";
+
+interface ApiBundle {
+  id: string;
+  name: string;
+  description?: string | null;
+  createdAt: string;
+}
+
+interface ApiDocument {
+  id: string;
+  bundleId: string;
+  type: ApiDocumentType;
+  filename: string;
+  fileSize: number;
+  mimeType: string;
+  createdAt: string;
+}
+
+const toUiType = (type: ApiDocumentType): DocumentFileType => {
+  if (type === "CV") return "cv";
+  if (type === "COVER_LETTER") return "cover_letter";
+  if (type === "PORTFOLIO") return "certificate";
+  return "other";
+};
+
+const toApiType = (type: DocumentFileType): ApiDocumentType => {
+  if (type === "cv") return "CV";
+  if (type === "cover_letter") return "COVER_LETTER";
+  if (type === "certificate") return "PORTFOLIO";
+  return "OTHER";
+};
+
+const bytesToLabel = (bytes: number): string => {
+  if (!bytes || Number.isNaN(bytes)) return "0 KB";
+  return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+};
+
+const labelToBytes = (label: string): number => {
+  const numeric = Number.parseFloat((label || "").replace(/[^\d.]/g, ""));
+  if (Number.isNaN(numeric) || numeric <= 0) return 1024;
+  return Math.round(numeric * 1024);
+};
+
 // ── types for modal state ─────────────────────────────────────────────────────
 
 type ModalState =
@@ -41,43 +83,170 @@ type ModalState =
 // ── component ─────────────────────────────────────────────────────────────────
 
 export default function DocumentsPage() {
-  const dispatch = useAppDispatch();
-  const mappen = useAppSelector((s) => s.bewerbung.mappen);
+  const [mappen, setMappen] = useState<Bewerbungsmappe[]>([]);
+  const [bundleLogos, setBundleLogos] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string>("");
   const [openMappe, setOpenMappe] = useState<string | null>(null);
   const [modal, setModal] = useState<ModalState>(null);
 
+  const resolveLogo = useCallback(
+    (bundleId: string, index: number) => bundleLogos[bundleId] || DEFAULT_LOGOS[index % DEFAULT_LOGOS.length],
+    [bundleLogos],
+  );
+
+  const loadMappen = useCallback(async () => {
+    setLoading(true);
+    try {
+      const bundlesRes = await apiClient.get("/api/v1/users/bundles");
+      const bundles: ApiBundle[] = Array.isArray(bundlesRes.data)
+        ? bundlesRes.data
+        : Array.isArray(bundlesRes.data?.data)
+          ? bundlesRes.data.data
+          : [];
+
+      const docsPerBundle = await Promise.all(
+        bundles.map(async (b) => {
+          const docsRes = await apiClient.get(`/api/v1/users/bundles/${b.id}/documents`);
+          const docs: ApiDocument[] = Array.isArray(docsRes.data)
+            ? docsRes.data
+            : Array.isArray(docsRes.data?.data)
+              ? docsRes.data.data
+              : [];
+          return { bundleId: b.id, docs };
+        }),
+      );
+
+      const docsByBundle = new Map(docsPerBundle.map((entry) => [entry.bundleId, entry.docs]));
+
+      const mapped = bundles.map((b, index) => {
+        const docs = (docsByBundle.get(b.id) || []).map((doc) => ({
+          id: doc.id,
+          mappeId: b.id,
+          name: doc.filename,
+          fileType: toUiType(doc.type),
+          size: bytesToLabel(doc.fileSize),
+          mimeType: doc.mimeType,
+          uploadedAt: new Date(doc.createdAt).toISOString().split("T")[0],
+        } as BewerbungDocument));
+
+        return {
+          id: b.id,
+          name: b.name,
+          description: b.description || "",
+          logo: resolveLogo(b.id, index),
+          createdAt: new Date(b.createdAt).toISOString().split("T")[0],
+          documents: docs,
+        } as Bewerbungsmappe;
+      });
+
+      setMappen(mapped);
+      setLoadError("");
+    } catch {
+      setLoadError("Failed to load Bewerbungsunterlagen from database.");
+      setMappen([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [resolveLogo]);
+
+  useEffect(() => {
+    loadMappen();
+  }, [loadMappen]);
+
   // ── Mappe handlers ──────────────────────────────────────────────────────────
-  const handleCreateMappe = (dto: CreateMappeDto) => {
-    dispatch(createMappe(dto));
-    setModal(null);
+  const handleCreateMappe = async (dto: CreateMappeDto) => {
+    try {
+      const res = await apiClient.post("/api/v1/users/bundles", {
+        name: dto.name,
+        description: dto.description,
+      });
+      const createdId = res.data?.id as string | undefined;
+      if (createdId) {
+        setBundleLogos((prev) => ({ ...prev, [createdId]: dto.logo }));
+      }
+      setModal(null);
+      await loadMappen();
+    } catch {
+      alert("Failed to create Bewerbungsmappe");
+    }
   };
 
-  const handleUpdateMappe = (id: string, dto: CreateMappeDto) => {
-    dispatch(updateMappe({ id, dto }));
-    setModal(null);
+  const handleUpdateMappe = async (id: string, dto: CreateMappeDto) => {
+    try {
+      await apiClient.patch(`/api/v1/users/bundles/${id}`, {
+        name: dto.name,
+        description: dto.description,
+      });
+      setBundleLogos((prev) => ({ ...prev, [id]: dto.logo }));
+      setModal(null);
+      await loadMappen();
+    } catch {
+      alert("Failed to update Bewerbungsmappe");
+    }
   };
 
-  const handleDeleteMappe = (id: string) => {
-    dispatch(deleteMappe(id));
-    if (openMappe === id) setOpenMappe(null);
-    setModal(null);
+  const handleDeleteMappe = async (id: string) => {
+    try {
+      await apiClient.delete(`/api/v1/users/bundles/${id}`);
+      if (openMappe === id) setOpenMappe(null);
+      setBundleLogos((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+      setModal(null);
+      await loadMappen();
+    } catch {
+      alert("Failed to delete Bewerbungsmappe");
+    }
   };
 
   // ── Document handlers ───────────────────────────────────────────────────────
-  const handleAddDoc = (dto: CreateDocumentDto) => {
-    dispatch(addDocument(dto));
-    setModal(null);
+  const handleAddDoc = async (dto: CreateDocumentDto) => {
+    try {
+      await apiClient.post(`/api/v1/users/bundles/${dto.mappeId}/documents`, {
+        type: toApiType(dto.fileType),
+        filename: dto.name,
+        mimeType: dto.mimeType || "application/pdf",
+        fileSize: labelToBytes(dto.size),
+      });
+      setModal(null);
+      await loadMappen();
+    } catch {
+      alert("Failed to add document");
+    }
   };
 
-  const handleUpdateDoc = (mappeId: string, docId: string, dto: CreateDocumentDto) => {
-    dispatch(updateDocument({ mappeId, docId, dto }));
-    setModal(null);
+  const handleUpdateDoc = async (mappeId: string, docId: string, dto: CreateDocumentDto) => {
+    try {
+      await apiClient.patch(`/api/v1/users/bundles/${mappeId}/documents/${docId}`, {
+        type: toApiType(dto.fileType),
+        filename: dto.name,
+        mimeType: dto.mimeType || "application/pdf",
+        fileSize: labelToBytes(dto.size),
+      });
+      setModal(null);
+      await loadMappen();
+    } catch {
+      alert("Failed to update document");
+    }
   };
 
-  const handleDeleteDoc = (mappeId: string, docId: string) => {
-    dispatch(deleteDocument({ mappeId, docId }));
-    setModal(null);
+  const handleDeleteDoc = async (mappeId: string, docId: string) => {
+    try {
+      await apiClient.delete(`/api/v1/users/bundles/${mappeId}/documents/${docId}`);
+      setModal(null);
+      await loadMappen();
+    } catch {
+      alert("Failed to delete document");
+    }
   };
+
+  const mappeCountLabel = useMemo(
+    () => `${mappen.length} folder${mappen.length !== 1 ? "s" : ""}`,
+    [mappen.length],
+  );
 
   return (
     <div className="space-y-6">
@@ -89,7 +258,7 @@ export default function DocumentsPage() {
 
       {/* Toolbar */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">{mappen.length} folder{mappen.length !== 1 ? "s" : ""}</p>
+        <p className="text-sm text-gray-500">{mappeCountLabel}</p>
         <button
           onClick={() => setModal({ type: "create_mappe" })}
           className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold text-sm"
@@ -100,6 +269,18 @@ export default function DocumentsPage() {
           New Mappe
         </button>
       </div>
+
+      {loading && (
+        <div className="rounded-lg border border-gray-200 bg-white p-3 text-sm text-gray-600">
+          Loading Bewerbungsunterlagen...
+        </div>
+      )}
+
+      {loadError && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {loadError}
+        </div>
+      )}
 
       {/* Mappen list */}
       {mappen.length === 0 && (

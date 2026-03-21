@@ -1,4 +1,4 @@
-import { EmailEventEnum } from '../kafka/email-event.enum';
+import { EmailEventEnum } from '../../kafka/email-event.enum';
 
 export interface EmailEventPayload {
   eventType: EmailEventEnum;

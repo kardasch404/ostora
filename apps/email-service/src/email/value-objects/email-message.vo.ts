@@ -1,6 +1,7 @@
 import { SendEmailDto } from '../dto/send-email.dto';
 
 export class EmailMessage {
+  private readonly from?: string;
   private readonly to: string;
   private readonly subject: string;
   private readonly body: string;
@@ -8,6 +9,7 @@ export class EmailMessage {
   private readonly attachments?: string[];
 
   constructor(payload: SendEmailDto) {
+    this.from = payload.from;
     if (!this.isValidEmail(payload.to)) {
       throw new Error('Invalid email address');
     }
@@ -20,6 +22,7 @@ export class EmailMessage {
 
   get nodemailerOptions(): object {
     return {
+      from: this.from,
       to: this.to,
       subject: this.subject,
       html: this.body,

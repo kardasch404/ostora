@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { apiClient } from "@/lib/api-client";
+import axios from "axios";
 
 interface EmailAccount {
-  id: number;
+  id: string;
   email: string;
-  isDefault: boolean;
-  isVerified: boolean;
+  isActive: boolean;
   createdAt: string;
 }
 
@@ -16,19 +16,37 @@ export default function SettingsPage() {
   const [showAddEmail, setShowAddEmail] = useState(false);
   const [newEmail, setNewEmail] = useState({ email: "", appPassword: "" });
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string>("");
+
+  const getErrorMessage = (error: unknown, fallback: string) => {
+    if (axios.isAxiosError(error)) {
+      const message = error.response?.data?.message;
+      return Array.isArray(message) ? message.join(", ") : message || fallback;
+    }
+    return fallback;
+  };
+
+  const loadEmails = useCallback(async () => {
+    try {
+      const res = await apiClient.get("/api/v1/users/emails");
+      const data = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data?.data)
+          ? res.data.data
+          : [];
+      setEmails(data);
+      setLoadError("");
+    } catch (error: unknown) {
+      const normalizedMessage = getErrorMessage(error, "Failed to load email accounts");
+      setEmails([]);
+      setLoadError(normalizedMessage);
+      console.error("Failed to load emails", error);
+    }
+  }, []);
 
   useEffect(() => {
     loadEmails();
-  }, []);
-
-  const loadEmails = async () => {
-    try {
-      const res = await apiClient.get("/api/v1/users/emails");
-      setEmails(res.data?.data || []);
-    } catch (error) {
-      console.error("Failed to load emails");
-    }
-  };
+  }, [loadEmails]);
 
   const handleAddEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,28 +56,40 @@ export default function SettingsPage() {
       setNewEmail({ email: "", appPassword: "" });
       setShowAddEmail(false);
       loadEmails();
-    } catch (error) {
-      alert("Failed to add email");
+    } catch (error: unknown) {
+      alert(getErrorMessage(error, "Failed to add email"));
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSetDefault = async (id: number) => {
+  const handleSetDefault = async (id: string) => {
     try {
       await apiClient.patch(`/api/v1/users/emails/${id}/default`);
       loadEmails();
-    } catch (error) {
+    } catch {
       alert("Failed to set default email");
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleUpdatePassword = async (id: string) => {
+    const appPassword = prompt("Enter new app password for this email:");
+    if (!appPassword) return;
+
+    try {
+      await apiClient.patch(`/api/v1/users/emails/${id}`, { appPassword });
+      loadEmails();
+    } catch (error: unknown) {
+      alert(getErrorMessage(error, "Failed to update password"));
+    }
+  };
+
+  const handleDelete = async (id: string) => {
     if (!confirm("Delete this email account?")) return;
     try {
       await apiClient.delete(`/api/v1/users/emails/${id}`);
       loadEmails();
-    } catch (error) {
+    } catch {
       alert("Failed to delete email");
     }
   };
@@ -86,6 +116,11 @@ export default function SettingsPage() {
         </div>
 
         <div className="space-y-3">
+          {loadError && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              {loadError}
+            </div>
+          )}
           {emails.map((email) => (
             <div key={email.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-purple-200 transition-colors">
               <div className="flex items-center space-x-4">
@@ -97,20 +132,15 @@ export default function SettingsPage() {
                 <div>
                   <div className="flex items-center space-x-2">
                     <p className="font-semibold text-gray-900">{email.email}</p>
-                    {email.isDefault && (
+                    {email.isActive && (
                       <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded">Default</span>
-                    )}
-                    {email.isVerified && (
-                      <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
                     )}
                   </div>
                   <p className="text-xs text-gray-500">Added {new Date(email.createdAt).toLocaleDateString()}</p>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
-                {!email.isDefault && (
+                {!email.isActive && (
                   <button
                     onClick={() => handleSetDefault(email.id)}
                     className="px-3 py-1.5 text-sm border border-purple-600 text-purple-600 rounded-lg hover:bg-purple-50 transition-colors"
@@ -118,6 +148,12 @@ export default function SettingsPage() {
                     Set Default
                   </button>
                 )}
+                <button
+                  onClick={() => handleUpdatePassword(email.id)}
+                  className="px-3 py-1.5 text-sm border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
+                >
+                  Update Password
+                </button>
                 <button
                   onClick={() => handleDelete(email.id)}
                   className="px-3 py-1.5 text-sm border border-red-600 text-red-600 rounded-lg hover:bg-red-50 transition-colors"
@@ -127,7 +163,7 @@ export default function SettingsPage() {
               </div>
             </div>
           ))}
-          {emails.length === 0 && (
+          {emails.length === 0 && !loadError && (
             <div className="text-center py-8 text-gray-500">
               <svg className="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />

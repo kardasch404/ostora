@@ -32,10 +32,10 @@ export class EmailService {
 
   async sendEmail(dto: SendEmailDto, userId: string, emailConfigId?: string) {
     const message = new EmailMessage(dto);
-    let emailConfig = null;
+    let emailConfig = dto.smtpConfig || null;
 
     // Fetch user's email config if provided
-    if (emailConfigId) {
+    if (!emailConfig && emailConfigId) {
       emailConfig = await this.fetchEmailConfig(emailConfigId);
     }
 
@@ -114,9 +114,9 @@ export class EmailService {
     const smtpSecure = this.config.get<string>('SMTP_SECURE', 'false') === 'true';
     const smtpUser = this.config.get<string>('SMTP_USER');
     const smtpPassword = this.config.get<string>('SMTP_PASSWORD');
-    const fromEmail = this.config.get<string>('SMTP_FROM_EMAIL') || smtpUser;
+    const fromEmail = this.config.get<string>('SMTP_FROM_EMAIL') || smtpUser || 'noreply@ostora.local';
 
-    if (!smtpHost || !smtpUser || !smtpPassword) {
+    if (!smtpHost) {
       return null;
     }
 

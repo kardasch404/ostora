@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api-client";
+import { extractContactInfo } from "@/lib/contact-extractor";
 
 interface Job {
   id: number;
@@ -103,10 +104,14 @@ export default function JobsPage() {
   const router = useRouter();
 
   const handleApply = (job: Job) => {
+    const contact = extractContactInfo(job.content || "");
     const params = new URLSearchParams({
       jobTitle: job.job_title || "",
       company: job.company_name || "",
-      content: encodeURIComponent(job.content || ""),
+      contactName: contact.name,
+      contactPosition: contact.position,
+      contactEmail: contact.email,
+      contactPhone: contact.phone,
       stelleUrl: job.stelle_url || "",
     });
     router.push(`/dashboard/applications?${params}`);
@@ -346,7 +351,7 @@ export default function JobsPage() {
             {/* Footer */}
             <div className="p-5 border-t border-gray-100">
               <button
-                onClick={() => window.open(selectedJob.stelle_url, "_blank")}
+                onClick={() => handleApply(selectedJob)}
                 className="w-full py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-bold text-sm"
               >
                 Apply Now
@@ -354,8 +359,8 @@ export default function JobsPage() {
             </div>
           </div>
 
-          {/* Backdrop */}
-          <div className="flex-1 bg-black bg-opacity-40" />
+          {/* Backdrop - click to close */}
+          <div className="flex-1 bg-black/40" onClick={() => setSelectedJob(null)} />
         </div>
       )}
 
