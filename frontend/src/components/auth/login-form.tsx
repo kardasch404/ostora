@@ -5,7 +5,7 @@ import Cookies from "js-cookie";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginRequest } from "@/services/auth.service";
-import { ROLE_COOKIE, TOKEN_COOKIE } from "@/lib/constants";
+import { ROLE_COOKIE, ROLE_STORAGE_KEY, TOKEN_COOKIE, TOKEN_STORAGE_KEY } from "@/lib/constants";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { loginFailure, loginStart, loginSuccess } from "@/store/slices/auth-slice";
 
@@ -43,8 +43,14 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     try {
       const result = await loginRequest(values.email, values.password);
 
-      Cookies.set(TOKEN_COOKIE, result.accessToken, { secure: true, sameSite: "strict", expires: 1 });
-      Cookies.set(ROLE_COOKIE, result.user.role, { secure: true, sameSite: "strict", expires: 1 });
+      const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
+
+      Cookies.set(TOKEN_COOKIE, result.accessToken, { secure: isHttps, sameSite: "lax", expires: 1 });
+      Cookies.set(ROLE_COOKIE, result.user.role, { secure: isHttps, sameSite: "lax", expires: 1 });
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(TOKEN_STORAGE_KEY, result.accessToken);
+        window.localStorage.setItem(ROLE_STORAGE_KEY, result.user.role);
+      }
 
       dispatch(
         loginSuccess({

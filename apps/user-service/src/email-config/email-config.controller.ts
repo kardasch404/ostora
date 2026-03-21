@@ -46,6 +46,16 @@ export class EmailConfigController {
     return this.emailConfigService.getProviderConfig(provider);
   }
 
+  @Post('resolve-sender')
+  @ApiOperation({ summary: 'Resolve SMTP config for selected sender email' })
+  @ApiResponse({ status: 200, description: 'Sender SMTP config resolved' })
+  async resolveSender(
+    @CurrentUser('userId') userId: string,
+    @Body() body: { email?: string },
+  ) {
+    return this.emailConfigService.resolveSenderSmtpConfig(userId, body?.email);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get email configuration by ID' })
   @ApiResponse({ status: 200, description: 'Email config retrieved', type: EmailConfigResponse })
@@ -77,6 +87,16 @@ export class EmailConfigController {
     @Body() dto: Partial<CreateEmailConfigDto>,
   ): Promise<EmailConfigResponse> {
     return this.emailConfigService.update(userId, id, dto);
+  }
+
+  @Patch(':id/default')
+  @ApiOperation({ summary: 'Set email configuration as default sender' })
+  @ApiResponse({ status: 200, description: 'Default sender updated', type: EmailConfigResponse })
+  async setDefault(
+    @CurrentUser('userId') userId: string,
+    @Param('id') id: string,
+  ): Promise<EmailConfigResponse> {
+    return this.emailConfigService.setDefault(userId, id);
   }
 
   @Delete(':id')

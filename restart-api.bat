@@ -1,0 +1,6 @@
+@echo off
+echo Stopping any running Node processes on port 4717...
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr :4717') do taskkill /F /PID %%a 2>nul
+
+echo Starting Jobs API...
+node standalone-jobs-api.js

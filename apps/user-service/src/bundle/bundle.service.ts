@@ -4,6 +4,7 @@ import { S3Service } from './s3.service';
 import { CreateBundleDto } from './dto/create-bundle.dto';
 import { UpdateBundleDto } from './dto/update-bundle.dto';
 import { ApplicationDocumentType } from './dto/upload-document.dto';
+import { UpdateDocumentDto } from './dto/update-document.dto';
 import { BundleResponse, DocumentResponse } from './dto/bundle.response';
 
 @Injectable()
@@ -222,6 +223,25 @@ export class BundleService {
       downloadUrl,
       expiresIn: 3600,
     };
+  }
+
+  async updateDocument(
+    userId: string,
+    bundleId: string,
+    documentId: string,
+    dto: UpdateDocumentDto,
+  ): Promise<DocumentResponse> {
+    await this.getDocument(userId, bundleId, documentId);
+
+    return this.prisma.applicationDocument.update({
+      where: { id: documentId },
+      data: {
+        ...(dto.type ? { type: dto.type } : {}),
+        ...(dto.filename ? { filename: dto.filename } : {}),
+        ...(dto.mimeType ? { mimeType: dto.mimeType } : {}),
+        ...(dto.fileSize ? { fileSize: dto.fileSize } : {}),
+      },
+    });
   }
 
   async deleteDocument(userId: string, bundleId: string, documentId: string): Promise<void> {

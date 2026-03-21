@@ -1,8 +1,9 @@
-import { Controller, Post, Get, Put, Delete, Body, Param, Query, Inject, UseGuards, Version } from '@nestjs/common';
+import { Controller, Post, Get, Put, Delete, Body, Param, Query, Inject, UseGuards, Version, Req, UnauthorizedException } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { firstValueFrom } from 'rxjs';
+import { Request } from 'express';
 
 @ApiTags('Gateway')
 @Controller()
@@ -105,6 +106,21 @@ export class GatewayController {
     return firstValueFrom(this.userClient.send('user.getProfile', { userId }));
   }
 
+  @Get('users/me')
+  @Version('1')
+  @ApiTags('Users')
+  @ApiOperation({ summary: 'Get current user profile' })
+  @ApiBearerAuth('JWT-auth')
+  async getCurrentUserProfile(@Req() req: Request, @Query('userId') userId?: string) {
+    const resolvedUserId = userId || this.extractUserIdFromAuthHeader(req);
+
+    if (!resolvedUserId) {
+      throw new UnauthorizedException('Missing or invalid user identity');
+    }
+
+    return firstValueFrom(this.userClient.send('user.getProfile', { userId: resolvedUserId }));
+  }
+
   @Put('users/profile')
   @Version('1')
   @ApiTags('Users')
@@ -133,6 +149,14 @@ export class GatewayController {
   }
 
   // ==================== JOB ROUTES ====================
+  @Get('jobs/categories')
+  @Version('1')
+  @ApiTags('Jobs')
+  @ApiOperation({ summary: 'Get job categories' })
+  async getJobCategories() {
+    return firstValueFrom(this.jobClient.send('job.getCategories', {}));
+  }
+
   @Get('jobs')
   @Version('1')
   @ApiTags('Jobs')
@@ -270,5 +294,30 @@ export class GatewayController {
   @ApiBearerAuth('JWT-auth')
   async getJobStats(@Query('userId') userId: string) {
     return firstValueFrom(this.analyticsClient.send('analytics.getJobStats', { userId }));
+  }
+
+  private extractUserIdFromAuthHeader(req: Request): string | undefined {
+    const authHeader = req.headers.authorization || req.headers.Authorization;
+    if (!authHeader || Array.isArray(authHeader)) {
+      return undefined;
+    }
+
+    const [scheme, token] = authHeader.split(' ');
+    if (scheme !== 'Bearer' || !token) {
+      return undefined;
+    }
+
+    try {
+      const parts = token.split('.');
+      if (parts.length < 2) {
+        return undefined;
+      }
+
+      const payloadJson = Buffer.from(parts[1], 'base64url').toString('utf-8');
+      const payload = JSON.parse(payloadJson) as Record<string, unknown>;
+      return (payload.userId as string) || (payload.sub as string) || (payload.id as string);
+    } catch {
+      return undefined;
+    }
   }
 }

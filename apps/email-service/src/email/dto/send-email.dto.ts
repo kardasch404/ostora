@@ -2,6 +2,27 @@ import { IsEmail, IsString, IsOptional, IsObject, IsArray } from 'class-validato
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class SendEmailDto {
+  @ApiPropertyOptional({
+    description: 'Optional SMTP override for user-specific sender account',
+    type: Object,
+  })
+  @IsOptional()
+  @IsObject()
+  smtpConfig?: {
+    smtpHost: string;
+    smtpPort: number;
+    smtpSecure: boolean;
+    smtpUser: string;
+    smtpPassword: string;
+    fromEmail?: string;
+    fromName?: string;
+  };
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsEmail()
+  from?: string;
+
   @ApiProperty()
   @IsEmail()
   to: string;

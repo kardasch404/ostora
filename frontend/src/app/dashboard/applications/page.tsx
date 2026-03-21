@@ -3,11 +3,14 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAppSelector } from "@/store/hooks";
+import { generateApplicationMessage } from "@/lib/contact-extractor";
+import { apiClient } from "@/lib/api-client";
 
 interface Application {
   id: string;
   jobTitle: string;
   company: string;
+  senderEmail: string;
   contactEmail: string;
   contactPhone: string;
   subject: string;
@@ -17,13 +20,15 @@ interface Application {
   status: "sent" | "pending" | "viewed" | "rejected";
 }
 
+interface UserEmailConfig {
+  id: string;
+  email: string;
+  isActive: boolean;
+}
+
 function extractContact(content: string): { email: string; phone: string } {
-  const emailMatch = content.match(/href="mailto:([^"]+)"/);
-  const phoneMatch = content.match(/\+[\d\s\-()]{7,20}/);
-  return {
-    email: emailMatch?.[1] ?? "",
-    phone: phoneMatch?.[0]?.trim() ?? "",
-  };
+  // This function is now deprecated - contact info comes from URL params
+  return { email: "", phone: "" };
 }
 
 const statusBadge: Record<Application["status"], string> = {
@@ -42,44 +47,84 @@ function ApplicationsContent() {
 
   const jobTitle = searchParams.get("jobTitle") ?? "";
   const company = searchParams.get("company") ?? "";
-  const content = searchParams.get("content") ?? "";
+  const contactName = searchParams.get("contactName") ?? "";
+  const contactPosition = searchParams.get("contactPosition") ?? "";
+  const contactEmail = searchParams.get("contactEmail") ?? "";
+  const contactPhone = searchParams.get("contactPhone") ?? "";
   const stelleUrl = searchParams.get("stelleUrl") ?? "";
 
-  const { email: extractedEmail, phone: extractedPhone } = extractContact(decodeURIComponent(content));
-
   const [applications, setApplications] = useState<Application[]>([]);
+  const [userEmails, setUserEmails] = useState<UserEmailConfig[]>([]);
+  const [emailsLoading, setEmailsLoading] = useState(false);
   const [showForm, setShowForm] = useState(!!jobTitle);
   const [form, setForm] = useState({
     jobTitle,
     company,
-    contactEmail: extractedEmail,
-    contactPhone: extractedPhone,
+    senderEmail: "",
+    contactEmail,
+    contactPhone,
     subject: jobTitle ? `Application for ${jobTitle} at ${company}` : "",
-    message: jobTitle
-      ? `Dear Hiring Team,\n\nI am writing to apply for the position of ${jobTitle} at ${company}.\n\nPlease find my documents attached.\n\nBest regards`
-      : "",
+    message: jobTitle ? generateApplicationMessage(contactName, jobTitle, company) : "",
     attachments: [] as string[],
   });
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
 
   // Update form when URL params change
   useEffect(() => {
     if (jobTitle) {
-      const { email, phone } = extractContact(decodeURIComponent(content));
       setForm({
         jobTitle,
         company,
-        contactEmail: email,
-        contactPhone: phone,
+        senderEmail: "",
+        contactEmail,
+        contactPhone,
         subject: `Application for ${jobTitle} at ${company}`,
-        message: `Dear Hiring Team,\n\nI am writing to apply for the position of ${jobTitle} at ${company}.\n\nPlease find my documents attached.\n\nBest regards`,
+        message: generateApplicationMessage(contactName, jobTitle, company),
         attachments: [],
       });
       setShowForm(true);
       setSent(false);
     }
-  }, [jobTitle, company, content]);
+  }, [jobTitle, company, contactName, contactEmail, contactPhone]);
+
+  useEffect(() => {
+    const loadSenderEmails = async () => {
+      setEmailsLoading(true);
+      try {
+        const res = await apiClient.get("/api/v1/users/emails");
+        const data = Array.isArray(res.data)
+          ? res.data
+          : Array.isArray(res.data?.data)
+            ? res.data.data
+            : [];
+
+        const mapped: UserEmailConfig[] = data
+          .filter((item: { id?: unknown; email?: unknown }) => !!item?.id && !!item?.email)
+          .map((item: { id: string; email: string; isActive?: boolean }) => ({
+            id: item.id,
+            email: item.email,
+            isActive: Boolean(item.isActive),
+          }));
+
+        setUserEmails(mapped);
+        setForm((prev) => {
+          if (prev.senderEmail) {
+            return prev;
+          }
+          const preferred = mapped.find((e) => e.isActive)?.email || mapped[0]?.email || "";
+          return { ...prev, senderEmail: preferred };
+        });
+      } catch {
+        setUserEmails([]);
+      } finally {
+        setEmailsLoading(false);
+      }
+    };
+
+    loadSenderEmails();
+  }, []);
 
   const toggleAttachment = (docId: string) => {
     setForm((prev) => ({
@@ -91,26 +136,47 @@ function ApplicationsContent() {
   };
 
   const handleSend = async () => {
-    if (!form.contactEmail && !form.subject) return;
+    if (!form.senderEmail || !form.subject || !form.contactEmail) return;
     setSending(true);
-    await new Promise((r) => setTimeout(r, 1000));
-    const newApp: Application = {
-      id: Date.now().toString(),
-      jobTitle: form.jobTitle,
-      company: form.company,
-      contactEmail: form.contactEmail,
-      contactPhone: form.contactPhone,
-      subject: form.subject,
-      message: form.message,
-      attachments: form.attachments,
-      sentAt: new Date().toLocaleDateString(),
-      status: "sent",
-    };
-    setApplications((prev) => [newApp, ...prev]);
-    setSending(false);
-    setSent(true);
-    setShowForm(false);
-    router.replace("/dashboard/applications");
+    setSendError(null);
+
+    try {
+      await apiClient.post("/api/v1/users/emails/send", {
+        from: form.senderEmail,
+        to: form.contactEmail,
+        subject: form.subject,
+        body: form.message,
+        plainText: form.message,
+      });
+
+      const newApp: Application = {
+        id: Date.now().toString(),
+        jobTitle: form.jobTitle,
+        company: form.company,
+        senderEmail: form.senderEmail,
+        contactEmail: form.contactEmail,
+        contactPhone: form.contactPhone,
+        subject: form.subject,
+        message: form.message,
+        attachments: form.attachments,
+        sentAt: new Date().toLocaleDateString(),
+        status: "sent",
+      };
+
+      setApplications((prev) => [newApp, ...prev]);
+      setSent(true);
+      setShowForm(false);
+      router.replace("/dashboard/applications");
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to send application email. Please verify SMTP settings and try again.";
+      setSendError(Array.isArray(message) ? message.join(", ") : String(message));
+      setSent(false);
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -143,6 +209,26 @@ function ApplicationsContent() {
             {/* Contact info extracted from job */}
             <div className="grid grid-cols-2 gap-4">
               <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Send From</label>
+                <select
+                  value={form.senderEmail}
+                  onChange={(e) => setForm({ ...form, senderEmail: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+                  disabled={emailsLoading || userEmails.length === 0}
+                >
+                  {emailsLoading && <option value="">Loading emails...</option>}
+                  {!emailsLoading && userEmails.length === 0 && (
+                    <option value="">No configured sender emails</option>
+                  )}
+                  {!emailsLoading &&
+                    userEmails.map((cfg) => (
+                      <option key={cfg.id} value={cfg.email}>
+                        {cfg.email}{cfg.isActive ? " (Default)" : ""}
+                      </option>
+                    ))}
+                </select>
+              </div>
+              <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Contact Email</label>
                 <input
                   type="email"
@@ -163,6 +249,12 @@ function ApplicationsContent() {
                 />
               </div>
             </div>
+
+            {userEmails.length === 0 && !emailsLoading && (
+              <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                Configure at least one sender email in Settings before sending an application.
+              </p>
+            )}
 
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Subject</label>
@@ -221,7 +313,7 @@ function ApplicationsContent() {
               )}
               <button
                 onClick={handleSend}
-                disabled={sending || !form.subject}
+                disabled={sending || !form.subject || !form.contactEmail || !form.senderEmail}
                 className="flex-1 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {sending ? "Sending..." : "Send Application"}
@@ -237,6 +329,12 @@ function ApplicationsContent() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
           Application sent successfully!
+        </div>
+      )}
+
+      {sendError && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm font-medium">
+          {sendError}
         </div>
       )}
 
@@ -259,6 +357,7 @@ function ApplicationsContent() {
                 <div>
                   <p className="text-sm font-bold text-gray-900">{app.jobTitle}</p>
                   <p className="text-xs text-purple-600 font-medium">{app.company}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">From: {app.senderEmail}</p>
                   <p className="text-xs text-gray-400 mt-0.5">{app.contactEmail} · {app.sentAt}</p>
                 </div>
                 <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${statusBadge[app.status]}`}>

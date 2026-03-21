@@ -3,9 +3,9 @@ export interface SmtpTransportInterface {
   port: number;
   secure: boolean;
   defaultFrom?: string;
-  auth: {
-    user: string;
-    pass: string;
+  auth?: {
+    user?: string;
+    pass?: string;
   };
 }
 

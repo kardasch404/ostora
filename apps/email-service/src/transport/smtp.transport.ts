@@ -10,16 +10,21 @@ export class SmtpTransport {
   private readonly defaultFrom?: string;
 
   constructor(config: SmtpTransportInterface) {
-    this.defaultFrom = config.defaultFrom || config.auth.user;
-    this.transporter = nodemailer.createTransport({
+    this.defaultFrom = config.defaultFrom || config.auth?.user;
+    const transportOptions: any = {
       host: config.host,
       port: config.port,
       secure: config.secure,
-      auth: {
+    };
+
+    if (config.auth?.user && config.auth?.pass) {
+      transportOptions.auth = {
         user: config.auth.user,
         pass: config.auth.pass,
-      },
-    });
+      };
+    }
+
+    this.transporter = nodemailer.createTransport(transportOptions);
   }
 
   async send(mailOptions: any): Promise<EmailTransportResult> {
