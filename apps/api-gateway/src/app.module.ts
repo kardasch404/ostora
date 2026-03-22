@@ -15,6 +15,19 @@ import { UserProxyController } from './proxy/user-proxy.controller';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 
 const graphqlGatewayEnabled = process.env['ENABLE_GRAPHQL_GATEWAY'] === 'true';
+const isDevelopment = (process.env['NODE_ENV'] || 'development') !== 'production';
+
+const globalTtl = parseInt(process.env['THROTTLE_GLOBAL_TTL'] || '60000', 10);
+const globalLimit = parseInt(
+  process.env['THROTTLE_GLOBAL_LIMIT'] || (isDevelopment ? '10000' : '100'),
+  10,
+);
+
+const authTtl = parseInt(process.env['THROTTLE_AUTH_TTL'] || '60000', 10);
+const authLimit = parseInt(
+  process.env['THROTTLE_AUTH_LIMIT'] || (isDevelopment ? '2000' : '5'),
+  10,
+);
 
 @Module({
   imports: [
@@ -26,18 +39,17 @@ const graphqlGatewayEnabled = process.env['ENABLE_GRAPHQL_GATEWAY'] === 'true';
     }),
 
     // Rate Limiting / Throttling
-    // Global: 100 requests per minute
-    // Auth endpoints: 5 requests per minute (configured in controller)
+    // Production defaults remain strict; development defaults are permissive.
     ThrottlerModule.forRoot([
       {
         name: 'global',
-        ttl: 60000, // 1 minute
-        limit: 100, // 100 requests per minute
+        ttl: globalTtl,
+        limit: globalLimit,
       },
       {
         name: 'auth',
-        ttl: 60000, // 1 minute
-        limit: 5, // 5 requests per minute for auth endpoints
+        ttl: authTtl,
+        limit: authLimit,
       },
     ]),
 

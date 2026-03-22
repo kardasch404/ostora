@@ -207,6 +207,19 @@ export class UserProxyController {
     return response.data;
   }
 
+  @Get('bundles/:id/documents/:documentId/download')
+  async getBundleDocumentDownloadUrl(
+    @Param('id') id: string,
+    @Param('documentId') documentId: string,
+    @Headers('authorization') auth: string,
+  ) {
+    const url = `${this.userServiceUrl}/api/v1/bundles/${id}/documents/${documentId}/download`;
+    const response = await firstValueFrom(
+      this.httpService.get(url, { headers: { authorization: auth } })
+    );
+    return response.data;
+  }
+
   @Patch('bundles/:id/documents/:documentId')
   async updateBundleDocument(
     @Param('id') id: string,

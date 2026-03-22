@@ -88,6 +88,11 @@ export default function DocumentsPage() {
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string>("");
   const [openMappe, setOpenMappe] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState("");
+  const [previewTitle, setPreviewTitle] = useState("");
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState("");
   const [modal, setModal] = useState<ModalState>(null);
 
   const resolveLogo = useCallback(
@@ -103,21 +108,29 @@ export default function DocumentsPage() {
         ? bundlesRes.data
         : Array.isArray(bundlesRes.data?.data)
           ? bundlesRes.data.data
+          : Array.isArray(bundlesRes.data?.value)
+            ? bundlesRes.data.value
           : [];
 
-      const docsPerBundle = await Promise.all(
+      const docsSettled = await Promise.allSettled(
         bundles.map(async (b) => {
           const docsRes = await apiClient.get(`/api/v1/users/bundles/${b.id}/documents`);
           const docs: ApiDocument[] = Array.isArray(docsRes.data)
             ? docsRes.data
             : Array.isArray(docsRes.data?.data)
               ? docsRes.data.data
-              : [];
+              : Array.isArray(docsRes.data?.value)
+                ? docsRes.data.value
+                : [];
           return { bundleId: b.id, docs };
         }),
       );
 
-      const docsByBundle = new Map(docsPerBundle.map((entry) => [entry.bundleId, entry.docs]));
+      const docsByBundle = new Map(
+        docsSettled
+          .filter((r): r is PromiseFulfilledResult<{ bundleId: string; docs: ApiDocument[] }> => r.status === "fulfilled")
+          .map((r) => [r.value.bundleId, r.value.docs]),
+      );
 
       const mapped = bundles.map((b, index) => {
         const docs = (docsByBundle.get(b.id) || []).map((doc) => ({
@@ -142,8 +155,12 @@ export default function DocumentsPage() {
 
       setMappen(mapped);
       setLoadError("");
-    } catch {
-      setLoadError("Failed to load Bewerbungsunterlagen from database.");
+    } catch (error: any) {
+      const apiMessage = error?.response?.data?.message;
+      const message = Array.isArray(apiMessage)
+        ? apiMessage.join(", ")
+        : apiMessage || "Failed to load Bewerbungsunterlagen from database.";
+      setLoadError(String(message));
       setMappen([]);
     } finally {
       setLoading(false);
@@ -205,16 +222,53 @@ export default function DocumentsPage() {
   // ── Document handlers ───────────────────────────────────────────────────────
   const handleAddDoc = async (dto: CreateDocumentDto) => {
     try {
-      await apiClient.post(`/api/v1/users/bundles/${dto.mappeId}/documents`, {
+      if (!dto.file) {
+        alert("Please select a file before adding document.");
+        return;
+      }
+
+      const createRes = await apiClient.post(`/api/v1/users/bundles/${dto.mappeId}/documents`, {
         type: toApiType(dto.fileType),
         filename: dto.name,
         mimeType: dto.mimeType || "application/pdf",
         fileSize: labelToBytes(dto.size),
       });
+
+      const payload = createRes.data?.data || createRes.data;
+      const uploadUrl: string | undefined = payload?.uploadUrl;
+      const createdDocId: string | undefined = payload?.document?.id;
+
+      if (!uploadUrl) {
+        throw new Error("Upload URL was not returned by API.");
+      }
+
+      const uploadRes = await fetch(uploadUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": dto.mimeType || "application/octet-stream",
+        },
+        body: dto.file,
+      });
+
+      if (!uploadRes.ok) {
+        const errorBody = await uploadRes.text();
+        if (createdDocId) {
+          try {
+            await apiClient.delete(`/api/v1/users/bundles/${dto.mappeId}/documents/${createdDocId}`);
+          } catch {
+            // Best-effort rollback only.
+          }
+        }
+        throw new Error(`S3 upload failed with status ${uploadRes.status}. ${errorBody.slice(0, 500)}`);
+      }
+
       setModal(null);
       await loadMappen();
-    } catch {
-      alert("Failed to add document");
+    } catch (error: any) {
+      const message =
+        error?.message ||
+        "Failed to add document. The file could not be uploaded to storage.";
+      alert(message);
     }
   };
 
@@ -240,6 +294,27 @@ export default function DocumentsPage() {
       await loadMappen();
     } catch {
       alert("Failed to delete document");
+    }
+  };
+
+  const handlePreviewDoc = async (mappeId: string, docId: string, docName: string) => {
+    setPreviewOpen(true);
+    setPreviewLoading(true);
+    setPreviewError("");
+    setPreviewTitle(docName);
+
+    try {
+      const res = await apiClient.get(`/api/v1/users/bundles/${mappeId}/documents/${docId}/download`);
+      const url = res.data?.downloadUrl;
+      if (!url || typeof url !== "string") {
+        throw new Error("No download URL returned");
+      }
+      setPreviewUrl(url);
+    } catch {
+      setPreviewUrl("");
+      setPreviewError("Could not open document preview. Please try again.");
+    } finally {
+      setPreviewLoading(false);
     }
   };
 
@@ -373,6 +448,16 @@ export default function DocumentsPage() {
                       </span>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
+                          onClick={() => handlePreviewDoc(mappe.id, doc.id, doc.name)}
+                          className="p-1 text-gray-400 hover:text-blue-600 rounded transition-colors"
+                          title="Preview"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        </button>
+                        <button
                           onClick={() => setModal({ type: "edit_doc", mappe, doc })}
                           className="p-1 text-gray-400 hover:text-purple-600 rounded transition-colors"
                           title="Edit"
@@ -465,6 +550,56 @@ export default function DocumentsPage() {
             </button>
           </div>
         </Modal>
+      )}
+
+      {previewOpen && (
+        <div className="fixed inset-0 z-50 flex">
+          <div className="relative bg-white w-full max-w-[42%] h-full shadow-2xl flex flex-col animate-slide-in">
+            <div className="flex items-center justify-between p-4 border-b border-gray-100">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase text-gray-500">Document Preview</p>
+                <h3 className="text-sm font-bold text-gray-900 truncate">{previewTitle || "PDF"}</h3>
+              </div>
+              <button
+                onClick={() => {
+                  setPreviewOpen(false);
+                  setPreviewUrl("");
+                  setPreviewError("");
+                }}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700"
+                title="Close"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="flex-1 p-4 overflow-hidden">
+              {previewLoading && (
+                <div className="h-full rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center text-sm text-gray-500">
+                  Loading preview...
+                </div>
+              )}
+
+              {!previewLoading && previewError && (
+                <div className="h-full rounded-lg border border-red-200 bg-red-50 flex items-center justify-center text-sm text-red-700 px-4 text-center">
+                  {previewError}
+                </div>
+              )}
+
+              {!previewLoading && !previewError && previewUrl && (
+                <iframe
+                  src={previewUrl}
+                  title={previewTitle || "Document preview"}
+                  className="w-full h-full rounded-lg border border-gray-200"
+                />
+              )}
+            </div>
+          </div>
+
+          <div className="flex-1 bg-black/40" onClick={() => setPreviewOpen(false)} />
+        </div>
       )}
     </div>
   );

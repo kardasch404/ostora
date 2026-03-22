@@ -5,6 +5,13 @@ import { Throttle } from '@nestjs/throttler';
 import { firstValueFrom } from 'rxjs';
 import { Request } from 'express';
 
+const isDevelopment = (process.env['NODE_ENV'] || 'development') !== 'production';
+const authThrottleLimit = parseInt(
+  process.env['THROTTLE_AUTH_LIMIT'] || (isDevelopment ? '2000' : '5'),
+  10,
+);
+const authThrottleTtl = parseInt(process.env['THROTTLE_AUTH_TTL'] || '60000', 10);
+
 @ApiTags('Gateway')
 @Controller()
 export class GatewayController {
@@ -44,7 +51,7 @@ export class GatewayController {
   @ApiOperation({ summary: 'Register new user' })
   @ApiResponse({ status: 201, description: 'User registered successfully' })
   @ApiResponse({ status: 400, description: 'Bad request' })
-  @Throttle({ auth: { limit: 5, ttl: 60000 } }) // 5 requests per minute
+  @Throttle({ auth: { limit: authThrottleLimit, ttl: authThrottleTtl } })
   async register(@Body() dto: any) {
     return firstValueFrom(this.authClient.send('auth.register', dto));
   }
@@ -55,7 +62,7 @@ export class GatewayController {
   @ApiOperation({ summary: 'Login user' })
   @ApiResponse({ status: 200, description: 'Login successful' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @Throttle({ auth: { limit: 5, ttl: 60000 } }) // 5 requests per minute
+  @Throttle({ auth: { limit: authThrottleLimit, ttl: authThrottleTtl } })
   async login(@Body() dto: any) {
     return firstValueFrom(this.authClient.send('auth.login', dto));
   }
@@ -83,7 +90,7 @@ export class GatewayController {
   @Version('1')
   @ApiTags('Authentication')
   @ApiOperation({ summary: 'Request password reset' })
-  @Throttle({ auth: { limit: 5, ttl: 60000 } }) // 5 requests per minute
+  @Throttle({ auth: { limit: authThrottleLimit, ttl: authThrottleTtl } })
   async forgotPassword(@Body() dto: any) {
     return firstValueFrom(this.authClient.send('auth.forgotPassword', dto));
   }

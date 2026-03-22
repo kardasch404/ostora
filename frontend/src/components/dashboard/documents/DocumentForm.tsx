@@ -18,17 +18,20 @@ interface Props {
 }
 
 export default function DocumentForm({ mappeId, initial, onSave, onCancel }: Props) {
+  const [selectedFile, setSelectedFile] = useState<File | undefined>(undefined);
+  const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     name: initial?.name ?? "",
     fileType: initial?.fileType ?? ("cv" as DocumentFileType),
     size: initial?.size ?? "",
     mimeType: initial?.mimeType ?? "application/pdf",
   });
-  const [errors, setErrors] = useState<{ name?: string }>({});
+  const [errors, setErrors] = useState<{ name?: string; file?: string }>({});
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setSelectedFile(file);
     setForm((prev) => ({
       ...prev,
       name: file.name,
@@ -38,15 +41,23 @@ export default function DocumentForm({ mappeId, initial, onSave, onCancel }: Pro
   };
 
   const validate = () => {
-    const e: { name?: string } = {};
+    const e: { name?: string; file?: string } = {};
     if (!form.name.trim()) e.name = "File name is required";
+    if (!initial && !selectedFile) e.file = "Please choose a file to upload";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validate()) onSave({ mappeId, ...form });
+    if (!validate()) return;
+
+    setSubmitting(true);
+    try {
+      await onSave({ mappeId, ...form, file: selectedFile });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -62,6 +73,7 @@ export default function DocumentForm({ mappeId, initial, onSave, onCancel }: Pro
             {form.name || "Choose a file…"}
             <input type="file" className="hidden" onChange={handleFile} accept=".pdf,.doc,.docx,.png,.jpg" />
           </label>
+          {errors.file && <p className="text-xs text-red-500 mt-1">{errors.file}</p>}
         </div>
       )}
 
@@ -95,8 +107,8 @@ export default function DocumentForm({ mappeId, initial, onSave, onCancel }: Pro
         <button type="button" onClick={onCancel} className="flex-1 py-2 border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 text-sm font-semibold">
           Cancel
         </button>
-        <button type="submit" className="flex-1 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-bold">
-          {initial ? "Save Changes" : "Add Document"}
+        <button type="submit" disabled={submitting} className="flex-1 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-bold disabled:opacity-50">
+          {submitting ? "Saving..." : initial ? "Save Changes" : "Add Document"}
         </button>
       </div>
     </form>

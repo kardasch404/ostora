@@ -37,6 +37,7 @@ export interface CreateDocumentDto {
   fileType: DocumentFileType;
   size: string;
   mimeType: string;
+  file?: File;
 }
 
-export interface UpdateDocumentDto extends Partial<Omit<CreateDocumentDto, "mappeId">> {}
+export interface UpdateDocumentDto extends Partial<Omit<CreateDocumentDto, "mappeId" | "file">> {}
