@@ -5,7 +5,7 @@ export class CreateBundleDto {
   @ApiProperty({ example: 'MERN Stack JS' })
   @IsNotEmpty()
   @IsString()
-  @MinLength(3)
+  @MinLength(2)
   @MaxLength(100)
   name: string;
 

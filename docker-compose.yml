@@ -157,6 +157,10 @@ services:
     environment:
       PORT: 4717
       NODE_ENV: production
+      THROTTLE_GLOBAL_TTL: 60000
+      THROTTLE_GLOBAL_LIMIT: 10000
+      THROTTLE_AUTH_TTL: 60000
+      THROTTLE_AUTH_LIMIT: 2000
       REDIS_HOST: redis
       REDIS_PORT: 6379
       KAFKA_BROKER: kafka:29092
@@ -225,8 +229,10 @@ services:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/ostora
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      AWS_REGION: us-east-1
-      AWS_S3_BUCKET: ostora-documents
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-ostora-documents-prod}
     ports:
       - "4719:4719"
     depends_on:
