@@ -1,11 +1,39 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ProfileResponse } from './dto/profile.response';
+import { S3Service } from '../bundle/s3.service';
 
 @Injectable()
 export class ProfileService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private s3Service: S3Service,
+  ) {}
+
+  async generateProfileMediaUploadUrl(
+    userId: string,
+    filename: string,
+    mimeType: string,
+    kind: 'avatar' | 'cover',
+  ): Promise<{ uploadUrl: string; key: string; publicUrl: string }> {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
+    if (!allowedTypes.includes(mimeType)) {
+      throw new BadRequestException('Unsupported image type. Use jpg, png, webp, or gif.');
+    }
+
+    const timestamp = Date.now();
+    const sanitized = filename.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const key = `users/${userId}/profile/${kind}/${timestamp}-${sanitized}`;
+    const { uploadUrl } = await this.s3Service.generatePresignedUploadUrl(key, mimeType);
+
+    return {
+      uploadUrl,
+      key,
+      publicUrl: this.s3Service.getPublicUrl(key),
+    };
+  }
 
   async getProfile(userId: string): Promise<ProfileResponse> {
     const profile = await this.prisma.profile.findUnique({
@@ -13,18 +41,6 @@ export class ProfileService {
       include: {
         education: {
           orderBy: { startDate: 'desc' },
-        },
-        experience: {
-          orderBy: { startDate: 'desc' },
-        },
-        skills: {
-          orderBy: { name: 'asc' },
-        },
-        languages: {
-          orderBy: { name: 'asc' },
-        },
-        socialLinks: {
-          orderBy: { platform: 'asc' },
         },
       },
     });
@@ -76,9 +92,6 @@ export class ProfileService {
       where: { userId },
       include: {
         education: true,
-        experience: true,
-        skills: true,
-        languages: true,
       },
     });
 
@@ -112,16 +125,7 @@ export class ProfileService {
     if (profile.education.length === 0) missing.push('education');
     else completed++;
 
-    if (profile.experience.length === 0) missing.push('experience');
-    else completed++;
-
-    if (profile.skills.length === 0) missing.push('skills');
-    else completed++;
-
-    if (profile.languages.length === 0) missing.push('languages');
-    else completed++;
-
-    const total = fields.length + 4;
+    const total = fields.length + 1;
     const percentage = Math.round((completed / total) * 100);
 
     return { percentage, missing };

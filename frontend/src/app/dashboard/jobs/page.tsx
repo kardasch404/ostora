@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api-client";
 import { extractContactInfo } from "@/lib/contact-extractor";
+import { APPLICATION_HISTORY_STORAGE_KEY, SAVED_JOBS_STORAGE_KEY } from "@/lib/application-state";
 
 interface Job {
   id: number;
@@ -31,9 +32,37 @@ export default function JobsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [savedJobIds, setSavedJobIds] = useState<number[]>([]);
+  const [appliedJobIds, setAppliedJobIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadCategories();
+
+    if (typeof window !== "undefined") {
+      const raw = window.localStorage.getItem(SAVED_JOBS_STORAGE_KEY);
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw) as Job[];
+          if (Array.isArray(parsed)) {
+            setSavedJobIds(parsed.map((item) => item.id));
+          }
+        } catch {
+          setSavedJobIds([]);
+        }
+      }
+
+      const historyRaw = window.localStorage.getItem(APPLICATION_HISTORY_STORAGE_KEY);
+      if (historyRaw) {
+        try {
+          const parsed = JSON.parse(historyRaw) as Array<{ jobId?: string; status?: string }>;
+          if (Array.isArray(parsed)) {
+            setAppliedJobIds(new Set(parsed.filter((item) => item.status === "sent").map((item) => String(item.jobId || "")).filter(Boolean)));
+          }
+        } catch {
+          setAppliedJobIds(new Set());
+        }
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -104,6 +133,10 @@ export default function JobsPage() {
   const router = useRouter();
 
   const handleApply = (job: Job) => {
+    if (appliedJobIds.has(String(job.id))) {
+      return;
+    }
+
     const contact = extractContactInfo(job.content || "");
     const params = new URLSearchParams({
       jobTitle: job.job_title || "",
@@ -114,7 +147,7 @@ export default function JobsPage() {
       contactPhone: contact.phone,
       stelleUrl: job.stelle_url || "",
     });
-    router.push(`/dashboard/applications?${params}`);
+    router.push(`/dashboard/fast-apply?${params}`);
   };
 
   const clearFilters = () => {
@@ -123,11 +156,49 @@ export default function JobsPage() {
     setPage(1);
   };
 
+  const toggleSavedJob = (job: Job) => {
+    if (typeof window === "undefined") return;
+
+    const raw = window.localStorage.getItem(SAVED_JOBS_STORAGE_KEY);
+    let current: Job[] = [];
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw) as Job[];
+        if (Array.isArray(parsed)) {
+          current = parsed;
+        }
+      } catch {
+        current = [];
+      }
+    }
+
+    const exists = current.some((item) => item.id === job.id);
+    const next = exists ? current.filter((item) => item.id !== job.id) : [job, ...current];
+    window.localStorage.setItem(SAVED_JOBS_STORAGE_KEY, JSON.stringify(next));
+    setSavedJobIds(next.map((item) => item.id));
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-purple-600 to-blue-500 rounded-2xl p-8 text-white shadow-xl">
         <h1 className="text-3xl font-bold mb-2">Find Your Dream Job</h1>
         <p className="text-purple-100">Browse thousands of job opportunities</p>
+        <div className="mt-4 flex gap-2">
+          <button
+            type="button"
+            onClick={() => router.push("/dashboard/saved")}
+            className="px-3 py-2 rounded-lg bg-white/15 border border-white/30 text-sm font-semibold"
+          >
+            Saved Jobs
+          </button>
+          <button
+            type="button"
+            onClick={() => router.push("/dashboard/fast-apply")}
+            className="px-3 py-2 rounded-lg bg-white text-[#1e47a0] text-sm font-semibold"
+          >
+            Fast Applying
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -199,7 +270,10 @@ export default function JobsPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {jobs.map((job) => (
+          {jobs.map((job) => {
+            const alreadyApplied = appliedJobIds.has(String(job.id));
+
+            return (
             <div key={job.id} className="bg-white rounded-lg border border-gray-200 p-4 hover:border-purple-300 hover:shadow-md transition-all duration-200 flex flex-col justify-between gap-3">
               <div>
                 <h3 className="text-sm font-bold text-gray-900 line-clamp-2 mb-1">
@@ -229,9 +303,25 @@ export default function JobsPage() {
               <div className="flex gap-2">
                 <button
                   onClick={() => handleApply(job)}
-                  className="flex-1 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold text-xs"
+                  disabled={alreadyApplied}
+                  className={`flex-1 py-2 rounded-lg transition-colors font-semibold text-xs ${
+                    alreadyApplied
+                      ? "bg-red-500 text-white cursor-not-allowed"
+                      : "bg-purple-600 text-white hover:bg-purple-700"
+                  }`}
                 >
-                  Apply
+                  {alreadyApplied ? "Already Applied" : "Apply"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => toggleSavedJob(job)}
+                  className={`py-2 px-3 rounded-lg transition-colors font-semibold text-xs border ${
+                    savedJobIds.includes(job.id)
+                      ? "border-[#1d4f91] bg-[#e8f0ff] text-[#1d4f91]"
+                      : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  {savedJobIds.includes(job.id) ? "Saved" : "Save"}
                 </button>
                 <button
                   onClick={() => setSelectedJob(job)}
@@ -241,7 +331,8 @@ export default function JobsPage() {
                 </button>
               </div>
             </div>
-          ))}
+          );
+          })}
 
           {jobs.length === 0 && !loading && (
             <div className="text-center py-12 text-gray-500">
@@ -352,9 +443,14 @@ export default function JobsPage() {
             <div className="p-5 border-t border-gray-100">
               <button
                 onClick={() => handleApply(selectedJob)}
-                className="w-full py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-bold text-sm"
+                disabled={appliedJobIds.has(String(selectedJob.id))}
+                className={`w-full py-3 rounded-lg transition-colors font-bold text-sm ${
+                  appliedJobIds.has(String(selectedJob.id))
+                    ? "bg-red-500 text-white cursor-not-allowed"
+                    : "bg-purple-600 text-white hover:bg-purple-700"
+                }`}
               >
-                Apply Now
+                {appliedJobIds.has(String(selectedJob.id)) ? "Already Applied" : "Apply Now"}
               </button>
             </div>
           </div>

@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Put, Patch, Delete, Param, Body, Headers } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Delete, Param, Body, Headers, HttpException, HttpStatus } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
+import axios from 'axios';
 
 @ApiTags('Users Proxy')
 @Controller('users')
@@ -10,6 +11,166 @@ export class UserProxyController {
   private readonly emailServiceUrl = process.env['EMAIL_SERVICE_URL'] || 'http://email-service:4721';
 
   constructor(private readonly httpService: HttpService) {}
+
+  @Get('profile')
+  async getProfile(@Headers('authorization') auth: string) {
+    try {
+      const url = `${this.userServiceUrl}/api/v1/profile`;
+      const response = await firstValueFrom(
+        this.httpService.get(url, { headers: { authorization: auth } })
+      );
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return {};
+      }
+      throw new HttpException(
+        error instanceof Error ? error.message : 'Failed to get profile',
+        (axios.isAxiosError(error) && error.response?.status) || HttpStatus.BAD_GATEWAY,
+      );
+    }
+  }
+
+  @Patch('profile')
+  async updateProfile(@Body() body: any, @Headers('authorization') auth: string) {
+    try {
+      const url = `${this.userServiceUrl}/api/v1/profile`;
+      const response = await firstValueFrom(
+        this.httpService.patch(url, body, { headers: { authorization: auth } })
+      );
+      return response.data;
+    } catch (error) {
+      throw new HttpException(
+        error instanceof Error ? error.message : 'Failed to update profile',
+        (axios.isAxiosError(error) && error.response?.status) || HttpStatus.BAD_GATEWAY,
+      );
+    }
+  }
+
+  @Post('profile/upload-url')
+  async generateProfileUploadUrl(@Body() body: any, @Headers('authorization') auth: string) {
+    try {
+      const url = `${this.userServiceUrl}/api/v1/profile/upload-url`;
+      const response = await firstValueFrom(
+        this.httpService.post(url, body, { headers: { authorization: auth } })
+      );
+      return response.data;
+    } catch (error) {
+      throw new HttpException(
+        error instanceof Error ? error.message : 'Failed to generate profile upload URL',
+        (axios.isAxiosError(error) && error.response?.status) || HttpStatus.BAD_GATEWAY,
+      );
+    }
+  }
+
+  @Delete('profile')
+  async deleteProfile(@Headers('authorization') auth: string) {
+    try {
+      const url = `${this.userServiceUrl}/api/v1/profile`;
+      const response = await firstValueFrom(
+        this.httpService.delete(url, { headers: { authorization: auth } })
+      );
+      return response.data;
+    } catch (error) {
+      throw new HttpException(
+        error instanceof Error ? error.message : 'Failed to delete profile',
+        (axios.isAxiosError(error) && error.response?.status) || HttpStatus.BAD_GATEWAY,
+      );
+    }
+  }
+
+  @Get('profile/completeness')
+  async getProfileCompleteness(@Headers('authorization') auth: string) {
+    try {
+      const url = `${this.userServiceUrl}/api/v1/profile/completeness`;
+      const response = await firstValueFrom(
+        this.httpService.get(url, { headers: { authorization: auth } })
+      );
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return { percentage: 0, missing: ['All fields'] };
+      }
+      throw new HttpException(
+        error instanceof Error ? error.message : 'Failed to get profile completeness',
+        (axios.isAxiosError(error) && error.response?.status) || HttpStatus.BAD_GATEWAY,
+      );
+    }
+  }
+
+  @Post('education')
+  async createEducation(@Body() body: any, @Headers('authorization') auth: string) {
+    try {
+      const url = `${this.userServiceUrl}/api/v1/education`;
+      const response = await firstValueFrom(
+        this.httpService.post(url, body, { headers: { authorization: auth } })
+      );
+      return response.data;
+    } catch (error) {
+      throw new HttpException(
+        error instanceof Error ? error.message : 'Failed to create education',
+        (axios.isAxiosError(error) && error.response?.status) || HttpStatus.BAD_GATEWAY,
+      );
+    }
+  }
+
+  @Get('education')
+  async getEducation(@Headers('authorization') auth: string) {
+    try {
+      const url = `${this.userServiceUrl}/api/v1/education`;
+      const response = await firstValueFrom(
+        this.httpService.get(url, { headers: { authorization: auth } })
+      );
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return [];
+      }
+      throw new HttpException(
+        error instanceof Error ? error.message : 'Failed to get education',
+        (axios.isAxiosError(error) && error.response?.status) || HttpStatus.BAD_GATEWAY,
+      );
+    }
+  }
+
+  @Patch('education/:id')
+  async updateEducation(
+    @Param('id') id: string,
+    @Body() body: any,
+    @Headers('authorization') auth: string,
+  ) {
+    try {
+      const url = `${this.userServiceUrl}/api/v1/education/${id}`;
+      const response = await firstValueFrom(
+        this.httpService.patch(url, body, { headers: { authorization: auth } })
+      );
+      return response.data;
+    } catch (error) {
+      throw new HttpException(
+        error instanceof Error ? error.message : 'Failed to update education',
+        (axios.isAxiosError(error) && error.response?.status) || HttpStatus.BAD_GATEWAY,
+      );
+    }
+  }
+
+  @Delete('education/:id')
+  async deleteEducation(
+    @Param('id') id: string,
+    @Headers('authorization') auth: string,
+  ) {
+    try {
+      const url = `${this.userServiceUrl}/api/v1/education/${id}`;
+      const response = await firstValueFrom(
+        this.httpService.delete(url, { headers: { authorization: auth } })
+      );
+      return response.data;
+    } catch (error) {
+      throw new HttpException(
+        error instanceof Error ? error.message : 'Failed to delete education',
+        (axios.isAxiosError(error) && error.response?.status) || HttpStatus.BAD_GATEWAY,
+      );
+    }
+  }
 
   @Get('me')
   async getCurrentUser(@Headers('authorization') auth: string) {
