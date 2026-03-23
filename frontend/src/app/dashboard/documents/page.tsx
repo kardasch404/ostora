@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import axios from "axios";
 import { apiClient } from "@/lib/api-client";
 import { Bewerbungsmappe, BewerbungDocument, CreateMappeDto, CreateDocumentDto, DocumentFileType } from "@/types/bewerbung";
 import MappeForm from "@/components/dashboard/documents/MappeForm";
@@ -155,11 +156,26 @@ export default function DocumentsPage() {
 
       setMappen(mapped);
       setLoadError("");
-    } catch (error: any) {
-      const apiMessage = error?.response?.data?.message;
-      const message = Array.isArray(apiMessage)
-        ? apiMessage.join(", ")
-        : apiMessage || "Failed to load Bewerbungsunterlagen from database.";
+    } catch (error: unknown) {
+      let message = "Failed to load Bewerbungsunterlagen from database.";
+
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        const apiMessage = error.response?.data?.message;
+
+        if (status === 401) {
+          message = "Session expired or unauthorized. Please log in again.";
+        } else if (status === 403) {
+          message = "You do not have permission to view these documents.";
+        } else if (status) {
+          message = Array.isArray(apiMessage)
+            ? apiMessage.join(", ")
+            : apiMessage || `Failed to load Bewerbungsunterlagen (HTTP ${status}).`;
+        } else {
+          message = "Could not reach server. Please check your connection and try again.";
+        }
+      }
+
       setLoadError(String(message));
       setMappen([]);
     } finally {

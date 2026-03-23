@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Param, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
@@ -23,6 +23,32 @@ export class JobProxyController {
   async getCategories() {
     const url = `${this.jobServiceUrl}/jobs/categories`;
     const response = await firstValueFrom(this.httpService.get(url));
+    return response.data;
+  }
+
+  @Post('apply-bulk')
+  async applyBulk(@Body() body: any, @Headers('authorization') auth: string) {
+    const url = `${this.jobServiceUrl}/jobs/apply-bulk`;
+    const response = await firstValueFrom(
+      this.httpService.post(url, body, {
+        headers: {
+          authorization: auth,
+        },
+      }),
+    );
+    return response.data;
+  }
+
+  @Get('applications')
+  async getApplications(@Headers('authorization') auth: string) {
+    const url = `${this.jobServiceUrl}/jobs/applications`;
+    const response = await firstValueFrom(
+      this.httpService.get(url, {
+        headers: {
+          authorization: auth,
+        },
+      }),
+    );
     return response.data;
   }
 
