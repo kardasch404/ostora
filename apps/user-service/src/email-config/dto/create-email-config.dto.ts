@@ -14,31 +14,37 @@ export class CreateEmailConfigDto {
   @IsEmail()
   email: string;
 
-  @ApiProperty()
-  @IsNotEmpty()
+  @ApiProperty({ description: 'Email password or app password' })
+  @IsOptional()
   @IsString()
   password: string;
 
-  @ApiProperty()
-  @IsNotEmpty()
+  @ApiProperty({ description: 'Alternative field name for password' })
+  @IsOptional()
   @IsString()
-  smtpHost: string;
+  appPassword?: string;
 
-  @ApiProperty()
-  @IsNotEmpty()
+  @ApiPropertyOptional({ description: 'Auto-detected if not provided' })
+  @IsOptional()
+  @IsString()
+  smtpHost?: string;
+
+  @ApiPropertyOptional({ description: 'Auto-detected if not provided' })
+  @IsOptional()
   @IsInt()
   @Min(1)
   @Max(65535)
-  smtpPort: number;
+  smtpPort?: number;
 
-  @ApiProperty({ enum: EmailEncryption })
+  @ApiPropertyOptional({ enum: EmailEncryption, description: 'Auto-detected if not provided' })
+  @IsOptional()
   @IsEnum(EmailEncryption)
-  encryption: EmailEncryption;
+  encryption?: EmailEncryption;
 
-  @ApiProperty()
-  @IsNotEmpty()
+  @ApiPropertyOptional({ description: 'Defaults to email username if not provided' })
+  @IsOptional()
   @IsString()
-  fromName: string;
+  fromName?: string;
 
   @ApiPropertyOptional({ default: true })
   @IsOptional()

@@ -9,6 +9,7 @@ import { BundleModule } from './bundle/bundle.module';
 import { RedisModule } from './redis/redis.module';
 import { SocialModule } from './social/social.module';
 import { ProfileSettingsModule } from './profile-settings/profile-settings.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { ProfileSettingsModule } from './profile-settings/profile-settings.modul
     BundleModule,
     SocialModule,
     ProfileSettingsModule,
+    HealthModule,
     // ExperienceModule,
     // SkillModule,
     // LanguageModule,

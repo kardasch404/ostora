@@ -41,6 +41,16 @@ export class ProfileController {
     return this.profileService.updateProfile(userId, dto);
   }
 
+  @Post('upload-url')
+  @ApiOperation({ summary: 'Generate presigned S3 upload URL for avatar/cover image' })
+  @ApiResponse({ status: 201, description: 'Upload URL generated successfully' })
+  async generateUploadUrl(
+    @CurrentUser('userId') userId: string,
+    @Body() body: { filename: string; mimeType: string; kind: 'avatar' | 'cover' },
+  ): Promise<{ uploadUrl: string; key: string; publicUrl: string }> {
+    return this.profileService.generateProfileMediaUploadUrl(userId, body.filename, body.mimeType, body.kind);
+  }
+
   @Delete()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete user profile' })

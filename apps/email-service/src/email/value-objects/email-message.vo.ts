@@ -1,13 +1,26 @@
 import { SendEmailDto } from '../dto/send-email.dto';
 
+type AttachmentInput =
+  | string
+  | {
+      filename: string;
+      content: Uint8Array;
+    };
+
+type EmailMessagePayload = Omit<SendEmailDto, 'attachments'> & {
+  attachments?: AttachmentInput[];
+};
+
 export class EmailMessage {
+  private readonly from?: string;
   private readonly to: string;
   private readonly subject: string;
   private readonly body: string;
   private readonly plainText?: string;
-  private readonly attachments?: string[];
+  private readonly attachments?: AttachmentInput[];
 
-  constructor(payload: SendEmailDto) {
+  constructor(payload: EmailMessagePayload) {
+    this.from = payload.from;
     if (!this.isValidEmail(payload.to)) {
       throw new Error('Invalid email address');
     }
@@ -20,11 +33,13 @@ export class EmailMessage {
 
   get nodemailerOptions(): object {
     return {
+      from: this.from,
       to: this.to,
       subject: this.subject,
       html: this.body,
       text: this.plainText || this.stripHtml(this.body),
-      attachments: this.attachments?.map((url) => ({ path: url })) || [],
+      attachments:
+        this.attachments?.map((item) => (typeof item === 'string' ? { path: item } : item)) || [],
     };
   }
 

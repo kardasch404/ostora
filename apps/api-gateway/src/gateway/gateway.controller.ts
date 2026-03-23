@@ -1,8 +1,16 @@
-import { Controller, Post, Get, Put, Delete, Body, Param, Query, Inject, UseGuards, Version } from '@nestjs/common';
+import { Controller, Post, Get, Put, Delete, Body, Param, Query, Inject, UseGuards, Version, Req, UnauthorizedException } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { firstValueFrom } from 'rxjs';
+import { Request } from 'express';
+
+const isDevelopment = (process.env['NODE_ENV'] || 'development') !== 'production';
+const authThrottleLimit = parseInt(
+  process.env['THROTTLE_AUTH_LIMIT'] || (isDevelopment ? '2000' : '5'),
+  10,
+);
+const authThrottleTtl = parseInt(process.env['THROTTLE_AUTH_TTL'] || '60000', 10);
 
 @ApiTags('Gateway')
 @Controller()
@@ -43,7 +51,7 @@ export class GatewayController {
   @ApiOperation({ summary: 'Register new user' })
   @ApiResponse({ status: 201, description: 'User registered successfully' })
   @ApiResponse({ status: 400, description: 'Bad request' })
-  @Throttle({ auth: { limit: 5, ttl: 60000 } }) // 5 requests per minute
+  @Throttle({ auth: { limit: authThrottleLimit, ttl: authThrottleTtl } })
   async register(@Body() dto: any) {
     return firstValueFrom(this.authClient.send('auth.register', dto));
   }
@@ -54,7 +62,7 @@ export class GatewayController {
   @ApiOperation({ summary: 'Login user' })
   @ApiResponse({ status: 200, description: 'Login successful' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @Throttle({ auth: { limit: 5, ttl: 60000 } }) // 5 requests per minute
+  @Throttle({ auth: { limit: authThrottleLimit, ttl: authThrottleTtl } })
   async login(@Body() dto: any) {
     return firstValueFrom(this.authClient.send('auth.login', dto));
   }
@@ -82,7 +90,7 @@ export class GatewayController {
   @Version('1')
   @ApiTags('Authentication')
   @ApiOperation({ summary: 'Request password reset' })
-  @Throttle({ auth: { limit: 5, ttl: 60000 } }) // 5 requests per minute
+  @Throttle({ auth: { limit: authThrottleLimit, ttl: authThrottleTtl } })
   async forgotPassword(@Body() dto: any) {
     return firstValueFrom(this.authClient.send('auth.forgotPassword', dto));
   }
@@ -103,6 +111,21 @@ export class GatewayController {
   @ApiBearerAuth('JWT-auth')
   async getUserProfile(@Query('userId') userId: string) {
     return firstValueFrom(this.userClient.send('user.getProfile', { userId }));
+  }
+
+  @Get('users/me')
+  @Version('1')
+  @ApiTags('Users')
+  @ApiOperation({ summary: 'Get current user profile' })
+  @ApiBearerAuth('JWT-auth')
+  async getCurrentUserProfile(@Req() req: Request, @Query('userId') userId?: string) {
+    const resolvedUserId = userId || this.extractUserIdFromAuthHeader(req);
+
+    if (!resolvedUserId) {
+      throw new UnauthorizedException('Missing or invalid user identity');
+    }
+
+    return firstValueFrom(this.userClient.send('user.getProfile', { userId: resolvedUserId }));
   }
 
   @Put('users/profile')
@@ -133,6 +156,14 @@ export class GatewayController {
   }
 
   // ==================== JOB ROUTES ====================
+  @Get('jobs/categories')
+  @Version('1')
+  @ApiTags('Jobs')
+  @ApiOperation({ summary: 'Get job categories' })
+  async getJobCategories() {
+    return firstValueFrom(this.jobClient.send('job.getCategories', {}));
+  }
+
   @Get('jobs')
   @Version('1')
   @ApiTags('Jobs')
@@ -270,5 +301,30 @@ export class GatewayController {
   @ApiBearerAuth('JWT-auth')
   async getJobStats(@Query('userId') userId: string) {
     return firstValueFrom(this.analyticsClient.send('analytics.getJobStats', { userId }));
+  }
+
+  private extractUserIdFromAuthHeader(req: Request): string | undefined {
+    const authHeader = req.headers.authorization || req.headers.Authorization;
+    if (!authHeader || Array.isArray(authHeader)) {
+      return undefined;
+    }
+
+    const [scheme, token] = authHeader.split(' ');
+    if (scheme !== 'Bearer' || !token) {
+      return undefined;
+    }
+
+    try {
+      const parts = token.split('.');
+      if (parts.length < 2) {
+        return undefined;
+      }
+
+      const payloadJson = Buffer.from(parts[1], 'base64url').toString('utf-8');
+      const payload = JSON.parse(payloadJson) as Record<string, unknown>;
+      return (payload.userId as string) || (payload.sub as string) || (payload.id as string);
+    } catch {
+      return undefined;
+    }
   }
 }

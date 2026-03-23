@@ -1,0 +1,622 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
+import axios from "axios";
+import { apiClient } from "@/lib/api-client";
+import { Bewerbungsmappe, BewerbungDocument, CreateMappeDto, CreateDocumentDto, DocumentFileType } from "@/types/bewerbung";
+import MappeForm from "@/components/dashboard/documents/MappeForm";
+import DocumentForm from "@/components/dashboard/documents/DocumentForm";
+import Modal from "@/components/dashboard/documents/Modal";
+
+// ── helpers ───────────────────────────────────────────────────────────────────
+
+const FILE_TYPE_BADGE: Record<DocumentFileType, string> = {
+  cv: "bg-purple-100 text-purple-700",
+  cover_letter: "bg-blue-100 text-blue-700",
+  certificate: "bg-green-100 text-green-700",
+  other: "bg-gray-100 text-gray-700",
+};
+
+const FILE_TYPE_LABEL: Record<DocumentFileType, string> = {
+  cv: "CV",
+  cover_letter: "Cover Letter",
+  certificate: "Certificate",
+  other: "Other",
+};
+
+const DEFAULT_LOGOS = ["💼", "🎓", "🚀", "🏢", "⭐", "🔥", "💡", "🎯", "📁", "🌟"] as const;
+
+type ApiDocumentType = "CV" | "COVER_LETTER" | "PORTFOLIO" | "OTHER";
+
+interface ApiBundle {
+  id: string;
+  name: string;
+  description?: string | null;
+  createdAt: string;
+}
+
+interface ApiDocument {
+  id: string;
+  bundleId: string;
+  type: ApiDocumentType;
+  filename: string;
+  fileSize: number;
+  mimeType: string;
+  createdAt: string;
+}
+
+const toUiType = (type: ApiDocumentType): DocumentFileType => {
+  if (type === "CV") return "cv";
+  if (type === "COVER_LETTER") return "cover_letter";
+  if (type === "PORTFOLIO") return "certificate";
+  return "other";
+};
+
+const toApiType = (type: DocumentFileType): ApiDocumentType => {
+  if (type === "cv") return "CV";
+  if (type === "cover_letter") return "COVER_LETTER";
+  if (type === "certificate") return "PORTFOLIO";
+  return "OTHER";
+};
+
+const bytesToLabel = (bytes: number): string => {
+  if (!bytes || Number.isNaN(bytes)) return "0 KB";
+  return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+};
+
+const labelToBytes = (label: string): number => {
+  const numeric = Number.parseFloat((label || "").replace(/[^\d.]/g, ""));
+  if (Number.isNaN(numeric) || numeric <= 0) return 1024;
+  return Math.round(numeric * 1024);
+};
+
+// ── types for modal state ─────────────────────────────────────────────────────
+
+type ModalState =
+  | { type: "create_mappe" }
+  | { type: "edit_mappe"; mappe: Bewerbungsmappe }
+  | { type: "delete_mappe"; mappe: Bewerbungsmappe }
+  | { type: "add_doc"; mappeId: string }
+  | { type: "edit_doc"; mappe: Bewerbungsmappe; doc: BewerbungDocument }
+  | { type: "delete_doc"; mappe: Bewerbungsmappe; doc: BewerbungDocument }
+  | null;
+
+// ── component ─────────────────────────────────────────────────────────────────
+
+export default function DocumentsPage() {
+  const [mappen, setMappen] = useState<Bewerbungsmappe[]>([]);
+  const [bundleLogos, setBundleLogos] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string>("");
+  const [openMappe, setOpenMappe] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState("");
+  const [previewTitle, setPreviewTitle] = useState("");
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState("");
+  const [modal, setModal] = useState<ModalState>(null);
+
+  const resolveLogo = useCallback(
+    (bundleId: string, index: number) => bundleLogos[bundleId] || DEFAULT_LOGOS[index % DEFAULT_LOGOS.length],
+    [bundleLogos],
+  );
+
+  const loadMappen = useCallback(async () => {
+    setLoading(true);
+    try {
+      const bundlesRes = await apiClient.get("/api/v1/users/bundles");
+      const bundles: ApiBundle[] = Array.isArray(bundlesRes.data)
+        ? bundlesRes.data
+        : Array.isArray(bundlesRes.data?.data)
+          ? bundlesRes.data.data
+          : Array.isArray(bundlesRes.data?.value)
+            ? bundlesRes.data.value
+          : [];
+
+      const docsSettled = await Promise.allSettled(
+        bundles.map(async (b) => {
+          const docsRes = await apiClient.get(`/api/v1/users/bundles/${b.id}/documents`);
+          const docs: ApiDocument[] = Array.isArray(docsRes.data)
+            ? docsRes.data
+            : Array.isArray(docsRes.data?.data)
+              ? docsRes.data.data
+              : Array.isArray(docsRes.data?.value)
+                ? docsRes.data.value
+                : [];
+          return { bundleId: b.id, docs };
+        }),
+      );
+
+      const docsByBundle = new Map(
+        docsSettled
+          .filter((r): r is PromiseFulfilledResult<{ bundleId: string; docs: ApiDocument[] }> => r.status === "fulfilled")
+          .map((r) => [r.value.bundleId, r.value.docs]),
+      );
+
+      const mapped = bundles.map((b, index) => {
+        const docs = (docsByBundle.get(b.id) || []).map((doc) => ({
+          id: doc.id,
+          mappeId: b.id,
+          name: doc.filename,
+          fileType: toUiType(doc.type),
+          size: bytesToLabel(doc.fileSize),
+          mimeType: doc.mimeType,
+          uploadedAt: new Date(doc.createdAt).toISOString().split("T")[0],
+        } as BewerbungDocument));
+
+        return {
+          id: b.id,
+          name: b.name,
+          description: b.description || "",
+          logo: resolveLogo(b.id, index),
+          createdAt: new Date(b.createdAt).toISOString().split("T")[0],
+          documents: docs,
+        } as Bewerbungsmappe;
+      });
+
+      setMappen(mapped);
+      setLoadError("");
+    } catch (error: unknown) {
+      let message = "Failed to load Bewerbungsunterlagen from database.";
+
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        const apiMessage = error.response?.data?.message;
+
+        if (status === 401) {
+          message = "Session expired or unauthorized. Please log in again.";
+        } else if (status === 403) {
+          message = "You do not have permission to view these documents.";
+        } else if (status) {
+          message = Array.isArray(apiMessage)
+            ? apiMessage.join(", ")
+            : apiMessage || `Failed to load Bewerbungsunterlagen (HTTP ${status}).`;
+        } else {
+          message = "Could not reach server. Please check your connection and try again.";
+        }
+      }
+
+      setLoadError(String(message));
+      setMappen([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [resolveLogo]);
+
+  useEffect(() => {
+    loadMappen();
+  }, [loadMappen]);
+
+  // ── Mappe handlers ──────────────────────────────────────────────────────────
+  const handleCreateMappe = async (dto: CreateMappeDto) => {
+    try {
+      const res = await apiClient.post("/api/v1/users/bundles", {
+        name: dto.name,
+        description: dto.description,
+      });
+      const createdId = res.data?.id as string | undefined;
+      if (createdId) {
+        setBundleLogos((prev) => ({ ...prev, [createdId]: dto.logo }));
+      }
+      setModal(null);
+      await loadMappen();
+    } catch {
+      alert("Failed to create Bewerbungsmappe");
+    }
+  };
+
+  const handleUpdateMappe = async (id: string, dto: CreateMappeDto) => {
+    try {
+      await apiClient.patch(`/api/v1/users/bundles/${id}`, {
+        name: dto.name,
+        description: dto.description,
+      });
+      setBundleLogos((prev) => ({ ...prev, [id]: dto.logo }));
+      setModal(null);
+      await loadMappen();
+    } catch {
+      alert("Failed to update Bewerbungsmappe");
+    }
+  };
+
+  const handleDeleteMappe = async (id: string) => {
+    try {
+      await apiClient.delete(`/api/v1/users/bundles/${id}`);
+      if (openMappe === id) setOpenMappe(null);
+      setBundleLogos((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+      setModal(null);
+      await loadMappen();
+    } catch {
+      alert("Failed to delete Bewerbungsmappe");
+    }
+  };
+
+  // ── Document handlers ───────────────────────────────────────────────────────
+  const handleAddDoc = async (dto: CreateDocumentDto) => {
+    try {
+      if (!dto.file) {
+        alert("Please select a file before adding document.");
+        return;
+      }
+
+      const createRes = await apiClient.post(`/api/v1/users/bundles/${dto.mappeId}/documents`, {
+        type: toApiType(dto.fileType),
+        filename: dto.name,
+        mimeType: dto.mimeType || "application/pdf",
+        fileSize: labelToBytes(dto.size),
+      });
+
+      const payload = createRes.data?.data || createRes.data;
+      const uploadUrl: string | undefined = payload?.uploadUrl;
+      const createdDocId: string | undefined = payload?.document?.id;
+
+      if (!uploadUrl) {
+        throw new Error("Upload URL was not returned by API.");
+      }
+
+      const uploadRes = await fetch(uploadUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": dto.mimeType || "application/octet-stream",
+        },
+        body: dto.file,
+      });
+
+      if (!uploadRes.ok) {
+        const errorBody = await uploadRes.text();
+        if (createdDocId) {
+          try {
+            await apiClient.delete(`/api/v1/users/bundles/${dto.mappeId}/documents/${createdDocId}`);
+          } catch {
+            // Best-effort rollback only.
+          }
+        }
+        throw new Error(`S3 upload failed with status ${uploadRes.status}. ${errorBody.slice(0, 500)}`);
+      }
+
+      setModal(null);
+      await loadMappen();
+    } catch (error: any) {
+      const message =
+        error?.message ||
+        "Failed to add document. The file could not be uploaded to storage.";
+      alert(message);
+    }
+  };
+
+  const handleUpdateDoc = async (mappeId: string, docId: string, dto: CreateDocumentDto) => {
+    try {
+      await apiClient.patch(`/api/v1/users/bundles/${mappeId}/documents/${docId}`, {
+        type: toApiType(dto.fileType),
+        filename: dto.name,
+        mimeType: dto.mimeType || "application/pdf",
+        fileSize: labelToBytes(dto.size),
+      });
+      setModal(null);
+      await loadMappen();
+    } catch {
+      alert("Failed to update document");
+    }
+  };
+
+  const handleDeleteDoc = async (mappeId: string, docId: string) => {
+    try {
+      await apiClient.delete(`/api/v1/users/bundles/${mappeId}/documents/${docId}`);
+      setModal(null);
+      await loadMappen();
+    } catch {
+      alert("Failed to delete document");
+    }
+  };
+
+  const handlePreviewDoc = async (mappeId: string, docId: string, docName: string) => {
+    setPreviewOpen(true);
+    setPreviewLoading(true);
+    setPreviewError("");
+    setPreviewTitle(docName);
+
+    try {
+      const res = await apiClient.get(`/api/v1/users/bundles/${mappeId}/documents/${docId}/download`);
+      const url = res.data?.downloadUrl;
+      if (!url || typeof url !== "string") {
+        throw new Error("No download URL returned");
+      }
+      setPreviewUrl(url);
+    } catch {
+      setPreviewUrl("");
+      setPreviewError("Could not open document preview. Please try again.");
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const mappeCountLabel = useMemo(
+    () => `${mappen.length} folder${mappen.length !== 1 ? "s" : ""}`,
+    [mappen.length],
+  );
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-purple-600 to-blue-500 rounded-2xl p-8 text-white shadow-xl">
+        <h1 className="text-3xl font-bold mb-1">Bewerbungsunterlagen</h1>
+        <p className="text-purple-100">Organise your application folders and documents</p>
+      </div>
+
+      {/* Toolbar */}
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-gray-500">{mappeCountLabel}</p>
+        <button
+          onClick={() => setModal({ type: "create_mappe" })}
+          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold text-sm"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          New Mappe
+        </button>
+      </div>
+
+      {loading && (
+        <div className="rounded-lg border border-gray-200 bg-white p-3 text-sm text-gray-600">
+          Loading Bewerbungsunterlagen...
+        </div>
+      )}
+
+      {loadError && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {loadError}
+        </div>
+      )}
+
+      {/* Mappen list */}
+      {mappen.length === 0 && (
+        <div className="text-center py-20 text-gray-400">
+          <div className="text-5xl mb-3">📁</div>
+          <p className="font-semibold">No folders yet</p>
+          <p className="text-sm mt-1">Create your first Bewerbungsmappe to get started</p>
+        </div>
+      )}
+
+      <div className="space-y-4">
+        {mappen.map((mappe) => {
+          const isOpen = openMappe === mappe.id;
+          return (
+            <div key={mappe.id} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              {/* Mappe header row */}
+              <div className="flex items-center gap-4 p-5">
+                {/* Logo */}
+                <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
+                  {mappe.logo}
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-base font-bold text-gray-900 truncate">{mappe.name}</h2>
+                  {mappe.description && (
+                    <p className="text-xs text-gray-500 truncate mt-0.5">{mappe.description}</p>
+                  )}
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {mappe.documents.length} document{mappe.documents.length !== 1 ? "s" : ""} · Created {mappe.createdAt}
+                  </p>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button
+                    onClick={() => setModal({ type: "add_doc", mappeId: mappe.id })}
+                    className="px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-xs font-semibold transition-colors"
+                  >
+                    + Doc
+                  </button>
+                  <button
+                    onClick={() => setModal({ type: "edit_mappe", mappe })}
+                    className="p-1.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                    title="Edit"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => setModal({ type: "delete_mappe", mappe })}
+                    className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Delete"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => setOpenMappe(isOpen ? null : mappe.id)}
+                    className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <svg className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              {/* Documents list (collapsible) */}
+              {isOpen && (
+                <div className="border-t border-gray-100 px-5 pb-4 pt-3 space-y-2">
+                  {mappe.documents.length === 0 && (
+                    <p className="text-xs text-gray-400 py-3 text-center">No documents yet — click "+ Doc" to add one</p>
+                  )}
+                  {mappe.documents.map((doc) => (
+                    <div key={doc.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-purple-50 transition-colors group">
+                      <div className="w-8 h-8 bg-white border border-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-800 truncate">{doc.name}</p>
+                        <p className="text-xs text-gray-400">{doc.size} · {doc.uploadedAt}</p>
+                      </div>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${FILE_TYPE_BADGE[doc.fileType]}`}>
+                        {FILE_TYPE_LABEL[doc.fileType]}
+                      </span>
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => handlePreviewDoc(mappe.id, doc.id, doc.name)}
+                          className="p-1 text-gray-400 hover:text-blue-600 rounded transition-colors"
+                          title="Preview"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => setModal({ type: "edit_doc", mappe, doc })}
+                          className="p-1 text-gray-400 hover:text-purple-600 rounded transition-colors"
+                          title="Edit"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => setModal({ type: "delete_doc", mappe, doc })}
+                          className="p-1 text-gray-400 hover:text-red-500 rounded transition-colors"
+                          title="Delete"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ── Modals ── */}
+
+      {modal?.type === "create_mappe" && (
+        <Modal title="New Bewerbungsmappe" onClose={() => setModal(null)}>
+          <MappeForm onSave={handleCreateMappe} onCancel={() => setModal(null)} />
+        </Modal>
+      )}
+
+      {modal?.type === "edit_mappe" && (
+        <Modal title="Edit Mappe" onClose={() => setModal(null)}>
+          <MappeForm
+            initial={modal.mappe}
+            onSave={(dto) => handleUpdateMappe(modal.mappe.id, dto)}
+            onCancel={() => setModal(null)}
+          />
+        </Modal>
+      )}
+
+      {modal?.type === "delete_mappe" && (
+        <Modal title="Delete Mappe" onClose={() => setModal(null)}>
+          <p className="text-sm text-gray-600 mb-5">
+            Delete <span className="font-bold">{modal.mappe.name}</span> and all its {modal.mappe.documents.length} document(s)? This cannot be undone.
+          </p>
+          <div className="flex gap-3">
+            <button onClick={() => setModal(null)} className="flex-1 py-2 border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 text-sm font-semibold">
+              Cancel
+            </button>
+            <button onClick={() => handleDeleteMappe(modal.mappe.id)} className="flex-1 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm font-bold">
+              Delete
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {modal?.type === "add_doc" && (
+        <Modal title="Add Document" onClose={() => setModal(null)}>
+          <DocumentForm mappeId={modal.mappeId} onSave={handleAddDoc} onCancel={() => setModal(null)} />
+        </Modal>
+      )}
+
+      {modal?.type === "edit_doc" && (
+        <Modal title="Edit Document" onClose={() => setModal(null)}>
+          <DocumentForm
+            mappeId={modal.mappe.id}
+            initial={modal.doc}
+            onSave={(dto) => handleUpdateDoc(modal.mappe.id, modal.doc.id, dto)}
+            onCancel={() => setModal(null)}
+          />
+        </Modal>
+      )}
+
+      {modal?.type === "delete_doc" && (
+        <Modal title="Delete Document" onClose={() => setModal(null)}>
+          <p className="text-sm text-gray-600 mb-5">
+            Delete <span className="font-bold">{modal.doc.name}</span>? This cannot be undone.
+          </p>
+          <div className="flex gap-3">
+            <button onClick={() => setModal(null)} className="flex-1 py-2 border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 text-sm font-semibold">
+              Cancel
+            </button>
+            <button onClick={() => handleDeleteDoc(modal.mappe.id, modal.doc.id)} className="flex-1 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm font-bold">
+              Delete
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {previewOpen && (
+        <div className="fixed inset-0 z-50 flex">
+          <div className="relative bg-white w-full max-w-[42%] h-full shadow-2xl flex flex-col animate-slide-in">
+            <div className="flex items-center justify-between p-4 border-b border-gray-100">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase text-gray-500">Document Preview</p>
+                <h3 className="text-sm font-bold text-gray-900 truncate">{previewTitle || "PDF"}</h3>
+              </div>
+              <button
+                onClick={() => {
+                  setPreviewOpen(false);
+                  setPreviewUrl("");
+                  setPreviewError("");
+                }}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700"
+                title="Close"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="flex-1 p-4 overflow-hidden">
+              {previewLoading && (
+                <div className="h-full rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center text-sm text-gray-500">
+                  Loading preview...
+                </div>
+              )}
+
+              {!previewLoading && previewError && (
+                <div className="h-full rounded-lg border border-red-200 bg-red-50 flex items-center justify-center text-sm text-red-700 px-4 text-center">
+                  {previewError}
+                </div>
+              )}
+
+              {!previewLoading && !previewError && previewUrl && (
+                <iframe
+                  src={previewUrl}
+                  title={previewTitle || "Document preview"}
+                  className="w-full h-full rounded-lg border border-gray-200"
+                />
+              )}
+            </div>
+          </div>
+
+          <div className="flex-1 bg-black/40" onClick={() => setPreviewOpen(false)} />
+        </div>
+      )}
+    </div>
+  );
+}

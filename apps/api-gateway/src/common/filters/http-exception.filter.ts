@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
+import { isAxiosError } from 'axios';
 import { Request, Response } from 'express';
 
 @Catch()
@@ -16,6 +17,40 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
+
+    if (isAxiosError(exception)) {
+      const downstreamStatus = exception.response?.status ?? HttpStatus.BAD_GATEWAY;
+      const downstreamBody = exception.response?.data;
+
+      const normalizedResponse = {
+        statusCode: downstreamStatus,
+        timestamp: new Date().toISOString(),
+        path: request.url,
+        method: request.method,
+        message:
+          typeof downstreamBody === 'string'
+            ? downstreamBody
+            : downstreamBody?.message || exception.message || 'Downstream service error',
+        error:
+          typeof downstreamBody === 'object' && downstreamBody?.error
+            ? downstreamBody.error
+            : undefined,
+        correlationId: request.headers['x-correlation-id'] || request.headers['x-request-id'],
+      };
+
+      if (downstreamStatus >= 500) {
+        this.logger.error(
+          `${request.method} ${request.url} - ${downstreamStatus} (downstream)`
+        );
+      } else {
+        this.logger.warn(
+          `${request.method} ${request.url} - ${downstreamStatus} (downstream)`,
+        );
+      }
+
+      response.status(downstreamStatus).json(normalizedResponse);
+      return;
+    }
 
     const status =
       exception instanceof HttpException

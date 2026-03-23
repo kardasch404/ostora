@@ -1,31 +1,24 @@
-# ==================== BUILDER STAGE ====================
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-COPY package*.json ./
-COPY tsconfig*.json ./
-COPY nx.json ./
+COPY apps/job-service/package*.json ./
+RUN npm install --ignore-scripts
 
-RUN npm ci && npm cache clean --force
+COPY tsconfig.base.json /
+COPY apps/job-service/tsconfig.json ./
+COPY apps/job-service/src ./src
 
-COPY apps/job-service ./apps/job-service
-COPY libs ./libs
-COPY prisma ./prisma
+RUN npm run build
 
-RUN npx prisma generate
-RUN npx nx build job-service --prod
-
-# ==================== RUNNER STAGE ====================
 FROM node:20-alpine AS runner
 
 RUN addgroup -g 1001 -S ostora && adduser -S ostora -u 1001
 
 WORKDIR /app
 
-COPY --from=builder --chown=ostora:ostora /app/node_modules ./node_modules
-COPY --from=builder --chown=ostora:ostora /app/dist/apps/job-service ./dist
-COPY --from=builder --chown=ostora:ostora /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
 
 RUN mkdir -p logs && chown ostora:ostora logs
 
@@ -39,4 +32,4 @@ EXPOSE 4720
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
   CMD node -e "require('http').get('http://localhost:4720/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-CMD ["node", "dist/main.js"]
+CMD ["node", "dist/app/src/main.js"]

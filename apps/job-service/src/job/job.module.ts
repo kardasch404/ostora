@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { JobController } from './job.controller';
 import { JobService } from './job.service';
-import { JobDedupService } from './job-dedup.service';
-import { ElasticsearchService } from '../search/elasticsearch.service';
-import { JobIndexingService } from '../search/job-indexing.service';
+import { MySQLModule } from '../mysql/mysql.module';
+import { RedisModule } from '../redis/redis.module';
 
 @Module({
+  imports: [MySQLModule, RedisModule],
   controllers: [JobController],
-  providers: [JobService, JobDedupService, ElasticsearchService, JobIndexingService],
-  exports: [JobService, JobDedupService, JobIndexingService],
+  providers: [JobService],
+  exports: [JobService],
 })
 export class JobModule {}

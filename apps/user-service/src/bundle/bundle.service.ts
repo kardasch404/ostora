@@ -1,13 +1,16 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { S3Service } from './s3.service';
 import { CreateBundleDto } from './dto/create-bundle.dto';
 import { UpdateBundleDto } from './dto/update-bundle.dto';
 import { ApplicationDocumentType } from './dto/upload-document.dto';
+import { UpdateDocumentDto } from './dto/update-document.dto';
 import { BundleResponse, DocumentResponse } from './dto/bundle.response';
 
 @Injectable()
 export class BundleService {
+  private readonly logger = new Logger(BundleService.name);
+
   constructor(
     private prisma: PrismaService,
     private s3Service: S3Service,
@@ -124,9 +127,9 @@ export class BundleService {
       where: { bundleId: id },
     });
 
-    // Delete all files from S3
+    // Best-effort S3 cleanup: do not block DB deletion when object storage is misconfigured.
     await Promise.all(
-      documents.map(doc => this.s3Service.deleteFile(doc.s3Key)),
+      documents.map(doc => this.safeDeleteFromS3(doc.s3Key, id, doc.id)),
     );
 
     // Delete bundle (cascade will delete documents from DB)
@@ -224,11 +227,30 @@ export class BundleService {
     };
   }
 
+  async updateDocument(
+    userId: string,
+    bundleId: string,
+    documentId: string,
+    dto: UpdateDocumentDto,
+  ): Promise<DocumentResponse> {
+    await this.getDocument(userId, bundleId, documentId);
+
+    return this.prisma.applicationDocument.update({
+      where: { id: documentId },
+      data: {
+        ...(dto.type ? { type: dto.type } : {}),
+        ...(dto.filename ? { filename: dto.filename } : {}),
+        ...(dto.mimeType ? { mimeType: dto.mimeType } : {}),
+        ...(dto.fileSize ? { fileSize: dto.fileSize } : {}),
+      },
+    });
+  }
+
   async deleteDocument(userId: string, bundleId: string, documentId: string): Promise<void> {
     const document = await this.getDocument(userId, bundleId, documentId);
 
-    // Delete from S3
-    await this.s3Service.deleteFile(document.s3Key);
+    // Best-effort S3 cleanup.
+    await this.safeDeleteFromS3(document.s3Key, bundleId, documentId);
 
     // Delete from database
     await this.prisma.applicationDocument.delete({
@@ -241,5 +263,16 @@ export class BundleService {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
+  }
+
+  private async safeDeleteFromS3(s3Key: string, bundleId: string, documentId: string): Promise<void> {
+    try {
+      await this.s3Service.deleteFile(s3Key);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown S3 delete error';
+      this.logger.warn(
+        `S3 cleanup failed for bundle=${bundleId} document=${documentId} key=${s3Key}: ${message}`,
+      );
+    }
   }
 }

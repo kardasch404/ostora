@@ -10,6 +10,11 @@ import { EmailStatus, EmailProvider } from './dto/email-log.response';
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
+type ResolvedAttachment = {
+  filename: string;
+  content: Uint8Array;
+};
+
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
@@ -31,11 +36,15 @@ export class EmailService {
   }
 
   async sendEmail(dto: SendEmailDto, userId: string, emailConfigId?: string) {
-    const message = new EmailMessage(dto);
-    let emailConfig = null;
+    const resolvedAttachments = await this.resolveAttachmentUrls(dto.attachments || []);
+    const message = new EmailMessage({
+      ...dto,
+      attachments: resolvedAttachments,
+    });
+    let emailConfig = dto.smtpConfig || null;
 
     // Fetch user's email config if provided
-    if (emailConfigId) {
+    if (!emailConfig && emailConfigId) {
       emailConfig = await this.fetchEmailConfig(emailConfigId);
     }
 
@@ -58,7 +67,9 @@ export class EmailService {
 
       if (result.success) {
         await this.emailLog.record(userId, dto.to, dto.subject, EmailStatus.SENT, provider);
-        this.logger.log(`Email sent to ${dto.to} via ${provider}`);
+        this.logger.log(
+          `Email sent to ${dto.to} via ${provider} (attachments requested=${dto.attachments?.length || 0}, attached=${resolvedAttachments.length})`,
+        );
       } else {
         throw new Error(result.error);
       }
@@ -114,9 +125,9 @@ export class EmailService {
     const smtpSecure = this.config.get<string>('SMTP_SECURE', 'false') === 'true';
     const smtpUser = this.config.get<string>('SMTP_USER');
     const smtpPassword = this.config.get<string>('SMTP_PASSWORD');
-    const fromEmail = this.config.get<string>('SMTP_FROM_EMAIL') || smtpUser;
+    const fromEmail = this.config.get<string>('SMTP_FROM_EMAIL') || smtpUser || 'noreply@ostora.local';
 
-    if (!smtpHost || !smtpUser || !smtpPassword) {
+    if (!smtpHost) {
       return null;
     }
 
@@ -156,5 +167,45 @@ export class EmailService {
       })
     );
     return urls;
+  }
+
+  private async resolveAttachmentUrls(attachmentUrls: string[]): Promise<ResolvedAttachment[]> {
+    if (!attachmentUrls.length) {
+      return [];
+    }
+
+    const settled = await Promise.allSettled(
+      attachmentUrls.map(async (url, index) => {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const bytes = await response.arrayBuffer();
+        const parsed = new URL(url);
+        const baseName = parsed.pathname.split('/').pop() || `attachment-${index + 1}`;
+
+        return {
+          filename: decodeURIComponent(baseName),
+          content: Buffer.from(bytes),
+        };
+      }),
+    );
+
+    const valid: ResolvedAttachment[] = [];
+    for (const result of settled) {
+      if (result.status === 'fulfilled') {
+        valid.push(result.value);
+      }
+    }
+
+    const failedCount = settled.length - valid.length;
+    if (failedCount > 0) {
+      this.logger.warn(
+        `Skipped ${failedCount} attachment(s) due to inaccessible URLs before SMTP send.`,
+      );
+    }
+
+    return valid;
   }
 }
