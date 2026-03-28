@@ -4,15 +4,15 @@ import { PromoCodeType } from '../promo-code.enum';
 
 export class CreatePromoCodeDto {
   @IsEnum(Plan)
-  plan: Plan;
+  plan!: Plan;
 
   @IsInt()
   @Min(1)
   @Max(365)
-  durationDays: number;
+  durationDays!: number;
 
   @IsEnum(PromoCodeType)
-  type: PromoCodeType;
+  type!: PromoCodeType;
 
   @IsInt()
   @Min(1)

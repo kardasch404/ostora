@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaClient } from '@prisma/client';
 import { StripeService } from '../providers/stripe/stripe.service';
 import { PayPalService } from '../providers/paypal/paypal.service';
-import { PromoCodeService } from '../promo-code/promo-code.service';
+import { PromoCodeService } from '../providers/promo-code/promo-code.service';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 import { CheckoutDto, PaymentProvider } from './dto/checkout.dto';
 import { SubscriptionResponse } from './dto/subscription.response';
@@ -12,7 +12,7 @@ import { Money } from '../value-objects/money.vo';
 
 @Injectable()
 export class SubscriptionService {
-  private prisma = new PrismaClient();
+  private prisma = new PrismaClient() as any;
 
   constructor(
     private stripeService: StripeService,
@@ -33,6 +33,8 @@ export class SubscriptionService {
       // Calculate discount (simplified - extend based on your needs)
       discount = 0; // TODO: Implement discount logic
     }
+
+    void promoCode;
 
     const planPrice = PLAN_PRICES[dto.plan];
     const finalAmount = new Money(planPrice.mad - discount, 'MAD');
@@ -125,7 +127,7 @@ export class SubscriptionService {
       });
     }
 
-    const features = PLAN_FEATURES[dto.plan];
+    const features = PLAN_FEATURES[dto.plan] as { trialDays?: number };
     const trialDays = features.trialDays || 0;
 
     const stripeSubscription = await this.stripeService.createSubscription(

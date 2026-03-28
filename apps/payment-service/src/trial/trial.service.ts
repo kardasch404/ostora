@@ -5,13 +5,13 @@ import { Plan } from '../subscription/plan.enum';
 
 @Injectable()
 export class TrialService {
-  private prisma = new PrismaClient();
+  private prisma = new PrismaClient() as any;
   private readonly TRIAL_DAYS = 7;
 
   async canStartTrial(userId: string): Promise<boolean> {
-    const user = await this.prisma.user.findUnique({
+    const user = (await this.prisma.user.findUnique({
       where: { id: userId },
-    });
+    })) as any;
 
     if (!user) {
       return false;
@@ -137,13 +137,13 @@ export class TrialService {
     });
 
     return {
-      hasUsedTrial: user?.hasUsedTrial || false,
+      hasUsedTrial: (user as any)?.hasUsedTrial || false,
       canStartTrial: await this.canStartTrial(userId),
       activeTrial: trialSubscription ? {
         plan: trialSubscription.plan,
         trialEnd: trialSubscription.trialEnd,
         daysRemaining: Math.ceil(
-          (new Date(trialSubscription.trialEnd).getTime() - Date.now()) / (24 * 60 * 60 * 1000)
+          (new Date(trialSubscription.trialEnd || new Date()).getTime() - Date.now()) / (24 * 60 * 60 * 1000)
         ),
       } : null,
     };

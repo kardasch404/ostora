@@ -3,11 +3,11 @@ import { Plan } from '../../../subscription/plan.enum';
 
 export class CreatePayPalSubscriptionDto {
   @IsEnum(Plan)
-  plan: Plan;
+  plan!: Plan;
 
   @IsUrl()
-  returnUrl: string;
+  returnUrl!: string;
 
   @IsUrl()
-  cancelUrl: string;
+  cancelUrl!: string;
 }

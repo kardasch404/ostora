@@ -6,6 +6,7 @@ import { CheckoutDto } from './dto/checkout.dto';
 import { SubscriptionResponse } from './dto/subscription.response';
 
 @ApiTags('subscriptions')
+@ApiBearerAuth()
 @Controller('subscriptions')
 export class SubscriptionController {
   constructor(private subscriptionService: SubscriptionService) {}

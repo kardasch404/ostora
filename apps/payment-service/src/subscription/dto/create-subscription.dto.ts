@@ -3,7 +3,7 @@ import { Plan } from '../plan.enum';
 
 export class CreateSubscriptionDto {
   @IsEnum(Plan)
-  plan: Plan;
+  plan!: Plan;
 
   @IsString()
   @IsOptional()

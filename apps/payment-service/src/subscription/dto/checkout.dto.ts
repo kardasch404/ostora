@@ -9,10 +9,10 @@ export enum PaymentProvider {
 
 export class CheckoutDto {
   @IsEnum(Plan)
-  plan: Plan;
+  plan!: Plan;
 
   @IsEnum(PaymentProvider)
-  provider: PaymentProvider;
+  provider!: PaymentProvider;
 
   @IsString()
   @IsOptional()

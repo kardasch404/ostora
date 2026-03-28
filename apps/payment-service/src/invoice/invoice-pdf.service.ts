@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import * as PDFDocument from 'pdfkit';
+import PDFDocument = require('pdfkit');
 
 @Injectable()
 export class InvoicePdfService {
@@ -8,7 +8,7 @@ export class InvoicePdfService {
       const doc = new PDFDocument({ size: 'A4', margin: 50 });
       const chunks: Buffer[] = [];
 
-      doc.on('data', (chunk) => chunks.push(chunk));
+      doc.on('data', (chunk: Buffer) => chunks.push(chunk));
       doc.on('end', () => resolve(Buffer.concat(chunks)));
       doc.on('error', reject);
 
@@ -48,7 +48,7 @@ export class InvoicePdfService {
       const tableTop = 250;
       doc
         .fontSize(10)
-        .text('Description', 50, tableTop, { bold: true })
+        .text('Description', 50, tableTop)
         .text('Plan', 250, tableTop)
         .text('Amount', 450, tableTop, { align: 'right' });
 

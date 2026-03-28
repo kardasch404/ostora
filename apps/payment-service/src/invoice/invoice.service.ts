@@ -17,7 +17,7 @@ export interface Invoice {
 
 @Injectable()
 export class InvoiceService {
-  private prisma = new PrismaClient();
+  private prisma = new PrismaClient() as any;
 
   constructor(private invoicePdfService: InvoicePdfService) {}
 
@@ -59,7 +59,7 @@ export class InvoiceService {
   }
 
   async getInvoice(invoiceId: string): Promise<Invoice> {
-    return this.prisma.invoice.findUnique({
+    return (await this.prisma.invoice.findUnique({
       where: { id: invoiceId },
       include: {
         user: {
@@ -75,7 +75,7 @@ export class InvoiceService {
           },
         },
       },
-    });
+    })) as Invoice;
   }
 
   async generateInvoicePdf(invoiceId: string): Promise<Buffer> {

@@ -5,6 +5,8 @@ import { AppModule } from './app.module';
 import * as express from 'express';
 
 async function bootstrap() {
+  void express;
+
   const app = await NestFactory.create(AppModule, {
     rawBody: true,
   });
@@ -18,7 +20,7 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: process.env['CORS_ORIGIN'] || 'http://localhost:3000',
     credentials: true,
   });
 
@@ -32,7 +34,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
-  const port = process.env.PORT || 4724;
+  const port = Number(process.env['PORT'] || 4724);
   await app.listen(port);
   console.log(`🚀 Payment Service running on http://localhost:${port}`);
 }
