@@ -1,0 +1,11 @@
+{
+  "name": "@ostora/payment-service",
+  "version": "1.0.0",
+  "main": "src/main.ts",
+  "scripts": {
+    "start": "nest start",
+    "start:dev": "nest start --watch",
+    "start:debug": "nest start --debug --watch",
+    "start:prod": "node dist/main"
+  }
+}

@@ -71,7 +71,7 @@ export default function DashboardHeader() {
           <input
             type="text"
             placeholder="Search jobs, companies..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-button focus:outline-2 focus:outline-black focus:border-transparent bg-white text-gray-900"
           />
         </div>
       </div>
@@ -105,7 +105,7 @@ export default function DashboardHeader() {
                   <div
                     key={notif.id}
                     className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${
-                      notif.unread ? "bg-purple-50" : ""
+                      notif.unread ? "bg-gray-100" : ""
                     }`}
                   >
                     <div className="flex items-start justify-between">
@@ -114,13 +114,13 @@ export default function DashboardHeader() {
                         <p className="text-sm text-gray-600 mt-1">{notif.message}</p>
                         <p className="text-xs text-gray-400 mt-1">{notif.time}</p>
                       </div>
-                      {notif.unread && <span className="w-2 h-2 bg-purple-600 rounded-full mt-1"></span>}
+                      {notif.unread && <span className="w-2 h-2 bg-black rounded-full mt-1"></span>}
                     </div>
                   </div>
                 ))}
               </div>
               <div className="p-3 text-center border-t border-gray-200">
-                <button className="text-sm text-purple-600 hover:text-purple-700 font-medium">
+                <button className="text-sm text-black hover:text-gray-700 font-medium">
                   View all notifications
                 </button>
               </div>
@@ -134,7 +134,7 @@ export default function DashboardHeader() {
             onClick={() => setShowProfileMenu(!showProfileMenu)}
             className="flex items-center space-x-3 p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold shadow-lg">
+            <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center text-white font-semibold">
               {user?.avatar ? (
                 <img src={user.avatar} alt={user.name} className="w-full h-full rounded-full object-cover" />
               ) : (

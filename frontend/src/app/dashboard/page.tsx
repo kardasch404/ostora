@@ -100,16 +100,16 @@ export default function DashboardPage() {
       {
         label: "Sent",
         data: overview.sentPerDay,
-        borderColor: "#22d3ee",
-        backgroundColor: "rgba(34, 211, 238, 0.2)",
+        borderColor: "#000000",
+        backgroundColor: "rgba(0, 0, 0, 0.1)",
         tension: 0.35,
         fill: true,
       },
       {
         label: "Failed",
         data: overview.failedPerDay,
-        borderColor: "#fb7185",
-        backgroundColor: "rgba(251, 113, 133, 0.12)",
+        borderColor: "#737373",
+        backgroundColor: "rgba(115, 115, 115, 0.1)",
         tension: 0.35,
         fill: true,
       },
@@ -121,9 +121,9 @@ export default function DashboardPage() {
     datasets: [
       {
         data: [overview.sent, overview.failed],
-        backgroundColor: ["#22d3ee", "#fb7185"],
-        borderColor: ["#164e63", "#881337"],
-        borderWidth: 1,
+        backgroundColor: ["#000000", "#737373"],
+        borderColor: ["#FFFFFF", "#FFFFFF"],
+        borderWidth: 2,
       },
     ],
   };
@@ -134,8 +134,8 @@ export default function DashboardPage() {
       {
         label: "Applications",
         data: overview.topCompanies.map((item) => item[1]),
-        backgroundColor: "rgba(168, 85, 247, 0.6)",
-        borderColor: "#a855f7",
+        backgroundColor: "rgba(0, 0, 0, 0.8)",
+        borderColor: "#000000",
         borderWidth: 1,
       },
     ],
@@ -143,89 +143,118 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-cyan-300/30 bg-gradient-to-r from-[#070f19] via-[#07182d] to-[#1b1238] p-8 text-white shadow-2xl shadow-cyan-500/10">
-        <p className="text-xs uppercase tracking-[0.2em] text-cyan-300">Command Dashboard</p>
-        <h1 className="mt-2 text-3xl font-bold">Welcome back, {userName}</h1>
-        <p className="mt-2 text-slate-300">Advanced analytics, chart intelligence, and duplicate-apply protection are now active.</p>
-        <div className="mt-4 flex flex-wrap gap-3">
-          <Link href="/dashboard/fast-apply" className="rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-[#041422] hover:bg-cyan-400">
-            Open Fast Apply
+      <section className="card">
+        <p className="text-caption text-gray-400">Dashboard Overview</p>
+        <h1 className="mt-2 text-display-md">Welcome back, {userName}</h1>
+        <p className="mt-2 text-body text-gray-600">Track your job applications, analytics, and success metrics in one place.</p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link href="/dashboard/fast-apply" className="btn-primary">
+            Fast Apply
           </Link>
-          <Link href="/dashboard/jobs" className="rounded-lg border border-fuchsia-300/40 px-4 py-2 text-sm font-semibold text-fuchsia-200 hover:bg-fuchsia-500/10">
-            Explore Jobs
+          <Link href="/dashboard/jobs" className="btn-secondary">
+            Browse Jobs
           </Link>
         </div>
       </section>
 
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <article className="rounded-xl border border-white/10 bg-[#090e1a] p-4">
-          <p className="text-xs text-slate-400 uppercase">Total Applications</p>
-          <p className="mt-1 text-3xl font-bold text-white">{overview.total}</p>
+        <article className="card-flat">
+          <p className="text-caption text-gray-400">Total Applications</p>
+          <p className="mt-2 text-display-md">{overview.total}</p>
         </article>
-        <article className="rounded-xl border border-cyan-300/20 bg-[#071923] p-4">
-          <p className="text-xs text-cyan-200 uppercase">Sent</p>
-          <p className="mt-1 text-3xl font-bold text-cyan-300">{overview.sent}</p>
+        <article className="card-flat">
+          <p className="text-caption text-gray-400">Sent</p>
+          <p className="mt-2 text-display-md">{overview.sent}</p>
         </article>
-        <article className="rounded-xl border border-rose-300/20 bg-[#1a0b17] p-4">
-          <p className="text-xs text-rose-200 uppercase">Failed</p>
-          <p className="mt-1 text-3xl font-bold text-rose-300">{overview.failed}</p>
+        <article className="card-flat">
+          <p className="text-caption text-gray-400">Failed</p>
+          <p className="mt-2 text-display-md text-gray-600">{overview.failed}</p>
         </article>
-        <article className="rounded-xl border border-fuchsia-300/20 bg-[#120b1c] p-4">
-          <p className="text-xs text-fuchsia-200 uppercase">Success Rate</p>
-          <p className="mt-1 text-3xl font-bold text-fuchsia-300">{overview.successRate}%</p>
+        <article className="card-flat">
+          <p className="text-caption text-gray-400">Success Rate</p>
+          <p className="mt-2 text-display-md">{overview.successRate}%</p>
         </article>
       </section>
 
       <section className="grid grid-cols-1 xl:grid-cols-3 gap-5">
-        <article className="xl:col-span-2 rounded-xl border border-white/10 bg-[#080d18] p-5">
-          <h2 className="text-lg font-semibold text-white">7-Day Delivery Trend</h2>
-          <p className="text-xs text-slate-400 mb-3">Live view of sent vs failed outreach.</p>
-          <Line
-            data={trendData}
-            options={{
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: { legend: { labels: { color: "#cbd5e1" } } },
-              scales: {
-                x: { ticks: { color: "#94a3b8" }, grid: { color: "rgba(148,163,184,0.15)" } },
-                y: { ticks: { color: "#94a3b8", precision: 0 }, grid: { color: "rgba(148,163,184,0.12)" } },
-              },
-            }}
-            height={300}
-          />
+        <article className="xl:col-span-2 card-flat">
+          <h2 className="text-display-sm">7-Day Delivery Trend</h2>
+          <p className="text-body-sm text-gray-500 mb-4">Live view of sent vs failed outreach.</p>
+          <div style={{ height: '300px', width: '100%', maxHeight: '300px', overflow: 'hidden', position: 'relative' }}>
+            <Line
+              data={trendData}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { 
+                  legend: { labels: { color: "#525252" } }
+                },
+                scales: {
+                  x: { 
+                    ticks: { color: "#737373" }, 
+                    grid: { color: "rgba(229, 229, 229, 0.5)" } 
+                  },
+                  y: { 
+                    beginAtZero: true,
+                    ticks: { color: "#737373", precision: 0 }, 
+                    grid: { color: "rgba(229, 229, 229, 0.5)" } 
+                  },
+                },
+              }}
+            />
+          </div>
         </article>
 
-        <article className="rounded-xl border border-white/10 bg-[#080d18] p-5">
-          <h2 className="text-lg font-semibold text-white">Outcome Funnel</h2>
-          <p className="text-xs text-slate-400 mb-3">Application delivery health.</p>
-          <Doughnut
-            data={funnelData}
-            options={{
-              plugins: { legend: { position: "bottom", labels: { color: "#cbd5e1" } } },
-            }}
-            height={300}
-          />
+        <article className="card-flat">
+          <h2 className="text-display-sm">Outcome Funnel</h2>
+          <p className="text-body-sm text-gray-500 mb-4">Application delivery health.</p>
+          <div style={{ height: '300px', width: '100%', maxHeight: '300px', overflow: 'hidden', position: 'relative' }}>
+            <Doughnut
+              data={funnelData}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { 
+                  legend: { 
+                    position: "bottom", 
+                    labels: { color: "#525252" } 
+                  } 
+                },
+              }}
+            />
+          </div>
         </article>
       </section>
 
-      <section className="rounded-xl border border-white/10 bg-[#080d18] p-5">
-        <h2 className="text-lg font-semibold text-white">Top Target Companies</h2>
-        <p className="text-xs text-slate-400 mb-3">Where your applications are concentrated.</p>
+      <section className="card-flat">
+        <h2 className="text-display-sm">Top Target Companies</h2>
+        <p className="text-body-sm text-gray-500 mb-4">Where your applications are concentrated.</p>
         {overview.topCompanies.length === 0 ? (
-          <p className="text-sm text-slate-400">No company analytics yet. Send a few applications from Fast Apply.</p>
+          <p className="text-body text-gray-500">No company analytics yet. Send a few applications from Fast Apply.</p>
         ) : (
-          <Bar
-            data={companyData}
-            options={{
-              responsive: true,
-              plugins: { legend: { labels: { color: "#cbd5e1" } } },
-              scales: {
-                x: { ticks: { color: "#94a3b8" }, grid: { color: "rgba(148,163,184,0.1)" } },
-                y: { ticks: { color: "#94a3b8", precision: 0 }, grid: { color: "rgba(148,163,184,0.1)" } },
-              },
-            }}
-            height={260}
-          />
+          <div style={{ height: '260px', width: '100%', maxHeight: '260px', overflow: 'hidden', position: 'relative' }}>
+            <Bar
+              data={companyData}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { 
+                  legend: { labels: { color: "#525252" } } 
+                },
+                scales: {
+                  x: { 
+                    ticks: { color: "#737373" }, 
+                    grid: { color: "rgba(229, 229, 229, 0.5)" } 
+                  },
+                  y: { 
+                    beginAtZero: true,
+                    ticks: { color: "#737373", precision: 0 }, 
+                    grid: { color: "rgba(229, 229, 229, 0.5)" } 
+                  },
+                },
+              }}
+            />
+          </div>
         )}
       </section>
     </div>

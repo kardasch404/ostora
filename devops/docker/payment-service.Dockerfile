@@ -1,5 +1,5 @@
 # ==================== BUILDER STAGE ====================
-FROM node:20-alpine AS builder
+FROM node:20-bullseye-slim AS builder
 
 WORKDIR /app
 
@@ -17,9 +17,9 @@ RUN npx prisma generate
 RUN npx nx build payment-service --prod
 
 # ==================== RUNNER STAGE ====================
-FROM node:20-alpine AS runner
+FROM node:20-bullseye-slim AS runner
 
-RUN addgroup -g 1001 -S ostora && adduser -S ostora -u 1001
+RUN groupadd -g 1001 ostora && useradd -m -u 1001 -g 1001 ostora
 
 WORKDIR /app
 
@@ -39,4 +39,4 @@ EXPOSE 4724
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
   CMD node -e "require('http').get('http://localhost:4724/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-CMD ["node", "dist/main.js"]
+CMD ["node", "dist/src/main.js"]
