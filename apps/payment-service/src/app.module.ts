@@ -6,6 +6,7 @@ import { StripeService } from './providers/stripe/stripe.service';
 import { StripeWebhookController } from './providers/stripe/stripe-webhook.controller';
 import { StripeEventHandler } from './providers/stripe/stripe-event-handler';
 import { WebhookValidatorService } from './webhook/webhook-validator.service';
+import { HealthController } from './health.controller';
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import { WebhookValidatorService } from './webhook/webhook-validator.service';
       envFilePath: '.env',
     }),
   ],
-  controllers: [SubscriptionController, StripeWebhookController],
+  controllers: [HealthController, SubscriptionController, StripeWebhookController],
   providers: [
     SubscriptionService,
     StripeService,
