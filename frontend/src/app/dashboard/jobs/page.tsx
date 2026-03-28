@@ -137,17 +137,14 @@ export default function JobsPage() {
       return;
     }
 
-    const contact = extractContactInfo(job.content || "");
+    // Redirect to applications page with job info
     const params = new URLSearchParams({
-      jobTitle: job.job_title || "",
+      jobId: String(job.id),
+      title: job.job_title || "",
       company: job.company_name || "",
-      contactName: contact.name,
-      contactPosition: contact.position,
-      contactEmail: contact.email,
-      contactPhone: contact.phone,
-      stelleUrl: job.stelle_url || "",
+      location: job.location || "",
     });
-    router.push(`/dashboard/fast-apply?${params}`);
+    router.push(`/dashboard/applications?${params}`);
   };
 
   const clearFilters = () => {
@@ -180,28 +177,28 @@ export default function JobsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-purple-600 to-blue-500 rounded-2xl p-8 text-white shadow-xl">
-        <h1 className="text-3xl font-bold mb-2">Find Your Dream Job</h1>
-        <p className="text-purple-100">Browse thousands of job opportunities</p>
-        <div className="mt-4 flex gap-2">
+      <div className="card">
+        <h1 className="text-display-md mb-2">Find Your Dream Job</h1>
+        <p className="text-body text-gray-600">Browse thousands of job opportunities</p>
+        <div className="mt-6 flex gap-3">
           <button
             type="button"
             onClick={() => router.push("/dashboard/saved")}
-            className="px-3 py-2 rounded-lg bg-white/15 border border-white/30 text-sm font-semibold"
+            className="btn-secondary"
           >
             Saved Jobs
           </button>
           <button
             type="button"
             onClick={() => router.push("/dashboard/fast-apply")}
-            className="px-3 py-2 rounded-lg bg-white text-[#1e47a0] text-sm font-semibold"
+            className="btn-primary"
           >
-            Fast Applying
+            Fast Apply
           </button>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div className="card-flat">
         <form onSubmit={handleSearch} className="space-y-4">
           <div className="flex gap-3">
             <div className="flex-1">
@@ -210,12 +207,12 @@ export default function JobsPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search jobs, companies, keywords..."
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                className="input"
               />
             </div>
             <button
               type="submit"
-              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold"
+              className="btn-primary"
             >
               Search
             </button>
@@ -225,7 +222,7 @@ export default function JobsPage() {
             <select
               value={filters.category}
               onChange={(e) => handleFilterChange("category", e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+              className="input"
             >
               <option value="">All Categories</option>
               {categories.map((cat) => (
@@ -238,7 +235,7 @@ export default function JobsPage() {
               value={filters.location}
               onChange={(e) => handleFilterChange("location", e.target.value)}
               placeholder="Location"
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+              className="input"
             />
 
             <input
@@ -246,7 +243,7 @@ export default function JobsPage() {
               value={filters.country}
               onChange={(e) => handleFilterChange("country", e.target.value)}
               placeholder="Country"
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+              className="input"
             />
           </div>
 
@@ -254,7 +251,7 @@ export default function JobsPage() {
             <button
               type="button"
               onClick={clearFilters}
-              className="text-sm text-purple-600 hover:text-purple-700 font-semibold"
+              className="text-body-sm text-black hover:underline font-semibold"
             >
               Clear all filters
             </button>
@@ -262,9 +259,9 @@ export default function JobsPage() {
         </form>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div className="card-flat">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-900">
+          <h2 className="text-display-sm">
             {loading ? "Loading..." : `${jobs.length} Jobs Found`}
           </h2>
         </div>
@@ -274,24 +271,24 @@ export default function JobsPage() {
             const alreadyApplied = appliedJobIds.has(String(job.id));
 
             return (
-            <div key={job.id} className="bg-white rounded-lg border border-gray-200 p-4 hover:border-purple-300 hover:shadow-md transition-all duration-200 flex flex-col justify-between gap-3">
+            <div key={job.id} className="card-flat hover:shadow-soft hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between gap-3">
               <div>
-                <h3 className="text-sm font-bold text-gray-900 line-clamp-2 mb-1">
+                <h3 className="text-body-sm font-bold text-gray-900 line-clamp-2 mb-1">
                   {job.job_title || "No Title"}
                 </h3>
-                <p className="text-purple-600 font-semibold text-xs mb-2">
+                <p className="text-black font-semibold text-xs mb-2">
                   {job.company_name || "Company"}
                 </p>
                 <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
                   <span className="flex items-center gap-1">
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                     <span className="truncate max-w-[120px]">{job.location || "—"}</span>
                   </span>
                   {job.category_name && (
-                    <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full font-medium">
+                    <span className="badge text-xs">
                       {job.category_name}
                     </span>
                   )}
@@ -304,20 +301,20 @@ export default function JobsPage() {
                 <button
                   onClick={() => handleApply(job)}
                   disabled={alreadyApplied}
-                  className={`flex-1 py-2 rounded-lg transition-colors font-semibold text-xs ${
+                  className={`flex-1 py-2 rounded-button transition-colors font-semibold text-xs ${
                     alreadyApplied
-                      ? "bg-red-500 text-white cursor-not-allowed"
-                      : "bg-purple-600 text-white hover:bg-purple-700"
+                      ? "bg-gray-400 text-white cursor-not-allowed"
+                      : "bg-black text-white hover:bg-gray-800"
                   }`}
                 >
-                  {alreadyApplied ? "Already Applied" : "Apply"}
+                  {alreadyApplied ? "Applied" : "Apply"}
                 </button>
                 <button
                   type="button"
                   onClick={() => toggleSavedJob(job)}
-                  className={`py-2 px-3 rounded-lg transition-colors font-semibold text-xs border ${
+                  className={`py-2 px-3 rounded-button transition-colors font-semibold text-xs border ${
                     savedJobIds.includes(job.id)
-                      ? "border-[#1d4f91] bg-[#e8f0ff] text-[#1d4f91]"
+                      ? "border-black bg-gray-100 text-black"
                       : "border-gray-200 text-gray-600 hover:bg-gray-50"
                   }`}
                 >
@@ -325,7 +322,7 @@ export default function JobsPage() {
                 </button>
                 <button
                   onClick={() => setSelectedJob(job)}
-                  className="flex-1 py-2 border border-purple-600 text-purple-600 rounded-lg hover:bg-purple-50 transition-colors font-semibold text-xs"
+                  className="flex-1 py-2 border border-black text-black rounded-button hover:bg-gray-50 transition-colors font-semibold text-xs"
                 >
                   Details
                 </button>
@@ -336,8 +333,8 @@ export default function JobsPage() {
 
           {jobs.length === 0 && !loading && (
             <div className="text-center py-12 text-gray-500">
-              <svg className="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <svg className="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <p className="text-lg font-semibold">No jobs found</p>
               <p className="text-sm">Try adjusting your filters or search terms</p>
@@ -350,7 +347,7 @@ export default function JobsPage() {
             <button
               onClick={() => setPage(Math.max(1, page - 1))}
               disabled={page === 1}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Previous
             </button>
@@ -361,10 +358,10 @@ export default function JobsPage() {
                   <button
                     key={pageNum}
                     onClick={() => setPage(pageNum)}
-                    className={`px-4 py-2 rounded-lg ${
+                    className={`px-4 py-2 rounded-button ${
                       page === pageNum
-                        ? "bg-purple-600 text-white"
-                        : "border border-gray-300 hover:bg-gray-50"
+                        ? "bg-black text-white"
+                        : "border border-gray-200 hover:bg-gray-50"
                     }`}
                   >
                     {pageNum}
@@ -375,7 +372,7 @@ export default function JobsPage() {
             <button
               onClick={() => setPage(Math.min(totalPages, page + 1))}
               disabled={page === totalPages}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
             </button>

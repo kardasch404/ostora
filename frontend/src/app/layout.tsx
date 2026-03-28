@@ -1,21 +1,17 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, Source_Serif_4 } from "next/font/google";
+import { Inter } from "next/font/google";
 import { AppProviders } from "@/providers/app-providers";
 import "./globals.css";
 
-const bricolage = Bricolage_Grotesque({
-  variable: "--font-brand-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-});
-
-const sourceSerif = Source_Serif_4({
-  variable: "--font-brand-serif",
-  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Ostora Frontend",
-  description: "Enterprise job platform frontend with SSR and CSR architecture",
+  title: "Ostora - Enterprise Job Platform",
+  description: "AI-powered job matching platform with premium design",
 };
 
 export default function RootLayout({
@@ -24,8 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${bricolage.variable} ${sourceSerif.variable} antialiased`}>
+    <html lang="en" className={inter.variable}>
+      <body>
         <AppProviders>{children}</AppProviders>
       </body>
     </html>

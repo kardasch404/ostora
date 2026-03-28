@@ -13,7 +13,7 @@ const registerSchema = z
   .object({
     firstName: z.string().min(1, "First name is required"),
     lastName: z.string().min(1, "Last name is required"),
-    email: z.email("Please provide a valid email address"),
+    email: z.string().email("Please provide a valid email address"),
     password: z
       .string()
       .min(8, "Password must contain at least 8 characters")
@@ -85,86 +85,109 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="glass-card mx-auto w-full max-w-lg space-y-4 p-6">
-      <h1 className="text-2xl font-bold">Create your Ostora account</h1>
-      <p className="text-sm text-[var(--muted)]">Register and access your personalized dashboard.</p>
+    <div className="card">
+      <div className="mb-8">
+        <h1 className="text-display-md mb-2">Create your account</h1>
+        <p className="text-body text-gray-500">Join Ostora and start your job search journey</p>
+      </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <div>
-          <label htmlFor="firstName" className="mb-1 block text-sm font-medium">
-            First Name
-          </label>
-          <input
-            id="firstName"
-            type="text"
-            {...register("firstName")}
-            className="ring-focus w-full rounded-lg border border-[var(--foreground)]/20 bg-white px-3 py-2"
-          />
-          {errors.firstName && <p className="mt-1 text-sm text-red-600">{errors.firstName.message}</p>}
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label htmlFor="firstName" className="block text-body-sm font-medium text-gray-700 mb-2">
+              First Name
+            </label>
+            <input
+              id="firstName"
+              type="text"
+              {...register("firstName")}
+              className={`input ${errors.firstName ? "input-error" : ""}`}
+              placeholder="John"
+            />
+            {errors.firstName && (
+              <p className="mt-2 text-body-sm text-red-600">{errors.firstName.message}</p>
+            )}
+          </div>
+
+          <div>
+            <label htmlFor="lastName" className="block text-body-sm font-medium text-gray-700 mb-2">
+              Last Name
+            </label>
+            <input
+              id="lastName"
+              type="text"
+              {...register("lastName")}
+              className={`input ${errors.lastName ? "input-error" : ""}`}
+              placeholder="Doe"
+            />
+            {errors.lastName && (
+              <p className="mt-2 text-body-sm text-red-600">{errors.lastName.message}</p>
+            )}
+          </div>
         </div>
 
         <div>
-          <label htmlFor="lastName" className="mb-1 block text-sm font-medium">
-            Last Name
+          <label htmlFor="email" className="block text-body-sm font-medium text-gray-700 mb-2">
+            Email Address
           </label>
           <input
-            id="lastName"
-            type="text"
-            {...register("lastName")}
-            className="ring-focus w-full rounded-lg border border-[var(--foreground)]/20 bg-white px-3 py-2"
+            id="email"
+            type="email"
+            {...register("email")}
+            className={`input ${errors.email ? "input-error" : ""}`}
+            placeholder="you@example.com"
           />
-          {errors.lastName && <p className="mt-1 text-sm text-red-600">{errors.lastName.message}</p>}
+          {errors.email && (
+            <p className="mt-2 text-body-sm text-red-600">{errors.email.message}</p>
+          )}
         </div>
-      </div>
 
-      <div>
-        <label htmlFor="email" className="mb-1 block text-sm font-medium">
-          Email
-        </label>
-        <input
-          id="email"
-          type="email"
-          {...register("email")}
-          className="ring-focus w-full rounded-lg border border-[var(--foreground)]/20 bg-white px-3 py-2"
-        />
-        {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
-      </div>
+        <div>
+          <label htmlFor="password" className="block text-body-sm font-medium text-gray-700 mb-2">
+            Password
+          </label>
+          <input
+            id="password"
+            type="password"
+            {...register("password")}
+            className={`input ${errors.password ? "input-error" : ""}`}
+            placeholder="••••••••"
+          />
+          {errors.password && (
+            <p className="mt-2 text-body-sm text-red-600">{errors.password.message}</p>
+          )}
+        </div>
 
-      <div>
-        <label htmlFor="password" className="mb-1 block text-sm font-medium">
-          Password
-        </label>
-        <input
-          id="password"
-          type="password"
-          {...register("password")}
-          className="ring-focus w-full rounded-lg border border-[var(--foreground)]/20 bg-white px-3 py-2"
-        />
-        {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>}
-      </div>
+        <div>
+          <label htmlFor="confirmPassword" className="block text-body-sm font-medium text-gray-700 mb-2">
+            Confirm Password
+          </label>
+          <input
+            id="confirmPassword"
+            type="password"
+            {...register("confirmPassword")}
+            className={`input ${errors.confirmPassword ? "input-error" : ""}`}
+            placeholder="••••••••"
+          />
+          {errors.confirmPassword && (
+            <p className="mt-2 text-body-sm text-red-600">{errors.confirmPassword.message}</p>
+          )}
+        </div>
 
-      <div>
-        <label htmlFor="confirmPassword" className="mb-1 block text-sm font-medium">
-          Confirm Password
-        </label>
-        <input
-          id="confirmPassword"
-          type="password"
-          {...register("confirmPassword")}
-          className="ring-focus w-full rounded-lg border border-[var(--foreground)]/20 bg-white px-3 py-2"
-        />
-        {errors.confirmPassword && <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>}
-      </div>
+        {authState.error && (
+          <div className="p-4 rounded-button bg-red-50 border border-red-200">
+            <p className="text-body-sm text-red-700">{authState.error}</p>
+          </div>
+        )}
 
-      {authState.error && <p className="rounded-md bg-red-100 p-2 text-sm text-red-700">{authState.error}</p>}
-
-      <button
-        type="submit"
-        disabled={authState.loading}
-        className="ring-focus w-full rounded-lg bg-[var(--accent)] px-4 py-2 font-semibold text-white disabled:opacity-60"
-      >
-        {authState.loading ? "Creating account..." : "Create account"}
-      </button>
-    </form>
+        <button
+          type="submit"
+          disabled={authState.loading}
+          className="btn-primary w-full"
+        >
+          {authState.loading ? "Creating account..." : "Create Account"}
+        </button>
+      </form>
+    </div>
   );
 }
