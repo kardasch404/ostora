@@ -119,6 +119,7 @@ model User {
   jobApplications   JobApplication[]
   savedJobs         SavedJob[]
   jobAlerts         JobAlert[]
+  stripeCustomerId  String?
   subscriptions     Subscription[]
   payments          Payment[]
   notifications     Notification[]
@@ -544,12 +545,10 @@ model Subscription {
   stripeSubscriptionId    String?  @unique
   stripeCustomerId        String?
   paypalSubscriptionId    String?  @unique
-  amount            Float
-  currency          String             @default("USD")
-  interval          String             @default("month")
   currentPeriodStart DateTime           @db.Timestamptz
   currentPeriodEnd   DateTime           @db.Timestamptz
-  cancelAt           DateTime?          @db.Timestamptz
+  trialEnd           DateTime?          @db.Timestamptz
+  cancelAtPeriodEnd  Boolean            @default(false)
   canceledAt         DateTime?          @db.Timestamptz
   createdAt         DateTime           @default(now()) @db.Timestamptz
   updatedAt         DateTime           @updatedAt @db.Timestamptz
@@ -561,17 +560,18 @@ model Subscription {
 
 enum SubscriptionPlan {
   FREE
-  BASIC
-  PRO
-  ENTERPRISE
+  PREMIUM_MONTHLY
+  PREMIUM_ANNUAL
+  B2B_STARTER
+  B2B_PRO
 }
 
 enum SubscriptionStatus {
-  ACTIVE
-  CANCELED
-  PAST_DUE
-  UNPAID
   TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  EXPIRED
 }
 
 model Payment {
