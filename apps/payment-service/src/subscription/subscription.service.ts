@@ -99,6 +99,16 @@ export class SubscriptionService {
     });
   }
 
+  async updateStatusByPayPalId(
+    paypalSubscriptionId: string,
+    status: SubscriptionStatus,
+  ): Promise<void> {
+    await this.prisma.subscription.updateMany({
+      where: { paypalSubscriptionId },
+      data: { status },
+    });
+  }
+
   async getUserSubscription(userId: string): Promise<SubscriptionResponse> {
     const subscription = await this.prisma.subscription.findFirst({
       where: { userId },
