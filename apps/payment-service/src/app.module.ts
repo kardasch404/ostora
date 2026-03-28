@@ -11,6 +11,8 @@ import { PayPalService } from './providers/paypal/paypal.service';
 import { PayPalController } from './providers/paypal/paypal.controller';
 import { PayPalWebhookController } from './providers/paypal/paypal-webhook.controller';
 import { PayPalEventHandler } from './providers/paypal/paypal-event-handler';
+import { PromoCodeController } from './providers/promo-code/promo-code.controller';
+import { PromoCodeService } from './providers/promo-code/promo-code.service';
 
 @Module({
   imports: [
@@ -25,6 +27,7 @@ import { PayPalEventHandler } from './providers/paypal/paypal-event-handler';
     StripeWebhookController,
     PayPalController,
     PayPalWebhookController,
+    PromoCodeController,
   ],
   providers: [
     SubscriptionService,
@@ -33,6 +36,7 @@ import { PayPalEventHandler } from './providers/paypal/paypal-event-handler';
     WebhookValidatorService,
     PayPalService,
     PayPalEventHandler,
+    PromoCodeService,
   ],
   exports: [SubscriptionService],
 })
