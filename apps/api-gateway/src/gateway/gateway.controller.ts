@@ -208,6 +208,17 @@ export class GatewayController {
     return firstValueFrom(this.jobClient.send('job.getMyApplications', { userId }));
   }
 
+  // ==================== EMAIL ROUTES ====================
+  @Post('email/send')
+  @Version('1')
+  @ApiTags('Email')
+  @ApiOperation({ summary: 'Send email' })
+  @ApiBearerAuth('JWT-auth')
+  async sendEmail(@Body() dto: any, @Req() req: Request) {
+    const userId = this.extractUserIdFromAuthHeader(req) || 'anonymous';
+    return firstValueFrom(this.emailClient.send('email.send', { ...dto, userId }));
+  }
+
   // ==================== PAYMENT ROUTES ====================
   @Post('payments/create-intent')
   @Version('1')
