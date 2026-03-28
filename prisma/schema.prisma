@@ -688,7 +688,7 @@ model B2BClient {
   contactEmail  String   @unique
   contactName   String
   apiKey        String   @unique
-  plan          SubscriptionPlan @default(BASIC)
+  plan          SubscriptionPlan @default(FREE)
   rateLimit     Int      @default(1000)
   active        Boolean  @default(true)
   metadata      Json?
