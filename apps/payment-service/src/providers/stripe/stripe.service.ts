@@ -9,8 +9,15 @@ export class StripeService {
   private stripe: Stripe;
 
   constructor(private configService: ConfigService) {
-    this.stripe = new Stripe(this.configService.get('STRIPE_SECRET_KEY'), {
-      apiVersion: '2024-11-20.acacia',
+    void PLAN_PRICES;
+
+    const secretKey = this.configService.get<string>('STRIPE_SECRET_KEY');
+    if (!secretKey) {
+      throw new BadRequestException('Missing STRIPE_SECRET_KEY environment variable');
+    }
+
+    this.stripe = new Stripe(secretKey, {
+      apiVersion: '2023-10-16',
     });
   }
 
@@ -96,7 +103,7 @@ export class StripeService {
   }
 
   private getPriceId(plan: Plan): string {
-    const priceIds = {
+    const priceIds: Partial<Record<Plan, string | undefined>> = {
       [Plan.PREMIUM_MONTHLY]: this.configService.get('STRIPE_PRICE_PREMIUM_MONTHLY'),
       [Plan.PREMIUM_ANNUAL]: this.configService.get('STRIPE_PRICE_PREMIUM_ANNUAL'),
       [Plan.B2B_STARTER]: this.configService.get('STRIPE_PRICE_B2B_STARTER'),

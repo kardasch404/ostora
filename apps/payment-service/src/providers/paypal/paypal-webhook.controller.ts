@@ -21,9 +21,15 @@ export class PayPalWebhookController {
     @Body() event: any,
   ) {
     this.logger.log(`Received PayPal webhook: ${event.event_type}`);
+    void authAlgo;
 
     // Validate webhook signature
-    const webhookId = process.env.PAYPAL_WEBHOOK_ID;
+    const webhookId = process.env['PAYPAL_WEBHOOK_ID'];
+    if (!webhookId) {
+      this.logger.error('PAYPAL_WEBHOOK_ID is not configured');
+      return { received: false, error: 'Missing webhook configuration' };
+    }
+
     const isValid = this.paypalService.validateWebhookSignature(
       webhookId,
       transmissionId,

@@ -1,13 +1,21 @@
-import { Controller, Post, Get, Delete, Body, Req, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Delete, Body, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { SubscriptionService } from './subscription.service';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
+import { CheckoutDto } from './dto/checkout.dto';
 import { SubscriptionResponse } from './dto/subscription.response';
 
 @ApiTags('subscriptions')
+@ApiBearerAuth()
 @Controller('subscriptions')
 export class SubscriptionController {
   constructor(private subscriptionService: SubscriptionService) {}
+
+  @Post('checkout')
+  @ApiOperation({ summary: 'Unified checkout for all payment methods' })
+  async checkout(@Req() req: any, @Body() dto: CheckoutDto) {
+    return this.subscriptionService.checkout(req.user.id, dto);
+  }
 
   @Post()
   @ApiOperation({ summary: 'Create or upgrade subscription' })

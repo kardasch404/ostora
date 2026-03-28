@@ -12,6 +12,7 @@ interface PayPalOrder {
 interface PayPalSubscription {
   id: string;
   status: string;
+  links?: Array<{ href: string; rel: string }>;
   subscriber: { email_address: string };
   billing_info: {
     next_billing_time: string;
@@ -185,12 +186,19 @@ export class PayPalService {
     // In production, implement full signature verification
     // https://developer.paypal.com/api/rest/webhooks/rest/#verify-webhook-signature
     
+    void webhookId;
+    void transmissionId;
+    void transmissionTime;
+    void certUrl;
+    void transmissionSig;
+    void webhookEvent;
+
     this.logger.log('Validating PayPal webhook signature');
     return true; // Simplified for now
   }
 
   private getPayPalPlanId(plan: Plan): string {
-    const planIds = {
+    const planIds: Partial<Record<Plan, string | undefined>> = {
       [Plan.PREMIUM_MONTHLY]: this.configService.get('PAYPAL_PLAN_PREMIUM_MONTHLY'),
       [Plan.PREMIUM_ANNUAL]: this.configService.get('PAYPAL_PLAN_PREMIUM_ANNUAL'),
       [Plan.B2B_STARTER]: this.configService.get('PAYPAL_PLAN_B2B_STARTER'),

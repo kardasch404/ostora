@@ -36,7 +36,7 @@ interface RedemptionResponse {
 
 @Injectable()
 export class PromoCodeService {
-  private prisma = new PrismaClient();
+  private prisma = new PrismaClient() as any;
 
   async generatePromoCode(dto: CreatePromoCodeDto, adminId: string): Promise<PromoCodeResponse> {
     const code = dto.customCode || this.generateCode(dto.type);
@@ -83,7 +83,7 @@ export class PromoCodeService {
       throw new NotFoundException('Promo code not found');
     }
 
-    this.validatePromoCode(promoCode);
+    this.assertPromoCodeValid(promoCode);
 
     const existingUsage = await this.prisma.promoCodeUsage.findFirst({
       where: {
@@ -111,12 +111,7 @@ export class PromoCodeService {
     const expiresAt = new Date(now.getTime() + promoCode.durationDays * 24 * 60 * 60 * 1000);
 
     const subscription = await this.prisma.subscription.upsert({
-      where: {
-        userId_plan: {
-          userId,
-          plan: promoCode.plan,
-        },
-      },
+      where: { id: `${userId}:${promoCode.plan}` },
       create: {
         userId,
         plan: promoCode.plan,
@@ -157,8 +152,8 @@ export class PromoCodeService {
       success: true,
       subscription: {
         id: subscription.id,
-        plan: subscription.plan,
-        status: subscription.status,
+        plan: subscription.plan as Plan,
+        status: subscription.status as SubscriptionStatus,
         expiresAt: subscription.currentPeriodEnd,
       },
       promoCode: {
@@ -178,7 +173,7 @@ export class PromoCodeService {
     }
 
     try {
-      this.validatePromoCode(promoCode);
+      this.assertPromoCodeValid(promoCode);
       return true;
     } catch {
       return false;
@@ -268,7 +263,7 @@ export class PromoCodeService {
       usedCount: promoCode.usedCount,
       remainingUses: promoCode.maxUses - promoCode.usedCount,
       expiresAt: promoCode.expiresAt,
-      usages: promoCode.usages.map(usage => ({
+      usages: promoCode.usages.map((usage: any) => ({
         userId: usage.userId,
         userEmail: usage.user.email,
         userName: `${usage.user.firstName} ${usage.user.lastName}`,
@@ -277,7 +272,7 @@ export class PromoCodeService {
     };
   }
 
-  private validatePromoCode(promoCode: any): void {
+  private assertPromoCodeValid(promoCode: any): void {
     if (promoCode.status === PromoCodeStatus.DISABLED) {
       throw new BadRequestException('This promo code has been disabled');
     }

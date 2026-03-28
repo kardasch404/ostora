@@ -7,18 +7,22 @@ export class WebhookValidatorService {
   constructor(private configService: ConfigService) {}
 
   validateStripeSignature(payload: Buffer, signature: string): Stripe.Event {
-    const stripe = new Stripe(this.configService.get('STRIPE_SECRET_KEY'), {
-      apiVersion: '2024-11-20.acacia',
+    const secretKey = this.configService.get<string>('STRIPE_SECRET_KEY');
+    const webhookSecret = this.configService.get<string>('STRIPE_WEBHOOK_SECRET');
+
+    if (!secretKey || !webhookSecret) {
+      throw new UnauthorizedException('Stripe webhook secrets are not configured');
+    }
+
+    const stripe = new Stripe(secretKey, {
+      apiVersion: '2023-10-16',
     });
 
     try {
-      return stripe.webhooks.constructEvent(
-        payload,
-        signature,
-        this.configService.get('STRIPE_WEBHOOK_SECRET'),
-      );
+      return stripe.webhooks.constructEvent(payload, signature, webhookSecret);
     } catch (err) {
-      throw new UnauthorizedException(`Webhook signature verification failed: ${err.message}`);
+      const message = err instanceof Error ? err.message : 'Unknown webhook verification error';
+      throw new UnauthorizedException(`Webhook signature verification failed: ${message}`);
     }
   }
 }
