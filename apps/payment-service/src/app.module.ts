@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { SubscriptionController } from './subscription/subscription.controller';
 import { SubscriptionService } from './subscription/subscription.service';
 import { StripeService } from './providers/stripe/stripe.service';
@@ -13,6 +14,11 @@ import { PayPalWebhookController } from './providers/paypal/paypal-webhook.contr
 import { PayPalEventHandler } from './providers/paypal/paypal-event-handler';
 import { PromoCodeController } from './providers/promo-code/promo-code.controller';
 import { PromoCodeService } from './providers/promo-code/promo-code.service';
+import { TrialService } from './trial/trial.service';
+import { TrialExpiryCron } from './trial/trial-expiry.cron';
+import { InvoiceController } from './invoice/invoice.controller';
+import { InvoiceService } from './invoice/invoice.service';
+import { InvoicePdfService } from './invoice/invoice-pdf.service';
 
 @Module({
   imports: [
@@ -20,6 +26,7 @@ import { PromoCodeService } from './providers/promo-code/promo-code.service';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    ScheduleModule.forRoot(),
   ],
   controllers: [
     HealthController,
@@ -28,6 +35,7 @@ import { PromoCodeService } from './providers/promo-code/promo-code.service';
     PayPalController,
     PayPalWebhookController,
     PromoCodeController,
+    InvoiceController,
   ],
   providers: [
     SubscriptionService,
@@ -37,6 +45,10 @@ import { PromoCodeService } from './providers/promo-code/promo-code.service';
     PayPalService,
     PayPalEventHandler,
     PromoCodeService,
+    TrialService,
+    TrialExpiryCron,
+    InvoiceService,
+    InvoicePdfService,
   ],
   exports: [SubscriptionService],
 })
