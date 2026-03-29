@@ -6,8 +6,11 @@ WORKDIR /app
 COPY package*.json ./
 COPY tsconfig*.json ./
 COPY nx.json ./
+COPY prisma ./prisma
 
 RUN npm ci && npm cache clean --force
+
+RUN npx prisma generate
 
 COPY apps/notification-service ./apps/notification-service
 COPY libs ./libs
@@ -23,6 +26,7 @@ WORKDIR /app
 
 COPY --from=builder --chown=ostora:ostora /app/node_modules ./node_modules
 COPY --from=builder --chown=ostora:ostora /app/dist/apps/notification-service ./dist
+COPY --from=builder --chown=ostora:ostora /app/apps/notification-service/package*.json ./
 
 RUN mkdir -p logs && chown ostora:ostora logs
 
@@ -36,4 +40,4 @@ EXPOSE 4727
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
   CMD node -e "require('http').get('http://localhost:4727/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-CMD ["node", "dist/main.js"]
+CMD ["node", "dist/src/main.js"]

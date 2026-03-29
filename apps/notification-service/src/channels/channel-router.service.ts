@@ -77,7 +77,7 @@ export class ChannelRouterService {
 
       this.logger.log(`Notification routed to user ${userId}`);
     } catch (error) {
-      this.logger.error(`Failed to route notification: ${error.message}`);
+      this.logger.error(`Failed to route notification: ${(error as Error).message}`);
     }
   }
 

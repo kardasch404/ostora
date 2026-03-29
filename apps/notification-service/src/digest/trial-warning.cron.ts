@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { PrismaClient } from '@prisma/client';
-import { NotificationService } from '../notification/notification.service';
+import { PrismaClient, SubscriptionStatus } from '@prisma/client';
+import { NotificationService, NotificationType } from '../notification/notification.service';
 import { ChannelRouterService } from '../channels/channel-router.service';
 
 @Injectable()
@@ -24,14 +24,13 @@ export class TrialWarningCron {
       twoDaysFromNow.setHours(23, 59, 59, 999);
 
       const oneDayFromNow = new Date();
-      oneDayFromNow.setDate(oneDayFromNow.getDate() + 2);
+      oneDayFromNow.setDate(oneDayFromNow.getDate() + 1);
       oneDayFromNow.setHours(0, 0, 0, 0);
 
       const expiringTrials = await this.prisma.subscription.findMany({
         where: {
-          plan: 'TRIAL',
-          status: 'ACTIVE',
-          endDate: {
+          status: SubscriptionStatus.TRIALING,
+          trialEnd: {
             gte: oneDayFromNow,
             lte: twoDaysFromNow,
           },
@@ -48,16 +47,20 @@ export class TrialWarningCron {
       });
 
       for (const subscription of expiringTrials) {
-        const daysLeft = this.calculateDaysLeft(subscription.endDate);
+        if (!subscription.trialEnd) {
+          continue;
+        }
+
+        const daysLeft = this.calculateDaysLeft(subscription.trialEnd);
 
         const notification = await this.notificationService.createNotification({
           userId: subscription.userId,
-          type: 'TRIAL_EXPIRING',
+          type: NotificationType.TRIAL_EXPIRING,
           title: 'Trial Expiring Soon',
           message: `Your free trial expires in ${daysLeft} days. Upgrade now to continue!`,
           data: {
             subscriptionId: subscription.id,
-            expiryDate: subscription.endDate,
+            expiryDate: subscription.trialEnd,
             daysLeft,
           },
           actionUrl: '/pricing',
@@ -70,7 +73,7 @@ export class TrialWarningCron {
 
       this.logger.log(`Trial expiry check completed. Warnings sent: ${expiringTrials.length}`);
     } catch (error) {
-      this.logger.error(`Trial expiry check failed: ${error.message}`);
+      this.logger.error(`Trial expiry check failed: ${(error as Error).message}`);
     }
   }
 
