@@ -4,7 +4,7 @@ import { IntentDetectorService, AiMode } from './intent-detector.service';
 import { SessionManagerService } from './session-manager.service';
 import { TokenRouterService, TaskType, TaskPriority } from '../token-router/token-router.service';
 import { PromptBuilderService } from '../prompt-builder/prompt-builder.service';
-import { PromptType } from '../prompt-builder/system-prompts.config';
+import { ParsedCV, JobPost } from '../interfaces/analyzer.interface';
 import { AnalyzerMode } from './modes/analyzer.mode';
 import { ComparatorMode } from './modes/comparator.mode';
 import { AssistantMode } from './modes/assistant.mode';
@@ -46,11 +46,20 @@ export class UnifiedAiController {
     
     switch (intentResult.mode) {
       case AiMode.ANALYZE_CV:
-        response = await this.analyzerMode.analyze(
-          cvData?.text || 'No CV loaded',
-          'Job description placeholder',
-          dto.language,
-        );
+        // Convert cached CV to ParsedCV format
+        const parsedCV: ParsedCV = {
+          text: cvData?.text || 'No CV loaded',
+          skills: cvData?.skills || [],
+          experience: cvData?.experience || [],
+          education: cvData?.education || [],
+          languages: cvData?.languages || [],
+          certifications: cvData?.certifications || [],
+        };
+        
+        // TODO: Load job post from PostgreSQL
+        const jobPost: JobPost | undefined = undefined;
+        
+        response = await this.analyzerMode.run(parsedCV, jobPost);
         break;
 
       case AiMode.COMPARE_JOB:
@@ -60,15 +69,7 @@ export class UnifiedAiController {
         );
         break;
 
-      case AiMode.MISSING_SKILLS:
-        response = await this.analyzerMode.analyzeGapOnly(
-          cvData?.text || 'No CV loaded',
-          'Job description placeholder',
-          dto.language,
-        );
-        break;
-
-      case AiMode.GENERATE_COVER_LETTER:
+case AiMode.GENERATE_COVER_LETTER:
         // Enqueue async job
         const coverLetterJob = await this.coverLetterQueue.add({
           userId: session.userId,
