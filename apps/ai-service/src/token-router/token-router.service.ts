@@ -5,6 +5,11 @@ import { BlazeAiProvider } from './blazeai.provider';
 import { OllamaProvider } from './ollama.provider';
 import { IAiProvider, GenerateOptions } from './provider.interface';
 
+export enum TaskPriority {
+  REALTIME = 'realtime',
+  BACKGROUND = 'background',
+}
+
 export enum TaskType {
   REALTIME_CHAT = 'realtime_chat',
   INTENT_DETECTION = 'intent_detection',
@@ -45,71 +50,58 @@ export class TokenRouterService {
 
   async route(
     taskType: TaskType,
-    userPlan: UserPlan,
+    priority: TaskPriority,
     prompt: string,
     options?: GenerateOptions,
   ): Promise<string> {
-    const provider = await this.selectProvider(taskType, userPlan);
-    this.logger.log(`Routing ${taskType} to ${provider.constructor.name}`);
+    // Background tasks always use Ollama
+    if (priority === TaskPriority.BACKGROUND) {
+      this.logger.log(`Background task ${taskType} → OllamaProvider`);
+      return await this.ollamaProvider.generate(prompt, options);
+    }
 
+    // Check quota for realtime tasks
+    const usedToday = await this.getUsedCredits();
+    if (usedToday >= this.quotaThreshold) {
+      this.logger.warn(`Quota protection: ${usedToday}/${this.dailyQuota} → OllamaProvider`);
+      return await this.ollamaProvider.generate(prompt, options);
+    }
+
+    // Try BlazeAI for realtime tasks
     try {
-      const result = await provider.generate(prompt, options);
-
-      if (provider instanceof BlazeAiProvider) {
-        await this.incrementCredits();
-      }
-
+      this.logger.log(`Realtime task ${taskType} → BlazeAIProvider`);
+      const result = await this.blazeAiProvider.generate(prompt, options);
+      
+      // Increment credits and set expiry
+      const today = new Date().toISOString().split('T')[0];
+      const key = `blazeai:credits:used:${today}`;
+      await this.redis.incr(key);
+      
+      // Set expiry to end of day
+      const now = new Date();
+      const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+      const secondsUntilEndOfDay = Math.floor((endOfDay.getTime() - now.getTime()) / 1000);
+      await this.redis.expire(key, secondsUntilEndOfDay);
+      
       return result;
     } catch (error) {
-      // Fallback to Ollama on BlazeAI errors (429, 5xx)
-      if (provider instanceof BlazeAiProvider && this.shouldFallback(error)) {
-        this.logger.warn(`BlazeAI failed (${error.message}), falling back to Ollama`);
+      // Fallback on 429 or 5xx errors
+      if (this.shouldFallback(error)) {
+        this.logger.warn(`BlazeAI unavailable (${error.message}), routing to Ollama`);
         return await this.ollamaProvider.generate(prompt, options);
       }
       throw error;
     }
   }
 
-  private async selectProvider(taskType: TaskType, userPlan: UserPlan): Promise<IAiProvider> {
-    const usedCredits = await this.getUsedCredits();
-
-    // Force Ollama if quota exceeded
-    if (usedCredits >= this.quotaThreshold) {
-      this.logger.warn(`BlazeAI quota threshold reached (${usedCredits}/${this.dailyQuota}). Using Ollama.`);
-      return this.ollamaProvider;
-    }
-
-    // BlazeAI for real-time tasks
-    const realtimeTasks = [
-      TaskType.REALTIME_CHAT,
-      TaskType.INTENT_DETECTION,
-      TaskType.EMAIL_GENERATION,
-      TaskType.CV_QUICK_SCORE,
-    ];
-
-    if (realtimeTasks.includes(taskType)) {
-      return this.blazeAiProvider;
-    }
-
-    // Ollama for bulk/background tasks
-    return this.ollamaProvider;
-  }
-
   private async getUsedCredits(): Promise<number> {
-    const date = new Date().toISOString().split('T')[0];
-    const key = `blazeai:credits:used:${date}`;
+    const today = new Date().toISOString().split('T')[0];
+    const key = `blazeai:credits:used:${today}`;
     const credits = await this.redis.get(key);
     return credits ? parseInt(credits, 10) : 0;
   }
 
-  private async incrementCredits(): Promise<void> {
-    const date = new Date().toISOString().split('T')[0];
-    const key = `blazeai:credits:used:${date}`;
-    await this.redis.incr(key);
-    await this.redis.expire(key, 86400); // 24 hours
-  }
-
-  private shouldFallback(error: any): boolean {
+private shouldFallback(error: any): boolean {
     const message = error.message || '';
     return message.includes('429') || message.includes('5') && (message.includes('500') || message.includes('502') || message.includes('503'));
   }

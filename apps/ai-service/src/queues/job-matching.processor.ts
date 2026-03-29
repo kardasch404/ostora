@@ -1,7 +1,7 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bull';
-import { TokenRouterService, TaskType, UserPlan } from '../token-router/token-router.service';
+import { TokenRouterService, TaskType, TaskPriority } from '../token-router/token-router.service';
 import { PromptBuilderService } from '../prompt-builder/prompt-builder.service';
 
 export interface JobMatchingJob {
@@ -30,7 +30,7 @@ export class JobMatchingProcessor {
 
     const result = await this.tokenRouter.route(
       TaskType.JOB_MATCHING,
-      UserPlan.FREE,
+      TaskPriority.BACKGROUND,
       prompt,
       { maxTokens: 2000 },
     );

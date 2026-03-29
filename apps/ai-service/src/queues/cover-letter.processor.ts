@@ -1,7 +1,7 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bull';
-import { TokenRouterService, TaskType, UserPlan } from '../token-router/token-router.service';
+import { TokenRouterService, TaskType, TaskPriority } from '../token-router/token-router.service';
 import { PromptBuilderService } from '../prompt-builder/prompt-builder.service';
 import { PromptType } from '../prompt-builder/system-prompts.config';
 
@@ -39,7 +39,7 @@ export class CoverLetterProcessor {
 
     const result = await this.tokenRouter.route(
       TaskType.COVER_LETTER_BATCH,
-      UserPlan.FREE,
+      TaskPriority.BACKGROUND,
       prompt,
       { systemPrompt, maxTokens: 1000 },
     );

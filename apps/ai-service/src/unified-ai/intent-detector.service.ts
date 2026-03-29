@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { TokenRouterService, TaskType, UserPlan } from '../token-router/token-router.service';
+import { TokenRouterService, TaskType, TaskPriority } from '../token-router/token-router.service';
 
 export enum Intent {
   CV_ANALYSIS = 'cv_analysis',
@@ -15,12 +15,12 @@ export class IntentDetectorService {
 
   constructor(private tokenRouter: TokenRouterService) {}
 
-  async detectIntent(message: string, userPlan: UserPlan): Promise<Intent> {
+  async detectIntent(message: string): Promise<Intent> {
     const prompt = `Classify this user message into one category: cv_analysis, job_search, cover_letter, profile_help, general_question.\nMessage: "${message}"\nCategory:`;
 
     const result = await this.tokenRouter.route(
       TaskType.INTENT_DETECTION,
-      userPlan,
+      TaskPriority.REALTIME,
       prompt,
       { temperature: 0.2, maxTokens: 20 },
     );

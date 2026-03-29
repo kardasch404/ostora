@@ -1,7 +1,7 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bull';
-import { TokenRouterService, TaskType, UserPlan } from '../token-router/token-router.service';
+import { TokenRouterService, TaskType, TaskPriority } from '../token-router/token-router.service';
 
 export interface ProfileOptimizationJob {
   userId: string;
@@ -23,7 +23,7 @@ export class ProfileOptimizerProcessor {
 
     const result = await this.tokenRouter.route(
       TaskType.PROFILE_OPTIMIZATION,
-      UserPlan.FREE,
+      TaskPriority.BACKGROUND,
       prompt,
       { maxTokens: 1500 },
     );

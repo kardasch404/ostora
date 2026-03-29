@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { TokenRouterService, TaskType, UserPlan } from '../../token-router/token-router.service';
+import { TokenRouterService, TaskType, TaskPriority } from '../../token-router/token-router.service';
 
 @Injectable()
 export class ComparatorMode {
@@ -14,7 +14,7 @@ export class ComparatorMode {
 
     const result = await this.tokenRouter.route(
       TaskType.JOB_MATCHING,
-      UserPlan.PREMIUM,
+      TaskPriority.BACKGROUND,
       prompt,
       { maxTokens: 1500 },
     );
