@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { DigestFrequency, QuietHoursDto } from './dto/update-preferences.dto';
+import { RedisService } from '../cache/redis.service';
 
 export interface NotificationPreferences {
   userId: string;
@@ -29,26 +30,39 @@ export class PreferencesService {
   private readonly logger = new Logger(PreferencesService.name);
   private prisma = new PrismaClient();
 
+  constructor(private readonly redisService: RedisService) {}
+
   async getUserPreferences(userId: string): Promise<NotificationPreferences> {
     try {
+      // Try Redis cache first
+      const cached = await this.redisService.getCachedPreferences(userId);
+      if (cached) {
+        this.logger.debug(`Preferences loaded from cache for user: ${userId}`);
+        return cached;
+      }
+
+      // Load from database
       const prefs = await this.prisma.notificationPreference.findUnique({
         where: { userId },
       });
 
-      if (!prefs) {
-        return this.getDefaultPreferences(userId);
-      }
+      const preferences = prefs
+        ? {
+            userId: prefs.userId,
+            inAppEnabled: prefs.inAppEnabled,
+            pushEnabled: prefs.pushEnabled,
+            emailEnabled: prefs.emailEnabled,
+            weeklyDigestEnabled: prefs.weeklyDigestEnabled ?? true,
+            digestFrequency: (prefs.digestFrequency as DigestFrequency) || DigestFrequency.INSTANT,
+            quietHours: prefs.quietHours as QuietHoursDto | null,
+            types: prefs.types as any,
+          }
+        : this.getDefaultPreferences(userId);
 
-      return {
-        userId: prefs.userId,
-        inAppEnabled: prefs.inAppEnabled,
-        pushEnabled: prefs.pushEnabled,
-        emailEnabled: prefs.emailEnabled,
-        weeklyDigestEnabled: prefs.weeklyDigestEnabled ?? true,
-        digestFrequency: (prefs.digestFrequency as DigestFrequency) || DigestFrequency.INSTANT,
-        quietHours: prefs.quietHours as QuietHoursDto | null,
-        types: prefs.types as any,
-      };
+      // Cache for 1 hour
+      await this.redisService.cachePreferences(userId, preferences, 3600);
+
+      return preferences;
     } catch (error) {
       this.logger.error(`Failed to get preferences: ${error.message}`);
       return this.getDefaultPreferences(userId);
@@ -56,7 +70,7 @@ export class PreferencesService {
   }
 
   async updatePreferences(userId: string, preferences: Partial<NotificationPreferences>) {
-    return this.prisma.notificationPreference.upsert({
+    const updated = await this.prisma.notificationPreference.upsert({
       where: { userId },
       create: {
         userId,
@@ -78,6 +92,11 @@ export class PreferencesService {
         ...(preferences.types && { types: preferences.types }),
       },
     });
+
+    // Invalidate cache
+    await this.redisService.invalidatePreferences(userId);
+
+    return updated;
   }
 
   isInQuietHours(quietHours: QuietHoursDto | null): boolean {

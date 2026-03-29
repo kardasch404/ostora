@@ -20,6 +20,7 @@ import { DigestService } from './digest/digest.service';
 import { WeeklyDigestCron } from './digest/weekly-digest.cron';
 import { TrialWarningCron } from './digest/trial-warning.cron';
 import { FcmTokenCleanupCron } from './digest/fcm-token-cleanup.cron';
+import { RedisService } from './cache/redis.service';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { FcmTokenCleanupCron } from './digest/fcm-token-cleanup.cron';
     WsAuthGuard,
     NotificationService,
     PreferencesService,
+    RedisService,
     // Channels
     WebSocketChannel,
     EmailChannel,
