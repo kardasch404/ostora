@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { Kafka } from 'kafkajs';
-import { NotificationService } from '../notification/notification.service';
+import { NotificationService, NotificationType } from '../notification/notification.service';
 import { ChannelRouterService } from '../channels/channel-router.service';
 
 @Injectable()
@@ -44,7 +44,7 @@ export class AiEventsConsumer implements OnModuleInit {
   private async handleAiEvent(topic: string, data: any) {
     const notification = await this.notificationService.createNotification({
       userId: data.userId,
-      type: 'AI_TASK_COMPLETED',
+      type: NotificationType.AI_TASK_COMPLETED,
       title: this.getTitle(topic),
       message: this.getMessage(topic, data),
       data: { taskId: data.taskId, result: data.result },

@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { NotificationPreference, Prisma, PrismaClient } from '@prisma/client';
 import { DigestFrequency, QuietHoursDto } from './dto/update-preferences.dto';
 import { RedisService } from '../cache/redis.service';
 
@@ -11,7 +11,7 @@ export interface NotificationPreferences {
   weeklyDigestEnabled: boolean;
   digestFrequency: DigestFrequency;
   quietHours: QuietHoursDto | null;
-  types: {
+  types: Partial<{
     AI_TASK_COMPLETED: boolean;
     JOB_MATCH: boolean;
     PAYMENT_SUCCESS: boolean;
@@ -22,7 +22,9 @@ export interface NotificationPreferences {
     SYSTEM_ALERT: boolean;
     JOB_APPLICATION: boolean;
     MESSAGE: boolean;
-  };
+  }>;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 @Injectable()
@@ -46,30 +48,32 @@ export class PreferencesService {
         where: { userId },
       });
 
-      const preferences = prefs
-        ? {
-            userId: prefs.userId,
-            inAppEnabled: prefs.inAppEnabled,
-            pushEnabled: prefs.pushEnabled,
-            emailEnabled: prefs.emailEnabled,
-            weeklyDigestEnabled: prefs.weeklyDigestEnabled ?? true,
-            digestFrequency: (prefs.digestFrequency as DigestFrequency) || DigestFrequency.INSTANT,
-            quietHours: prefs.quietHours as QuietHoursDto | null,
-            types: prefs.types as any,
-          }
-        : this.getDefaultPreferences(userId);
+      const preferences = prefs ? this.mapPreferenceRecord(prefs) : this.getDefaultPreferences(userId);
 
       // Cache for 1 hour
       await this.redisService.cachePreferences(userId, preferences, 3600);
 
       return preferences;
     } catch (error) {
-      this.logger.error(`Failed to get preferences: ${error.message}`);
+      this.logger.error(`Failed to get preferences: ${(error as Error).message}`);
       return this.getDefaultPreferences(userId);
     }
   }
 
-  async updatePreferences(userId: string, preferences: Partial<NotificationPreferences>) {
+  async updatePreferences(
+    userId: string,
+    preferences: Partial<NotificationPreferences>,
+  ): Promise<NotificationPreferences> {
+    const quietHoursValue =
+      preferences.quietHours === undefined
+        ? undefined
+        : (preferences.quietHours as unknown as Prisma.InputJsonValue | null);
+
+    const typesValue =
+      preferences.types === undefined
+        ? undefined
+        : (preferences.types as unknown as Prisma.InputJsonValue);
+
     const updated = await this.prisma.notificationPreference.upsert({
       where: { userId },
       create: {
@@ -79,8 +83,14 @@ export class PreferencesService {
         emailEnabled: preferences.emailEnabled ?? true,
         weeklyDigestEnabled: preferences.weeklyDigestEnabled ?? true,
         digestFrequency: preferences.digestFrequency || DigestFrequency.INSTANT,
-        quietHours: preferences.quietHours || null,
-        types: preferences.types || this.getDefaultTypes(),
+        quietHours:
+          quietHoursValue === undefined
+            ? (null as Prisma.InputJsonValue | null)
+            : quietHoursValue,
+        types:
+          typesValue === undefined
+            ? (this.getDefaultTypes() as unknown as Prisma.InputJsonValue)
+            : typesValue,
       },
       update: {
         ...(preferences.inAppEnabled !== undefined && { inAppEnabled: preferences.inAppEnabled }),
@@ -88,15 +98,15 @@ export class PreferencesService {
         ...(preferences.emailEnabled !== undefined && { emailEnabled: preferences.emailEnabled }),
         ...(preferences.weeklyDigestEnabled !== undefined && { weeklyDigestEnabled: preferences.weeklyDigestEnabled }),
         ...(preferences.digestFrequency && { digestFrequency: preferences.digestFrequency }),
-        ...(preferences.quietHours !== undefined && { quietHours: preferences.quietHours }),
-        ...(preferences.types && { types: preferences.types }),
+        ...(quietHoursValue !== undefined && { quietHours: quietHoursValue }),
+        ...(typesValue !== undefined && { types: typesValue }),
       },
     });
 
     // Invalidate cache
     await this.redisService.invalidatePreferences(userId);
 
-    return updated;
+    return this.mapPreferenceRecord(updated);
   }
 
   isInQuietHours(quietHours: QuietHoursDto | null): boolean {
@@ -140,6 +150,43 @@ export class PreferencesService {
       SYSTEM_ALERT: true,
       JOB_APPLICATION: true,
       MESSAGE: true,
+    };
+  }
+
+  private mapPreferenceRecord(prefs: NotificationPreference): NotificationPreferences {
+    return {
+      userId: prefs.userId,
+      inAppEnabled: prefs.inAppEnabled,
+      pushEnabled: prefs.pushEnabled,
+      emailEnabled: prefs.emailEnabled,
+      weeklyDigestEnabled: prefs.weeklyDigestEnabled ?? true,
+      digestFrequency: this.toDigestFrequency(prefs.digestFrequency),
+      quietHours: this.toQuietHours(prefs.quietHours),
+      types: (prefs.types as NotificationPreferences['types']) || this.getDefaultTypes(),
+      createdAt: prefs.createdAt,
+      updatedAt: prefs.updatedAt,
+    };
+  }
+
+  private toDigestFrequency(value: string | null): DigestFrequency {
+    if (value === DigestFrequency.DAILY) return DigestFrequency.DAILY;
+    if (value === DigestFrequency.WEEKLY) return DigestFrequency.WEEKLY;
+    return DigestFrequency.INSTANT;
+  }
+
+  private toQuietHours(value: Prisma.JsonValue | null): QuietHoursDto | null {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      return null;
+    }
+
+    const maybe = value as Record<string, unknown>;
+    if (typeof maybe.startHour !== 'number' || typeof maybe.endHour !== 'number') {
+      return null;
+    }
+
+    return {
+      startHour: maybe.startHour,
+      endHour: maybe.endHour,
     };
   }
 }

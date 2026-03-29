@@ -26,9 +26,9 @@ export class PreferencesResponseDto {
   @ApiProperty({ type: NotificationTypesDto })
   types: NotificationTypesDto;
 
-  @ApiProperty()
-  createdAt: Date;
+  @ApiProperty({ required: false })
+  createdAt?: Date;
 
-  @ApiProperty()
-  updatedAt: Date;
+  @ApiProperty({ required: false })
+  updatedAt?: Date;
 }

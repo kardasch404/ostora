@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { NotificationType as PrismaNotificationType, PrismaClient } from '@prisma/client';
 import { RedisService } from '../cache/redis.service';
 
 export enum NotificationType {
@@ -11,7 +11,22 @@ export enum NotificationType {
   TRIAL_EXPIRING = 'TRIAL_EXPIRING',
   SUBSCRIPTION_RENEWED = 'SUBSCRIPTION_RENEWED',
   SYSTEM_ALERT = 'SYSTEM_ALERT',
+  JOB_APPLICATION = 'JOB_APPLICATION',
+  MESSAGE = 'MESSAGE',
 }
+
+const NOTIFICATION_TYPE_MAP: Record<NotificationType, PrismaNotificationType> = {
+  [NotificationType.AI_TASK_COMPLETED]: PrismaNotificationType.AI_TASK_COMPLETED,
+  [NotificationType.JOB_MATCH]: PrismaNotificationType.JOB_MATCH,
+  [NotificationType.PAYMENT_SUCCESS]: PrismaNotificationType.PAYMENT_SUCCESS,
+  [NotificationType.PAYMENT_FAILED]: PrismaNotificationType.PAYMENT_FAILED,
+  [NotificationType.APPLICATION_UPDATE]: PrismaNotificationType.APPLICATION_UPDATE,
+  [NotificationType.TRIAL_EXPIRING]: PrismaNotificationType.TRIAL_EXPIRING,
+  [NotificationType.SUBSCRIPTION_RENEWED]: PrismaNotificationType.SUBSCRIPTION_RENEWED,
+  [NotificationType.SYSTEM_ALERT]: PrismaNotificationType.ALERT,
+  [NotificationType.JOB_APPLICATION]: PrismaNotificationType.JOB_APPLICATION,
+  [NotificationType.MESSAGE]: PrismaNotificationType.MESSAGE,
+};
 
 export interface CreateNotificationDto {
   userId: string;
@@ -34,7 +49,7 @@ export class NotificationService {
       const notification = await this.prisma.notification.create({
         data: {
           userId: dto.userId,
-          type: dto.type,
+          type: NOTIFICATION_TYPE_MAP[dto.type],
           title: dto.title,
           message: dto.message,
           data: dto.data || {},
@@ -48,7 +63,7 @@ export class NotificationService {
       this.logger.log(`Notification created: ${notification.id} for user ${dto.userId}`);
       return notification;
     } catch (error) {
-      this.logger.error(`Failed to create notification: ${error.message}`);
+      this.logger.error(`Failed to create notification: ${(error as Error).message}`);
       throw error;
     }
   }

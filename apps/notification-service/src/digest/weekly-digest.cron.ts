@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, NotificationType as PrismaNotificationType, UserStatus } from '@prisma/client';
 import { EmailChannel } from '../channels/email.channel';
 
 @Injectable()
@@ -42,14 +42,15 @@ export class WeeklyDigestCron {
 
       this.logger.log('Weekly digest job completed');
     } catch (error) {
-      this.logger.error(`Weekly digest job failed: ${error.message}`);
+      this.logger.error(`Weekly digest job failed: ${(error as Error).message}`);
     }
   }
 
   private async getActiveUsers() {
     return this.prisma.user.findMany({
       where: {
-        isActive: true,
+        status: UserStatus.ACTIVE,
+        deletedAt: null,
         emailVerified: true,
       },
       select: {
@@ -76,16 +77,16 @@ export class WeeklyDigestCron {
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
     const [applications, jobMatches, notifications] = await Promise.all([
-      this.prisma.application.count({
+      this.prisma.jobApplication.count({
         where: {
           userId,
-          createdAt: { gte: oneWeekAgo },
+          appliedAt: { gte: oneWeekAgo },
         },
       }),
       this.prisma.notification.count({
         where: {
           userId,
-          type: 'JOB_MATCH',
+          type: PrismaNotificationType.JOB_MATCH,
           createdAt: { gte: oneWeekAgo },
         },
       }),
