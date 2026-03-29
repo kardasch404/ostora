@@ -15,7 +15,7 @@ export class FastApplyProgressService {
   }
 
   async initBatch(batchId: string, totalJobs: number): Promise<void> {
-    const key = `batch:${batchId}`;
+    const key = `fast-apply:batch:${batchId}`;
     await this.redis.hset(key, {
       total: totalJobs,
       completed: 0,
@@ -23,11 +23,11 @@ export class FastApplyProgressService {
       status: 'processing',
       startTime: Date.now(),
     });
-    await this.redis.expire(key, 86400);
+    await this.redis.expire(key, 86400); // 24 hours
   }
 
   async incrementCompleted(batchId: string): Promise<void> {
-    const key = `batch:${batchId}`;
+    const key = `fast-apply:batch:${batchId}`;
     await this.redis.hincrby(key, 'completed', 1);
     
     const total = parseInt(await this.redis.hget(key, 'total'), 10);
@@ -40,12 +40,12 @@ export class FastApplyProgressService {
   }
 
   async incrementFailed(batchId: string): Promise<void> {
-    const key = `batch:${batchId}`;
+    const key = `fast-apply:batch:${batchId}`;
     await this.redis.hincrby(key, 'failed', 1);
   }
 
   async getProgress(batchId: string) {
-    const key = `batch:${batchId}`;
+    const key = `fast-apply:batch:${batchId}`;
     const data = await this.redis.hgetall(key);
     
     if (!data || !data.total) {
