@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
+import { RedisService } from '../cache/redis.service';
 
 export enum NotificationType {
   AI_TASK_COMPLETED = 'AI_TASK_COMPLETED',
@@ -26,6 +27,8 @@ export class NotificationService {
   private readonly logger = new Logger(NotificationService.name);
   private prisma = new PrismaClient();
 
+  constructor(private readonly redisService: RedisService) {}
+
   async createNotification(dto: CreateNotificationDto) {
     try {
       const notification = await this.prisma.notification.create({
@@ -38,6 +41,9 @@ export class NotificationService {
           read: false,
         },
       });
+
+      // Increment unread count in Redis
+      await this.redisService.incrementUnreadCount(dto.userId);
 
       this.logger.log(`Notification created: ${notification.id} for user ${dto.userId}`);
       return notification;
@@ -75,12 +81,24 @@ export class NotificationService {
   }
 
   async getUnreadCount(userId: string): Promise<number> {
-    return this.prisma.notification.count({
+    // Try Redis first
+    const cached = await this.redisService.getUnreadCount(userId);
+    if (cached !== null) {
+      return cached;
+    }
+
+    // Fallback to database
+    const count = await this.prisma.notification.count({
       where: {
         userId,
         read: false,
       },
     });
+
+    // Cache the count
+    await this.redisService.setUnreadCount(userId, count);
+
+    return count;
   }
 
   async markAsRead(userId: string, notificationId: string) {
@@ -95,6 +113,10 @@ export class NotificationService {
       throw new NotFoundException('Notification not found');
     }
 
+    if (!notification.read) {
+      await this.redisService.decrementUnreadCount(userId);
+    }
+
     return this.prisma.notification.update({
       where: { id: notificationId },
       data: { read: true, readAt: new Date() },
@@ -102,7 +124,7 @@ export class NotificationService {
   }
 
   async markAllAsRead(userId: string) {
-    return this.prisma.notification.updateMany({
+    const result = await this.prisma.notification.updateMany({
       where: {
         userId,
         read: false,
@@ -112,6 +134,11 @@ export class NotificationService {
         readAt: new Date(),
       },
     });
+
+    // Reset unread count in Redis
+    await this.redisService.resetUnreadCount(userId);
+
+    return result;
   }
 
   async deleteNotification(userId: string, notificationId: string) {
