@@ -331,6 +331,32 @@ services:
       - ostora-network
     restart: unless-stopped
 
+  notification-service:
+    build:
+      context: .
+      dockerfile: ./devops/docker/notification-service.Dockerfile
+    container_name: ostora-notification-service
+    environment:
+      PORT: 4727
+      NODE_ENV: production
+      CORS_ORIGIN: http://localhost:8080
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/ostora
+      REDIS_URL: redis://redis:6379
+      KAFKA_BROKER: kafka:29092
+      FIREBASE_SERVICE_ACCOUNT_PATH: ${FIREBASE_SERVICE_ACCOUNT_PATH:-}
+    ports:
+      - "4727:4727"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - ostora-network
+    restart: unless-stopped
+
   frontend:
     build:
       context: ./frontend
