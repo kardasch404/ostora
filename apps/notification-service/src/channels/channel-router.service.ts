@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { WebSocketChannel } from './websocket.channel';
+import { EmailChannel } from './email.channel';
+import { PushChannel } from './push.channel';
 import { PreferencesService } from '../preferences/preferences.service';
 
 @Injectable()
@@ -8,6 +10,8 @@ export class ChannelRouterService {
 
   constructor(
     private websocketChannel: WebSocketChannel,
+    private emailChannel: EmailChannel,
+    private pushChannel: PushChannel,
     private preferencesService: PreferencesService,
   ) {}
 
@@ -28,13 +32,15 @@ export class ChannelRouterService {
         await this.websocketChannel.send(userId, notification);
       }
 
-      // TODO: Route to other channels based on preferences
-      // if (preferences.pushEnabled) {
-      //   await this.pushChannel.send(userId, notification);
-      // }
-      // if (preferences.emailEnabled) {
-      //   await this.emailChannel.send(userId, notification);
-      // }
+      // Route to Push channel
+      if (preferences.pushEnabled) {
+        await this.pushChannel.send(userId, notification);
+      }
+
+      // Route to Email channel (via Kafka)
+      if (preferences.emailEnabled) {
+        await this.emailChannel.send(userId, notification);
+      }
 
       this.logger.log(`Notification routed to user ${userId}`);
     } catch (error) {
