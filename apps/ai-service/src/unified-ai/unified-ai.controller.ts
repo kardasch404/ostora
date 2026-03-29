@@ -69,7 +69,31 @@ export class UnifiedAiController {
         );
         break;
 
-case AiMode.GENERATE_COVER_LETTER:
+      case AiMode.MISSING_SKILLS:
+        // Skills gap analysis
+        const cvForGap: ParsedCV = {
+          text: cvData?.text || 'No CV loaded',
+          skills: cvData?.skills || [],
+          experience: cvData?.experience || [],
+          education: cvData?.education || [],
+          languages: cvData?.languages || [],
+          certifications: cvData?.certifications || [],
+        };
+        
+        // TODO: Load job post from PostgreSQL
+        const jobForGap: JobPost = {
+          id: 'job-placeholder',
+          title: 'Software Engineer',
+          company: 'Company',
+          description: 'Job description',
+          requirements: 'Requirements',
+          skills: [],
+        };
+        
+        response = await this.comparatorMode.runGapAnalysis(cvForGap, jobForGap);
+        break;
+
+      case AiMode.GENERATE_COVER_LETTER:
         // Enqueue async job
         const coverLetterJob = await this.coverLetterQueue.add({
           userId: session.userId,
