@@ -28,6 +28,24 @@ export class AnalyzerMode {
     return this.parseAnalysis(result);
   }
 
+  async analyzeGapOnly(cvText: string, jobDescription: string, language: 'en' | 'fr' | 'de' = 'en') {
+    this.logger.log('Running missing skills analysis');
+
+    const prompt = `Identify missing skills between CV and job requirements.\n\nCV:\n${cvText}\n\nJob:\n${jobDescription}\n\nList only missing skills.`;
+
+    const result = await this.tokenRouter.route(
+      TaskType.CV_QUICK_SCORE,
+      TaskPriority.REALTIME,
+      prompt,
+      { maxTokens: 500, language },
+    );
+
+    return {
+      missingSkills: result.split('\n').filter(s => s.trim()),
+      raw: result,
+    };
+  }
+
   private parseAnalysis(rawResult: string) {
     return {
       raw: rawResult,
