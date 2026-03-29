@@ -47,6 +47,16 @@ export class NotificationService {
     }
   }
 
+  async create(dto: any) {
+    return this.createNotification({
+      userId: dto.userId,
+      type: dto.type as NotificationType,
+      title: dto.title,
+      message: dto.message,
+      data: dto.metadata,
+    });
+  }
+
   async getUserNotifications(userId: string, limit = 20, offset = 0) {
     return this.prisma.notification.findMany({
       where: { userId },

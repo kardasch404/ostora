@@ -9,6 +9,8 @@ import { PreferencesController } from './preferences/preferences.controller';
 import { PreferencesService } from './preferences/preferences.service';
 import { WebSocketChannel } from './channels/websocket.channel';
 import { ChannelRouterService } from './channels/channel-router.service';
+import { NotificationConsumer } from './consumers/notification.consumer';
+import { DigestService } from './digest/digest.service';
 
 @Module({
   imports: [
@@ -26,6 +28,8 @@ import { ChannelRouterService } from './channels/channel-router.service';
     PreferencesService,
     WebSocketChannel,
     ChannelRouterService,
+    NotificationConsumer,
+    DigestService,
   ],
 })
 export class AppModule {}
