@@ -52,13 +52,22 @@ export class TokenRouterService {
     const provider = await this.selectProvider(taskType, userPlan);
     this.logger.log(`Routing ${taskType} to ${provider.constructor.name}`);
 
-    const result = await provider.generate(prompt, options);
+    try {
+      const result = await provider.generate(prompt, options);
 
-    if (provider instanceof BlazeAiProvider) {
-      await this.incrementCredits();
+      if (provider instanceof BlazeAiProvider) {
+        await this.incrementCredits();
+      }
+
+      return result;
+    } catch (error) {
+      // Fallback to Ollama on BlazeAI errors (429, 5xx)
+      if (provider instanceof BlazeAiProvider && this.shouldFallback(error)) {
+        this.logger.warn(`BlazeAI failed (${error.message}), falling back to Ollama`);
+        return await this.ollamaProvider.generate(prompt, options);
+      }
+      throw error;
     }
-
-    return result;
   }
 
   private async selectProvider(taskType: TaskType, userPlan: UserPlan): Promise<IAiProvider> {
@@ -98,6 +107,11 @@ export class TokenRouterService {
     const key = `blazeai:credits:used:${date}`;
     await this.redis.incr(key);
     await this.redis.expire(key, 86400); // 24 hours
+  }
+
+  private shouldFallback(error: any): boolean {
+    const message = error.message || '';
+    return message.includes('429') || message.includes('5') && (message.includes('500') || message.includes('502') || message.includes('503'));
   }
 
   async getRemainingCredits(): Promise<number> {

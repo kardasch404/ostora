@@ -10,6 +10,7 @@ export class FastApplyService {
   constructor(
     @InjectQueue('cv-analysis') private cvQueue: Queue,
     @InjectQueue('cover-letter') private coverLetterQueue: Queue,
+    @InjectQueue('fast-apply') private fastApplyQueue: Queue,
     private progressService: FastApplyProgressService,
   ) {}
 
@@ -17,36 +18,28 @@ export class FastApplyService {
     userId: string,
     jobIds: string[],
     cvText: string,
-    concurrency: number = 5,
+    concurrency: number = 1,
   ): Promise<string> {
     const batchId = `batch-${userId}-${Date.now()}`;
     
     await this.progressService.initBatch(batchId, jobIds.length);
 
+    // Ollama concurrency: 1 at a time (local GPU limit)
     for (const jobId of jobIds) {
-      await this.cvQueue.add(
+      await this.fastApplyQueue.add(
         {
-          userId,
-          cvText,
-          jobDescription: `Job ${jobId}`, // TODO: Fetch from job-service
           batchId,
-        },
-        { attempts: 3, backoff: 5000 },
-      );
-
-      await this.coverLetterQueue.add(
-        {
           userId,
+          jobId,
           cvText,
           jobDescription: `Job ${jobId}`,
           companyName: 'Company',
-          batchId,
         },
         { attempts: 3, backoff: 5000 },
       );
     }
 
-    this.logger.log(`Batch ${batchId} created with ${jobIds.length} jobs`);
+    this.logger.log(`Batch ${batchId} created with ${jobIds.length} jobs, concurrency: ${concurrency}`);
     return batchId;
   }
 

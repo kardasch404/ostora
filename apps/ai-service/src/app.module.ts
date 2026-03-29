@@ -18,6 +18,11 @@ import { CvAnalysisProcessor } from './queues/cv-analysis.processor';
 import { CoverLetterProcessor } from './queues/cover-letter.processor';
 import { JobMatchingProcessor } from './queues/job-matching.processor';
 import { ProfileOptimizerProcessor } from './queues/profile-optimizer.processor';
+import { FastApplyProcessor } from './fast-apply/fast-apply.processor';
+import { CvAnalysisQueue } from './queues/cv-analysis.queue';
+import { CoverLetterQueue } from './queues/cover-letter.queue';
+import { JobMatchingQueue } from './queues/job-matching.queue';
+import { ProfileOptimizerQueue } from './queues/profile-optimizer.queue';
 import { AnalyzerMode } from './unified-ai/modes/analyzer.mode';
 import { ComparatorMode } from './unified-ai/modes/comparator.mode';
 import { AssistantMode } from './unified-ai/modes/assistant.mode';
@@ -39,6 +44,7 @@ import { AssistantMode } from './unified-ai/modes/assistant.mode';
       { name: 'cover-letter' },
       { name: 'job-matching' },
       { name: 'profile-optimizer' },
+      { name: 'fast-apply' },
     ),
   ],
   controllers: [UnifiedAiController, FastApplyController, AiResultController],
@@ -57,6 +63,11 @@ import { AssistantMode } from './unified-ai/modes/assistant.mode';
     CoverLetterProcessor,
     JobMatchingProcessor,
     ProfileOptimizerProcessor,
+    FastApplyProcessor,
+    CvAnalysisQueue,
+    CoverLetterQueue,
+    JobMatchingQueue,
+    ProfileOptimizerQueue,
     AnalyzerMode,
     ComparatorMode,
     AssistantMode,
