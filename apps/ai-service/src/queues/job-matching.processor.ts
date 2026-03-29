@@ -19,9 +19,9 @@ export class JobMatchingProcessor {
     private promptBuilder: PromptBuilderService,
   ) {}
 
-  @Process()
+  @Process({ concurrency: 1 })
   async handleJobMatching(job: Job<JobMatchingJob>) {
-    this.logger.log(`Matching jobs for user ${job.data.userId}`);
+    this.logger.log(`[Ollama] Matching jobs for user ${job.data.userId}`);
 
     const prompt = this.promptBuilder.buildJobMatchPrompt(
       job.data.cvText,
@@ -32,12 +32,15 @@ export class JobMatchingProcessor {
       TaskType.JOB_MATCHING,
       UserPlan.FREE,
       prompt,
-      { maxTokens: 1500 },
+      { maxTokens: 2000 },
     );
+
+    this.logger.log(`[Ollama] Job matching completed for user ${job.data.userId}`);
 
     return {
       userId: job.data.userId,
       matches: result,
+      jobCount: job.data.jobs.length,
       timestamp: Date.now(),
     };
   }

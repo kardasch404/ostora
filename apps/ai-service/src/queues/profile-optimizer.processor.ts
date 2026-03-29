@@ -15,9 +15,9 @@ export class ProfileOptimizerProcessor {
 
   constructor(private tokenRouter: TokenRouterService) {}
 
-  @Process()
+  @Process({ concurrency: 1 })
   async handleProfileOptimization(job: Job<ProfileOptimizationJob>) {
-    this.logger.log(`Optimizing profile for user ${job.data.userId}`);
+    this.logger.log(`[Ollama] Optimizing profile for user ${job.data.userId}`);
 
     const prompt = `Optimize this profile for ${job.data.targetRole}:\n${JSON.stringify(job.data.profileData, null, 2)}`;
 
@@ -25,12 +25,15 @@ export class ProfileOptimizerProcessor {
       TaskType.PROFILE_OPTIMIZATION,
       UserPlan.FREE,
       prompt,
-      { maxTokens: 1000 },
+      { maxTokens: 1500 },
     );
+
+    this.logger.log(`[Ollama] Profile optimization completed for user ${job.data.userId}`);
 
     return {
       userId: job.data.userId,
       optimizedProfile: result,
+      targetRole: job.data.targetRole,
       timestamp: Date.now(),
     };
   }
