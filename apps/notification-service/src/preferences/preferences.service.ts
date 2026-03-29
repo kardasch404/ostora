@@ -1,11 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
+import { DigestFrequency, QuietHoursDto } from './dto/update-preferences.dto';
 
 export interface NotificationPreferences {
   userId: string;
   inAppEnabled: boolean;
   pushEnabled: boolean;
   emailEnabled: boolean;
+  weeklyDigestEnabled: boolean;
+  digestFrequency: DigestFrequency;
+  quietHours: QuietHoursDto | null;
   types: {
     AI_TASK_COMPLETED: boolean;
     JOB_MATCH: boolean;
@@ -15,6 +19,8 @@ export interface NotificationPreferences {
     TRIAL_EXPIRING: boolean;
     SUBSCRIPTION_RENEWED: boolean;
     SYSTEM_ALERT: boolean;
+    JOB_APPLICATION: boolean;
+    MESSAGE: boolean;
   };
 }
 
@@ -38,6 +44,9 @@ export class PreferencesService {
         inAppEnabled: prefs.inAppEnabled,
         pushEnabled: prefs.pushEnabled,
         emailEnabled: prefs.emailEnabled,
+        weeklyDigestEnabled: prefs.weeklyDigestEnabled ?? true,
+        digestFrequency: (prefs.digestFrequency as DigestFrequency) || DigestFrequency.INSTANT,
+        quietHours: prefs.quietHours as QuietHoursDto | null,
         types: prefs.types as any,
       };
     } catch (error) {
@@ -54,15 +63,37 @@ export class PreferencesService {
         inAppEnabled: preferences.inAppEnabled ?? true,
         pushEnabled: preferences.pushEnabled ?? true,
         emailEnabled: preferences.emailEnabled ?? true,
+        weeklyDigestEnabled: preferences.weeklyDigestEnabled ?? true,
+        digestFrequency: preferences.digestFrequency || DigestFrequency.INSTANT,
+        quietHours: preferences.quietHours || null,
         types: preferences.types || this.getDefaultTypes(),
       },
       update: {
-        inAppEnabled: preferences.inAppEnabled,
-        pushEnabled: preferences.pushEnabled,
-        emailEnabled: preferences.emailEnabled,
-        types: preferences.types,
+        ...(preferences.inAppEnabled !== undefined && { inAppEnabled: preferences.inAppEnabled }),
+        ...(preferences.pushEnabled !== undefined && { pushEnabled: preferences.pushEnabled }),
+        ...(preferences.emailEnabled !== undefined && { emailEnabled: preferences.emailEnabled }),
+        ...(preferences.weeklyDigestEnabled !== undefined && { weeklyDigestEnabled: preferences.weeklyDigestEnabled }),
+        ...(preferences.digestFrequency && { digestFrequency: preferences.digestFrequency }),
+        ...(preferences.quietHours !== undefined && { quietHours: preferences.quietHours }),
+        ...(preferences.types && { types: preferences.types }),
       },
     });
+  }
+
+  isInQuietHours(quietHours: QuietHoursDto | null): boolean {
+    if (!quietHours) return false;
+
+    const now = new Date();
+    const currentHour = now.getHours();
+    const { startHour, endHour } = quietHours;
+
+    // Handle overnight quiet hours (e.g., 22:00 - 08:00)
+    if (startHour > endHour) {
+      return currentHour >= startHour || currentHour < endHour;
+    }
+
+    // Handle same-day quiet hours (e.g., 13:00 - 14:00)
+    return currentHour >= startHour && currentHour < endHour;
   }
 
   private getDefaultPreferences(userId: string): NotificationPreferences {
@@ -71,6 +102,9 @@ export class PreferencesService {
       inAppEnabled: true,
       pushEnabled: true,
       emailEnabled: true,
+      weeklyDigestEnabled: true,
+      digestFrequency: DigestFrequency.INSTANT,
+      quietHours: { startHour: 22, endHour: 8 },
       types: this.getDefaultTypes(),
     };
   }
@@ -85,6 +119,8 @@ export class PreferencesService {
       TRIAL_EXPIRING: true,
       SUBSCRIPTION_RENEWED: true,
       SYSTEM_ALERT: true,
+      JOB_APPLICATION: true,
+      MESSAGE: true,
     };
   }
 }
