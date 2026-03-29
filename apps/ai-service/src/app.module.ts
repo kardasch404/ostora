@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { BullModule } from '@nestjs/bull';
 import { UnifiedAiController } from './unified-ai/unified-ai.controller';
 import { IntentDetectorService } from './unified-ai/intent-detector.service';
 import { SessionManagerService } from './unified-ai/session-manager.service';
@@ -9,6 +10,17 @@ import { OllamaProvider } from './token-router/ollama.provider';
 import { PromptBuilderService } from './prompt-builder/prompt-builder.service';
 import { AiUsageService } from './rate-limiter/ai-usage.service';
 import { AiQuotaGuard } from './rate-limiter/ai-quota.guard';
+import { FastApplyController } from './fast-apply/fast-apply.controller';
+import { FastApplyService } from './fast-apply/fast-apply.service';
+import { FastApplyProgressService } from './fast-apply/fast-apply-progress.service';
+import { AiResultController } from './result/ai-result.controller';
+import { CvAnalysisProcessor } from './queues/cv-analysis.processor';
+import { CoverLetterProcessor } from './queues/cover-letter.processor';
+import { JobMatchingProcessor } from './queues/job-matching.processor';
+import { ProfileOptimizerProcessor } from './queues/profile-optimizer.processor';
+import { AnalyzerMode } from './unified-ai/modes/analyzer.mode';
+import { ComparatorMode } from './unified-ai/modes/comparator.mode';
+import { AssistantMode } from './unified-ai/modes/assistant.mode';
 
 @Module({
   imports: [
@@ -16,8 +28,20 @@ import { AiQuotaGuard } from './rate-limiter/ai-quota.guard';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    BullModule.forRoot({
+      redis: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT, 10) || 6345,
+      },
+    }),
+    BullModule.registerQueue(
+      { name: 'cv-analysis' },
+      { name: 'cover-letter' },
+      { name: 'job-matching' },
+      { name: 'profile-optimizer' },
+    ),
   ],
-  controllers: [UnifiedAiController],
+  controllers: [UnifiedAiController, FastApplyController, AiResultController],
   providers: [
     BlazeAiProvider,
     OllamaProvider,
@@ -27,6 +51,15 @@ import { AiQuotaGuard } from './rate-limiter/ai-quota.guard';
     PromptBuilderService,
     AiUsageService,
     AiQuotaGuard,
+    FastApplyService,
+    FastApplyProgressService,
+    CvAnalysisProcessor,
+    CoverLetterProcessor,
+    JobMatchingProcessor,
+    ProfileOptimizerProcessor,
+    AnalyzerMode,
+    ComparatorMode,
+    AssistantMode,
   ],
 })
 export class AppModule {}
