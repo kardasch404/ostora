@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { BullModule } from '@nestjs/bull';
+import { PrismaService } from './prisma.service';
 import { UnifiedAiController } from './unified-ai/unified-ai.controller';
 import { IntentDetectorService } from './unified-ai/intent-detector.service';
 import { SessionManagerService } from './unified-ai/session-manager.service';
@@ -49,6 +50,7 @@ import { AssistantMode } from './unified-ai/modes/assistant.mode';
   ],
   controllers: [UnifiedAiController, FastApplyController, AiResultController],
   providers: [
+    PrismaService,
     BlazeAiProvider,
     OllamaProvider,
     TokenRouterService,
