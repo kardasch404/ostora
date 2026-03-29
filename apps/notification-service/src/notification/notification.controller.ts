@@ -2,12 +2,17 @@ import { Controller, Get, Post, Delete, Param, Query, Req, Body } from '@nestjs/
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { NotificationService } from './notification.service';
 import { MarkReadDto } from './dto/mark-read.dto';
+import { RegisterFcmTokenDto } from './dto/register-fcm-token.dto';
+import { FcmTokenService } from '../channels/fcm-token.service';
 
 @ApiTags('notifications')
 @Controller('notifications')
 @ApiBearerAuth()
 export class NotificationController {
-  constructor(private notificationService: NotificationService) {}
+  constructor(
+    private notificationService: NotificationService,
+    private fcmTokenService: FcmTokenService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'Get user notifications' })
@@ -54,5 +59,24 @@ export class NotificationController {
   @ApiOperation({ summary: 'Delete all notifications' })
   async deleteAllNotifications(@Req() req: any) {
     return this.notificationService.deleteAllNotifications(req.user.id);
+  }
+
+  // FCM Token Management
+  @Post('fcm-token')
+  @ApiOperation({ summary: 'Register FCM token for push notifications' })
+  async registerFcmToken(@Body() dto: RegisterFcmTokenDto) {
+    return this.fcmTokenService.registerToken(dto);
+  }
+
+  @Get('fcm-tokens')
+  @ApiOperation({ summary: 'Get user FCM tokens' })
+  async getUserTokens(@Req() req: any) {
+    return this.fcmTokenService.getUserTokens(req.user.id);
+  }
+
+  @Delete('fcm-token')
+  @ApiOperation({ summary: 'Revoke FCM token' })
+  async revokeFcmToken(@Req() req: any, @Body() body: { token: string }) {
+    return this.fcmTokenService.revokeToken(req.user.id, body.token);
   }
 }

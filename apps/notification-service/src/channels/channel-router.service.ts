@@ -27,14 +27,22 @@ export class ChannelRouterService {
         return;
       }
 
-      // Route to WebSocket channel (in-app)
-      if (preferences.inAppEnabled) {
-        await this.websocketChannel.send(userId, notification);
+      let pushSent = false;
+
+      // Route to Push channel (priority)
+      if (preferences.pushEnabled) {
+        const result = await this.pushChannel.send(userId, notification);
+        pushSent = result?.success || false;
+        
+        if (!pushSent) {
+          this.logger.debug(`Push notification failed for user ${userId}: ${result?.reason}`);
+        }
       }
 
-      // Route to Push channel
-      if (preferences.pushEnabled) {
-        await this.pushChannel.send(userId, notification);
+      // Fallback to WebSocket (in-app) if push failed or no FCM token
+      if (preferences.inAppEnabled && (!preferences.pushEnabled || !pushSent)) {
+        await this.websocketChannel.send(userId, notification);
+        this.logger.debug(`Fallback to in-app notification for user ${userId}`);
       }
 
       // Route to Email channel (via Kafka)
