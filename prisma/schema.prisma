@@ -622,13 +622,52 @@ model Notification {
   @@map("notifications")
 }
 
+model NotificationPreference {
+  id                   String   @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  userId               String   @unique @db.Uuid
+  inAppEnabled         Boolean  @default(true)
+  pushEnabled          Boolean  @default(true)
+  emailEnabled         Boolean  @default(true)
+  weeklyDigestEnabled  Boolean  @default(true)
+  digestFrequency      String   @default("INSTANT")
+  quietHours           Json?
+  types                Json
+  createdAt            DateTime @default(now()) @db.Timestamptz
+  updatedAt            DateTime @updatedAt @db.Timestamptz
+
+  @@index([userId])
+  @@map("notification_preferences")
+}
+
+model FcmToken {
+  id          String   @id @default(dbgenerated("uuid_generate_v7()")) @db.Uuid
+  userId      String   @db.Uuid
+  token       String   @unique
+  platform    String
+  deviceName  String?
+  isActive    Boolean  @default(true)
+  lastUsedAt  DateTime @default(now()) @db.Timestamptz
+  createdAt   DateTime @default(now()) @db.Timestamptz
+  updatedAt   DateTime @updatedAt @db.Timestamptz
+
+  @@index([userId])
+  @@index([isActive])
+  @@map("fcm_tokens")
+}
+
 enum NotificationType {
   JOB_MATCH
   APPLICATION_UPDATE
   MESSAGE
   PAYMENT
+  PAYMENT_SUCCESS
+  PAYMENT_FAILED
   SYSTEM
   ALERT
+  AI_TASK_COMPLETED
+  TRIAL_EXPIRING
+  SUBSCRIPTION_RENEWED
+  JOB_APPLICATION
 }
 
 model UserActivity {
