@@ -1,7 +1,7 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bull';
-import { TokenRouterService, TaskType, UserPlan } from '../token-router/token-router.service';
+import { TokenRouterService, TaskType, TaskPriority } from '../token-router/token-router.service';
 import { PromptBuilderService } from '../prompt-builder/prompt-builder.service';
 import { PromptType } from '../prompt-builder/system-prompts.config';
 
@@ -22,9 +22,9 @@ export class CoverLetterProcessor {
     private promptBuilder: PromptBuilderService,
   ) {}
 
-  @Process()
+  @Process({ concurrency: 1 })
   async handleCoverLetter(job: Job<CoverLetterJob>) {
-    this.logger.log(`Generating cover letter for user ${job.data.userId}`);
+    this.logger.log(`[Ollama] Generating cover letter for user ${job.data.userId}`);
 
     const systemPrompt = this.promptBuilder.getSystemPrompt(
       PromptType.COVER_LETTER,
@@ -39,14 +39,17 @@ export class CoverLetterProcessor {
 
     const result = await this.tokenRouter.route(
       TaskType.COVER_LETTER_BATCH,
-      UserPlan.FREE,
+      TaskPriority.BACKGROUND,
       prompt,
-      { systemPrompt, maxTokens: 800 },
+      { systemPrompt, maxTokens: 1000 },
     );
+
+    this.logger.log(`[Ollama] Cover letter completed for user ${job.data.userId}`);
 
     return {
       userId: job.data.userId,
       coverLetter: result,
+      wordCount: result.split(' ').length,
       timestamp: Date.now(),
     };
   }

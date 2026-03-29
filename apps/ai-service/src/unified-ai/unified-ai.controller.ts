@@ -2,7 +2,7 @@ import { Controller, Post, Body, Get, Query } from '@nestjs/common';
 import { ChatRequestDto, FastApplyRequestDto } from '../dto/ai-request.dto';
 import { IntentDetectorService } from './intent-detector.service';
 import { SessionManagerService } from './session-manager.service';
-import { TokenRouterService, TaskType, UserPlan } from '../token-router/token-router.service';
+import { TokenRouterService, TaskType, TaskPriority } from '../token-router/token-router.service';
 import { PromptBuilderService } from '../prompt-builder/prompt-builder.service';
 import { PromptType } from '../prompt-builder/system-prompts.config';
 
@@ -18,11 +18,10 @@ export class UnifiedAiController {
   @Post('chat')
   async chat(@Body() dto: ChatRequestDto) {
     const sessionId = dto.sessionId || await this.sessionManager.createSession();
-    const userPlan = UserPlan.FREE; // TODO: Get from auth context
 
     await this.sessionManager.addMessage(sessionId, 'user', dto.message);
 
-    const intent = await this.intentDetector.detectIntent(dto.message, userPlan);
+    const intent = await this.intentDetector.detectIntent(dto.message);
     const context = await this.sessionManager.getContext(sessionId);
 
     const systemPrompt = this.promptBuilder.getSystemPrompt(PromptType.ASSISTANT, dto.language);
@@ -30,7 +29,7 @@ export class UnifiedAiController {
 
     const response = await this.tokenRouter.route(
       TaskType.REALTIME_CHAT,
-      userPlan,
+      TaskPriority.REALTIME,
       prompt,
       { systemPrompt, language: dto.language },
     );

@@ -10,11 +10,13 @@ export class OllamaProvider implements IAiProvider {
   private readonly model: string;
 
   constructor(private configService: ConfigService) {
-    this.apiUrl = this.configService.get('OLLAMA_API_URL');
-    this.model = this.configService.get('OLLAMA_MODEL', 'llama2');
+    this.apiUrl = this.configService.get('OLLAMA_API_URL', 'http://localhost:11434');
+    this.model = this.configService.get('OLLAMA_MODEL', 'llama3');
   }
 
   async generate(prompt: string, options?: GenerateOptions): Promise<string> {
+    this.logger.log(`Ollama generating with model: ${this.model}`);
+    
     try {
       const systemPrompt = options?.systemPrompt || '';
       const fullPrompt = systemPrompt ? `${systemPrompt}\n\n${prompt}` : prompt;
@@ -28,16 +30,18 @@ export class OllamaProvider implements IAiProvider {
           stream: false,
           options: {
             temperature: options?.temperature || 0.7,
-            num_predict: options?.maxTokens || 500,
+            num_predict: options?.maxTokens || 1000,
+            num_ctx: 4096,
           },
         }),
       });
 
       if (!response.ok) {
-        throw new Error(`Ollama API error: ${response.statusText}`);
+        throw new Error(`Ollama API error: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
+      this.logger.log(`Ollama completed in ${data.total_duration / 1e9}s`);
       return data.response;
     } catch (error) {
       this.logger.error(`Ollama generation failed: ${error.message}`);

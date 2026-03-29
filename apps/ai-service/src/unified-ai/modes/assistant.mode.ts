@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { TokenRouterService, TaskType, UserPlan } from '../../token-router/token-router.service';
+import { TokenRouterService, TaskType, TaskPriority } from '../../token-router/token-router.service';
 import { PromptBuilderService } from '../../prompt-builder/prompt-builder.service';
 import { PromptType } from '../../prompt-builder/system-prompts.config';
 
@@ -20,7 +20,7 @@ export class AssistantMode {
 
     const result = await this.tokenRouter.route(
       TaskType.REALTIME_CHAT,
-      UserPlan.FREE,
+      TaskPriority.REALTIME,
       prompt,
       { systemPrompt, maxTokens: 500, language },
     );

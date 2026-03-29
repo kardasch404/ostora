@@ -1,7 +1,7 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bull';
-import { TokenRouterService, TaskType, UserPlan } from '../token-router/token-router.service';
+import { TokenRouterService, TaskType, TaskPriority } from '../token-router/token-router.service';
 import { PromptBuilderService } from '../prompt-builder/prompt-builder.service';
 import { PromptType } from '../prompt-builder/system-prompts.config';
 
@@ -21,9 +21,9 @@ export class CvAnalysisProcessor {
     private promptBuilder: PromptBuilderService,
   ) {}
 
-  @Process()
+  @Process({ concurrency: 1 })
   async handleCvAnalysis(job: Job<CvAnalysisJob>) {
-    this.logger.log(`Processing CV analysis for user ${job.data.userId}`);
+    this.logger.log(`[Ollama] Processing CV analysis for user ${job.data.userId}`);
 
     const systemPrompt = this.promptBuilder.getSystemPrompt(
       PromptType.CV_ANALYZER,
@@ -37,10 +37,12 @@ export class CvAnalysisProcessor {
 
     const result = await this.tokenRouter.route(
       TaskType.BULK_CV_ANALYSIS,
-      UserPlan.FREE,
+      TaskPriority.BACKGROUND,
       prompt,
-      { systemPrompt, maxTokens: 1000 },
+      { systemPrompt, maxTokens: 1500 },
     );
+
+    this.logger.log(`[Ollama] CV analysis completed for user ${job.data.userId}`);
 
     return {
       userId: job.data.userId,
