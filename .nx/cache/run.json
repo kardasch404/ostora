@@ -1,0 +1,21 @@
+{
+  "run": {
+    "command": "nx build payment-service --prod",
+    "startTime": "2026-03-28T17:58:03.682Z",
+    "endTime": "2026-03-28T17:58:06.730Z",
+    "inner": false
+  },
+  "tasks": [
+    {
+      "taskId": "payment-service:build:production",
+      "target": "build",
+      "projectName": "payment-service",
+      "hash": "9572339719892284242",
+      "startTime": "2026-03-28T17:58:03.693Z",
+      "endTime": "2026-03-28T17:58:06.729Z",
+      "params": "",
+      "cacheStatus": "cache-miss",
+      "status": 0
+    }
+  ]
+}

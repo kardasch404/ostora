@@ -1,6 +1,7 @@
 export const APPLICATION_HISTORY_STORAGE_KEY = "ostora:applications:history";
 export const MESSAGE_TEMPLATES_STORAGE_KEY = "ostora:messageTemplates:v1";
 export const SAVED_JOBS_STORAGE_KEY = "ostora:savedJobs:v1";
+export const FAST_APPLY_QUEUE_STORAGE_KEY = "ostora:fastApply:queue:v1";
 
 export interface AppliedJobRecord {
   id: string;

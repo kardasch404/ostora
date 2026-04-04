@@ -28,6 +28,7 @@ function ApplicationForm() {
   const jobTitle = searchParams.get("title");
   const company = searchParams.get("company");
   const location = searchParams.get("location");
+  const recipientEmail = searchParams.get("recipientEmail");
   
   const [bundles, setBundles] = useState<Bundle[]>([]);
   const [formData, setFormData] = useState({
@@ -35,7 +36,7 @@ function ApplicationForm() {
     company: company || "",
     location: location || "",
     sendFrom: "zz2406143@gmail.com",
-    recipientEmail: "",
+    recipientEmail: recipientEmail || "",
     subject: "",
     message: "",
     attachments: {} as Record<string, boolean>,
@@ -52,6 +53,7 @@ function ApplicationForm() {
         jobTitle: jobTitle || "",
         company: company || "",
         location: location || "",
+        recipientEmail: recipientEmail || prev.recipientEmail,
         subject: `Application for ${jobTitle} at ${company}`,
         message: `Dear Hiring Manager,
 
@@ -64,7 +66,7 @@ Please find my documents attached.
 Best regards`,
       }));
     }
-  }, [jobTitle, company, location]);
+  }, [jobTitle, company, location, recipientEmail]);
 
   const loadBundles = async () => {
     try {

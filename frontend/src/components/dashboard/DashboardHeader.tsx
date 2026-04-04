@@ -19,7 +19,7 @@ export default function DashboardHeader() {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const response = await apiClient.get("/api/v1/users/me");
+        const response = await apiClient.get("/api/v1/users/profile");
         setUser(response.data?.data || authState.user);
       } catch {
         setUser(authState.user);
