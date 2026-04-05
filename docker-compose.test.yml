@@ -29,5 +29,31 @@ services:
       timeout: 5s
       retries: 5
 
+  ostoracv-service:
+    build:
+      context: .
+      dockerfile: devops/docker/ostoracv-service.Dockerfile
+    container_name: ostora-ostoracv-service-test
+    environment:
+      NODE_ENV: test
+      PORT: 4731
+      HOST: 0.0.0.0
+      INTERNAL_SERVICE_SECRET: test-internal-secret
+      S3_BUCKET: ostora-test-bucket
+      S3_REGION: us-east-1
+      S3_ACCESS_KEY_ID: test-access-key
+      S3_SECRET_ACCESS_KEY: test-secret-key
+      S3_ENDPOINT: http://localhost:9000
+      S3_FORCE_PATH_STYLE: "true"
+    ports:
+      - "4732:4731"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4731/ostoracv/health',res=>process.exit(res.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
 volumes:
   postgres-test-data:

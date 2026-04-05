@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException, InternalServerErrorException, Logger } from '@nestjs/common';
 import axios from 'axios';
 import { randomUUID } from 'node:crypto';
-import { GenerateCvDto } from './dto/generate-cv.dto';
+import { GenerateCvDto } from './cv.controller';
 import { CvGenerationResponse } from './dto/cv-generation.response';
 import { I18N_LABELS, RenderLang } from '../renderer/i18n-labels.config';
 import { TemplateRegistryService } from '../renderer/template-registry.service';

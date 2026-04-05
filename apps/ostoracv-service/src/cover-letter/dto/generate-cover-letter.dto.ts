@@ -1,6 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
-import { CvLang } from '../../cv/dto/generate-cv.dto';
+
+export enum CoverLetterLang {
+  FR = 'fr',
+  DE = 'de',
+  EN = 'en',
+}
 
 export enum CoverLetterMode {
   TEMPLATE_ONLY = 'template-only',
@@ -12,9 +17,9 @@ export class GenerateCoverLetterDto {
   @IsEnum(CoverLetterMode)
   mode!: CoverLetterMode;
 
-  @ApiProperty({ enum: CvLang, example: CvLang.DE })
-  @IsEnum(CvLang)
-  lang!: CvLang;
+  @ApiProperty({ enum: CoverLetterLang, example: CoverLetterLang.DE })
+  @IsEnum(CoverLetterLang)
+  lang!: CoverLetterLang;
 
   @ApiProperty({ example: '38c269a8-629d-4aa3-888d-bbe70a09b24b' })
   @IsUUID()
