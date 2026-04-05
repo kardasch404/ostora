@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; color: #111; }
+    .page { padding: 28px; line-height: 1.45; }
+    h1 { margin: 0 0 14px; font-size: 20px; }
+    .meta { color: #555; font-size: 12px; margin-bottom: 18px; }
+    p { margin: 0 0 12px; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>{{labels.coverLetter}}</h1>
+    <div class="meta">{{profile.firstName}} {{profile.lastName}} | {{generatedAt}}</div>
+    {{#each bodyParagraphs}}
+      <p>{{this}}</p>
+    {{/each}}
+    <p>{{labels.generatedBy}}</p>
+  </div>
+</body>
+</html>

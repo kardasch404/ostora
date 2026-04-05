@@ -1,0 +1,37 @@
+{
+  "name": "ostoracv-service",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/ostoracv-service/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "@nx/node:build",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/ostoracv-service",
+        "main": "apps/ostoracv-service/src/main.ts",
+        "tsConfig": "apps/ostoracv-service/tsconfig.json",
+        "assets": [
+          {
+            "glob": "**/*.hbs",
+            "input": "apps/ostoracv-service/src/templates",
+            "output": "templates"
+          }
+        ]
+      }
+    },
+    "serve": {
+      "executor": "@nx/node:execute",
+      "options": {
+        "buildTarget": "ostoracv-service:build"
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "options": {
+        "jestConfig": "apps/ostoracv-service/jest.config.js"
+      }
+    }
+  },
+  "tags": ["type:service", "scope:cv"]
+}

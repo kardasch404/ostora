@@ -358,6 +358,33 @@ services:
       - ostora-network
     restart: unless-stopped
 
+  ostoracv-service:
+    build:
+      context: .
+      dockerfile: ./devops/docker/ostoracv-service.Dockerfile
+    container_name: ostora-ostoracv-service
+    environment:
+      PORT: 4731
+      NODE_ENV: production
+      USER_SERVICE_URL: http://user-service:4719
+      AI_SERVICE_URL: http://ai-service:4723
+      AI_SERVICE_COVER_LETTER_ENDPOINT: /api/v1/ai/cover-letter
+      INTERNAL_SERVICE_SECRET: ${INTERNAL_SERVICE_SECRET:-ostora-internal-secret}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-ostora-documents-prod}
+      S3_SIGNED_URL_TTL_SECONDS: 3600
+      PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
+    ports:
+      - "4731:4731"
+    depends_on:
+      user-service:
+        condition: service_started
+    networks:
+      - ostora-network
+    restart: unless-stopped
+
   frontend:
     build:
       context: ./frontend

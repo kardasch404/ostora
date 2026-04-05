@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <style>
+    body { font-family: Georgia, 'Times New Roman', serif; color: #111; margin: 0; }
+    .page { padding: 30px 34px; }
+    .header { text-align: center; margin-bottom: 20px; }
+    .header h1 { margin: 0; font-size: 30px; letter-spacing: 0.5px; }
+    .header p { margin: 5px 0; font-size: 13px; }
+    h2 { margin: 18px 0 8px; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; }
+    .line { border-top: 1px solid #111; margin-top: 2px; }
+    .item { margin: 10px 0; }
+    .title { font-weight: 700; }
+    .meta { font-style: italic; color: #333; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <h1>{{profile.fullName}}</h1>
+      <p>{{profile.title}}</p>
+      <p>{{profile.phone}} {{profile.email}} {{profile.city}}, {{profile.country}}</p>
+    </div>
+
+    <h2>{{labels.summary}}</h2>
+    <div class="line"></div>
+    <div class="item">{{profile.bio}}</div>
+
+    <h2>{{labels.experience}}</h2>
+    <div class="line"></div>
+    {{#each profile.experience}}
+      <div class="item">
+        <div class="title">{{title}}{{role}} - {{company}}</div>
+        <div class="meta">{{startDate}} - {{#if current}}Present{{else}}{{endDate}}{{/if}}</div>
+      </div>
+    {{/each}}
+
+    <h2>{{labels.education}}</h2>
+    <div class="line"></div>
+    {{#each profile.education}}
+      <div class="item">
+        <div class="title">{{institution}}</div>
+        <div>{{degree}} {{field}}</div>
+        <div class="meta">{{startDate}} - {{#if current}}Present{{else}}{{endDate}}{{/if}}</div>
+      </div>
+    {{/each}}
+
+    <h2>{{labels.skills}}</h2>
+    <div class="line"></div>
+    <div class="item">{{#each profile.skills}}{{name}}{{#unless @last}}, {{/unless}}{{/each}}</div>
+
+    <h2>{{labels.languages}}</h2>
+    <div class="line"></div>
+    <div class="item">{{#each profile.languages}}{{name}}{{#unless @last}}, {{/unless}}{{/each}}</div>
+
+    <p class="meta">{{labels.generatedBy}} - {{generatedAt}}</p>
+  </div>
+</body>
+</html>
