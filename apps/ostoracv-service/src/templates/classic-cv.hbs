@@ -1,60 +1,447 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="de">
 <head>
-  <meta charset="utf-8" />
-  <style>
-    body { font-family: Georgia, 'Times New Roman', serif; color: #111; margin: 0; }
-    .page { padding: 30px 34px; }
-    .header { text-align: center; margin-bottom: 20px; }
-    .header h1 { margin: 0; font-size: 30px; letter-spacing: 0.5px; }
-    .header p { margin: 5px 0; font-size: 13px; }
-    h2 { margin: 18px 0 8px; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; }
-    .line { border-top: 1px solid #111; margin-top: 2px; }
-    .item { margin: 10px 0; }
-    .title { font-weight: 700; }
-    .meta { font-style: italic; color: #333; font-size: 12px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{labels.education}} - {{profile.fullName}}</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&display=swap');
+
+        @page {
+            size: A4;
+            margin: 10mm;
+        }
+
+        body {
+            font-family: 'Jost', sans-serif;
+            line-height: 1.35;
+            color: #333;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            font-size: 9.5pt;
+        }
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 6mm auto;
+            padding: 10mm;
+            background: #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.08);
+            box-sizing: border-box;
+        }
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+                background: white;
+                transform: scale(0.92);
+                transform-origin: top left;
+            }
+            .page {
+                width: 210mm;
+                height: 297mm;
+                margin: 0;
+                padding: 10mm;
+                box-shadow: none;
+                page-break-after: avoid;
+            }
+            .section {
+                page-break-inside: avoid;
+            }
+            .footer-row {
+                page-break-inside: avoid;
+            }
+        }
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1.2px solid #dee2e6;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+        .header-info {
+            flex-grow: 1;
+        }
+        .header-photo img {
+            width: 85px;
+            height: 85px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid #dee2e6;
+        }
+        h1 {
+            font-size: 16pt;
+            margin: 0 0 2px 0;
+            color: #212529;
+            font-weight: 600;
+        }
+        .job-title {
+            font-size: 11.5pt;
+            font-weight: 600;
+            color: #007bff;
+            margin: 0 0 4px 0;
+            letter-spacing: -0.01em;
+        }
+        .contact-info {
+            font-size: 8.5pt;
+            color: #495057;
+        }
+        .contact-info a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .contact-info a:hover {
+            text-decoration: underline;
+        }
+        h2 {
+            font-size: 10pt;
+            color: #007bff;
+            border-bottom: 1px solid #007bff;
+            padding-bottom: 2px;
+            margin-top: 8px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        .section {
+            margin-bottom: 8px;
+        }
+        .about-me p {
+            font-size: 9.5pt;
+            text-align: justify;
+            margin: 0;
+        }
+        .entry {
+            display: flex;
+            flex-direction: row;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        .entry-left {
+            min-width: 160px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .entry-right {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .entry h3 {
+            margin: 0;
+            font-size: 10pt;
+            color: #343a40;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+        .company-name {
+            font-size: 10pt;
+            font-weight: 600;
+            color: #343a40;
+            display: inline;
+            margin-left: 4px;
+        }
+        .company-name a {
+            color: inherit;
+            text-decoration: none;
+        }
+        .company-name a:hover {
+            text-decoration: underline;
+        }
+        .title-line {
+            margin: 0;
+            padding: 0;
+            display: block;
+        }
+        .project-entry {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            margin-bottom: 10px;
+        }
+        .project-title {
+            color: #343a40;
+            font-size: 10pt;
+            font-weight: 600;
+            margin: 0;
+        }
+        .project-title a {
+            color: inherit;
+            text-decoration: none;
+        }
+        .project-title a:hover {
+            text-decoration: underline;
+        }
+        .project-description {
+            color: #495057;
+            font-size: 9pt;
+            margin: 0;
+            line-height: 1.4;
+        }
+        ul {
+            padding-left: 16px;
+            margin: 0;
+            list-style-position: outside;
+        }
+        li {
+            margin-bottom: 2px;
+        }
+        .technologies {
+            font-size: 8.5pt;
+            color: #495057;
+            margin: 0;
+            line-height: 1.4;
+        }
+        .technologies strong {
+            font-weight: 600;
+        }
+        .skills-grid {
+            display: grid;
+            grid-template-columns: 130px 1fr;
+            gap: 5px 10px;
+            font-size: 9pt;
+        }
+        .skills-grid strong {
+            font-weight: 600;
+            color: #343a40;
+        }
+        .footer-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+            padding-top: 6px;
+            border-top: 1px solid #dee2e6;
+        }
+        .footer-item {
+            font-size: 8pt;
+            color: #343a40;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            min-width: 120px;
+        }
+        .footer-item strong {
+            color: #007bff;
+            font-weight: 600;
+        }
+        .footer-item ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+        .footer-item ul li {
+            margin: 0;
+        }
+        .footer-item ul a {
+            color: inherit;
+            text-decoration: none;
+        }
+        .footer-item ul a:hover {
+            text-decoration: underline;
+        }
+        .footer-qr {
+            text-align: center;
+            min-width: 110px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .footer-qr img {
+            width: 50px;
+            height: 50px;
+            margin-top: 0px;
+        }
+        .education-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .education-entry {
+            display: flex;
+            flex-direction: row;
+            gap: 16px;
+            align-items: flex-start;
+        }
+        .education-left {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 180px;
+        }
+        .education-right {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .education-date {
+            font-size: 9pt;
+            font-weight: 600;
+            color: #343a40;
+        }
+        .education-location {
+            font-size: 8.8pt;
+            color: #4a4a4a;
+        }
+        .education-institution {
+            font-size: 9.5pt;
+            font-weight: 900;
+            color: #1f2933;
+            letter-spacing: -0.01em;
+            line-height: 1.2;
+        }
+        .education-institution a {
+            font-weight: 900;
+            color: #1f2933;
+            text-decoration: none;
+            font-family: 'Jost', sans-serif;
+        }
+        .education-institution a:hover {
+            text-decoration: underline;
+        }
+        .education-program {
+            font-size: 8.8pt;
+            color: #4a4a4a;
+        }
+        .education-description {
+            font-size: 8.8pt;
+            color: #4a4a4a;
+            margin-top: 4px;
+            line-height: 1.4;
+        }
+    </style>
 </head>
 <body>
-  <div class="page">
-    <div class="header">
-      <h1>{{profile.fullName}}</h1>
-      <p>{{profile.title}}</p>
-      <p>{{profile.phone}} {{profile.email}} {{profile.city}}, {{profile.country}}</p>
+    <div class="page">
+        <div class="header-container">
+            <div class="header-info">
+                <p class="job-title">{{profile.title}}</p>
+                <h1>{{profile.fullName}}</h1>
+                <div class="contact-info">
+                    Tel: <a href="tel:{{profile.phone}}">{{profile.phone}}</a> | E-Mail: <a href="mailto:{{profile.email}}">{{profile.email}}</a><br>
+                    {{#if profile.linkedinUrl}}LinkedIn: <a href="{{profile.linkedinUrl}}" target="_blank">@{{profile.fullName}}</a> | {{/if}}
+                    {{#if profile.githubUrl}}Github: <a href="{{profile.githubUrl}}" target="_blank">@{{profile.fullName}}</a> | {{/if}}
+                    {{#if profile.websiteUrl}}Website: <a href="{{profile.websiteUrl}}" target="_blank">{{profile.websiteUrl}}</a>{{/if}}
+                </div>
+            </div>
+            {{#if profile.photoUrl}}
+            <div class="header-photo">
+                <img src="{{profile.photoUrl}}" alt="{{profile.fullName}}">
+            </div>
+            {{/if}}
+        </div>
+
+        {{#if profile.bio}}
+        <div class="section about-me">
+            <h2>{{labels.summary}}</h2>
+            <p>{{profile.bio}}</p>
+        </div>
+        {{/if}}
+
+        {{#if profile.education}}
+        <div class="section">
+            <h2>{{labels.education}}</h2>
+            <div class="education-list">
+                {{#each profile.education}}
+                <div class="education-entry">
+                    <div class="education-left">
+                        <div class="education-date">{{startDate}}{{#if endDate}} – {{endDate}}{{else}} – {{labels.present}}{{/if}}</div>
+                        {{#if location}}<div class="education-location">{{location}}</div>{{/if}}
+                    </div>
+                    <div class="education-right">
+                        <div class="education-institution">{{#if url}}<a href="{{url}}" target="_blank">{{institution}}</a>{{else}}{{institution}}{{/if}}</div>
+                        {{#if degree}}<div class="education-program">{{degree}}{{#if field}} {{field}}{{/if}}</div>{{/if}}
+                        {{#if description}}<div class="education-description">{{description}}</div>{{/if}}
+                    </div>
+                </div>
+                {{/each}}
+            </div>
+        </div>
+        {{/if}}
+
+        {{#if profile.experience}}
+        <div class="section">
+            <h2>{{labels.experience}}</h2>
+            {{#each profile.experience}}
+            <div class="entry">
+                <div class="entry-left">
+                    <div class="meta">{{startDate}}{{#if endDate}} – {{endDate}}{{else}} – {{labels.present}}{{/if}}</div>
+                    {{#if location}}<div class="meta">{{location}}</div>{{/if}}
+                </div>
+                <div class="entry-right">
+                    <h3 class="title-line">{{title}}{{#if role}}, {{role}}{{/if}}{{#if company}}, <span class="company-name">{{#if companyUrl}}<a href="{{companyUrl}}" target="_blank">{{company}}</a>{{else}}{{company}}{{/if}}</span>{{/if}}</h3>
+                    {{#if responsibilities}}
+                    <ul>
+                        {{#each responsibilities}}
+                        <li>{{this}}</li>
+                        {{/each}}
+                    </ul>
+                    {{/if}}
+                    {{#if technologies}}<p class="technologies"><strong>{{labels.technologies}}:</strong> {{technologies}}</p>{{/if}}
+                </div>
+            </div>
+            {{/each}}
+        </div>
+        {{/if}}
+
+        {{#if profile.projects}}
+        <div class="section">
+            <h2>{{labels.projects}}</h2>
+            {{#each profile.projects}}
+            <div class="project-entry">
+                <h3 class="project-title">{{#if url}}<a href="{{url}}" target="_blank">{{name}}</a>{{else}}{{name}}{{/if}}</h3>
+                {{#if description}}<p class="project-description">{{description}}</p>{{/if}}
+                {{#if technologies}}<p class="technologies"><strong>{{labels.technologies}}:</strong> {{technologies}}</p>{{/if}}
+            </div>
+            {{/each}}
+        </div>
+        {{/if}}
+
+        {{#if profile.skills}}
+        <div class="section">
+            <h2>{{labels.skills}}</h2>
+            <div class="skills-grid">
+                {{#each profile.skills}}
+                <strong>{{category}}</strong><span>{{items}}</span>
+                {{/each}}
+            </div>
+        </div>
+        {{/if}}
+
+        <div class="footer-row">
+            {{#if profile.competencies}}
+            <div class="footer-item">
+                <strong>{{labels.competencies}}</strong>
+                <ul>
+                    {{#each profile.competencies}}
+                    <li>{{this}}</li>
+                    {{/each}}
+                </ul>
+            </div>
+            {{/if}}
+            {{#if profile.hobbies}}
+            <div class="footer-item">
+                <strong>{{labels.hobbies}}</strong>
+                <ul>
+                    {{#each profile.hobbies}}
+                    <li>{{this}}</li>
+                    {{/each}}
+                </ul>
+            </div>
+            {{/if}}
+            {{#if profile.qrCodeUrl}}
+            <div class="footer-item footer-qr">
+                <img src="{{profile.qrCodeUrl}}" alt="QR Code">
+            </div>
+            {{/if}}
+        </div>
     </div>
-
-    <h2>{{labels.summary}}</h2>
-    <div class="line"></div>
-    <div class="item">{{profile.bio}}</div>
-
-    <h2>{{labels.experience}}</h2>
-    <div class="line"></div>
-    {{#each profile.experience}}
-      <div class="item">
-        <div class="title">{{title}}{{role}} - {{company}}</div>
-        <div class="meta">{{startDate}} - {{#if current}}Present{{else}}{{endDate}}{{/if}}</div>
-      </div>
-    {{/each}}
-
-    <h2>{{labels.education}}</h2>
-    <div class="line"></div>
-    {{#each profile.education}}
-      <div class="item">
-        <div class="title">{{institution}}</div>
-        <div>{{degree}} {{field}}</div>
-        <div class="meta">{{startDate}} - {{#if current}}Present{{else}}{{endDate}}{{/if}}</div>
-      </div>
-    {{/each}}
-
-    <h2>{{labels.skills}}</h2>
-    <div class="line"></div>
-    <div class="item">{{#each profile.skills}}{{name}}{{#unless @last}}, {{/unless}}{{/each}}</div>
-
-    <h2>{{labels.languages}}</h2>
-    <div class="line"></div>
-    <div class="item">{{#each profile.languages}}{{name}}{{#unless @last}}, {{/unless}}{{/each}}</div>
-
-    <p class="meta">{{labels.generatedBy}} - {{generatedAt}}</p>
-  </div>
 </body>
 </html>

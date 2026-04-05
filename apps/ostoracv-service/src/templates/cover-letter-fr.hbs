@@ -1,23 +1,135 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <style>
-    body { font-family: Arial, sans-serif; margin: 0; color: #111; }
-    .page { padding: 28px; line-height: 1.45; }
-    h1 { margin: 0 0 14px; font-size: 20px; }
-    .meta { color: #555; font-size: 12px; margin-bottom: 18px; }
-    p { margin: 0 0 12px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{labels.coverLetter}} - {{profile.firstName}} {{profile.lastName}}</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&display=swap');
+        
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        body {
+            font-family: 'Jost', sans-serif;
+            line-height: 1.35;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            font-size: 10pt;
+            background: white;
+        }
+
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 18mm;
+            margin: 0 auto;
+            box-sizing: border-box;
+            position: relative;
+            background: white;
+        }
+
+        .sender-info {
+            margin-bottom: 8mm;
+            font-size: 10pt;
+            line-height: 1.4;
+        }
+
+        .recipient-address {
+            margin-bottom: 8mm;
+            line-height: 1.4;
+        }
+
+        .date {
+            margin-bottom: 8mm;
+            text-align: right;
+        }
+
+        .subject {
+            margin-bottom: 8mm;
+            font-weight: 600;
+        }
+
+        .content p {
+            margin-bottom: 0.8em;
+            text-align: justify;
+        }
+
+        .content ul {
+            margin: 0 0 0.8em 0;
+            padding-left: 20px;
+        }
+
+        .content ul li {
+            margin-bottom: 0.3em;
+        }
+
+        .signature {
+            margin-top: 6mm;
+        }
+
+        .signature-handwritten {
+            font-family: 'Dancing Script', cursive;
+            font-size: 24px;
+            color: #0057B7;
+            line-height: 1;
+            margin-bottom: 2mm;
+        }
+
+        @media print {
+            body {
+                margin: 0;
+                background: white;
+            }
+            .page {
+                margin: 0;
+                box-shadow: none;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="page">
-    <h1>{{labels.coverLetter}}</h1>
-    <div class="meta">{{profile.firstName}} {{profile.lastName}} | {{generatedAt}}</div>
-    {{#each bodyParagraphs}}
-      <p>{{this}}</p>
-    {{/each}}
-    <p>{{labels.generatedBy}}</p>
-  </div>
+    <div class="page">
+        <div class="sender-info">
+            {{profile.firstName}} {{profile.lastName}}<br>
+            {{#if profile.city}}{{profile.city}}{{#if profile.country}}, {{profile.country}}{{/if}}<br>{{/if}}
+            {{#if profile.phone}}Tél.: {{profile.phone}}<br>{{/if}}
+            {{#if profile.email}}E-mail: {{profile.email}}{{/if}}
+        </div>
+
+        {{#if payload.recipientName}}
+        <div class="recipient-address">
+            {{#if payload.companyName}}{{payload.companyName}}<br>{{/if}}
+            {{#if payload.recipientName}}{{payload.recipientName}}<br>{{/if}}
+            {{#if payload.recipientAddress}}{{payload.recipientAddress}}<br>{{/if}}
+            {{#if payload.recipientCity}}{{payload.recipientCity}}{{/if}}
+        </div>
+        {{/if}}
+
+        <div class="date">
+            {{#if profile.city}}{{profile.city}}, {{/if}}{{#if payload.date}}{{payload.date}}{{else}}{{generatedAt}}{{/if}}
+        </div>
+
+        {{#if payload.subject}}
+        <div class="subject">
+            <strong>{{payload.subject}}</strong>
+        </div>
+        {{/if}}
+
+        <div class="content">
+            {{#each bodyParagraphs}}
+              <p>{{this}}</p>
+            {{/each}}
+        </div>
+
+        <div class="signature">
+            <div class="signature-handwritten">{{profile.firstName}} {{profile.lastName}}</div>
+            {{profile.firstName}} {{profile.lastName}}
+        </div>
+    </div>
 </body>
 </html>
