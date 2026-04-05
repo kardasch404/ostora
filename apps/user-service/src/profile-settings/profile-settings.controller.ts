@@ -54,4 +54,14 @@ export class ProfileSettingsController {
   ): Promise<any> {
     return this.profileSettingsService.importFromLinkedIn(userId, linkedInData);
   }
+
+  @Post('import/linkedin/payload')
+  @ApiOperation({ summary: 'Import profile from a pre-scraped LinkedIn payload' })
+  @ApiResponse({ status: 200, description: 'LinkedIn payload imported' })
+  async importFromLinkedInPayload(
+    @CurrentUser('userId') userId: string,
+    @Body() payload: any,
+  ): Promise<any> {
+    return this.profileSettingsService.importFromLinkedIn(userId, payload);
+  }
 }

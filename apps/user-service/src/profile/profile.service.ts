@@ -49,7 +49,7 @@ export class ProfileService {
       throw new NotFoundException('Profile not found');
     }
 
-    return profile as any;
+    return (await this.hydrateMediaUrls(profile)) as any;
   }
 
   async createProfile(userId: string, dto: UpdateProfileDto): Promise<ProfileResponse> {
@@ -61,7 +61,7 @@ export class ProfileService {
       },
     });
 
-    return profile as any;
+    return (await this.hydrateMediaUrls(profile)) as any;
   }
 
   async updateProfile(userId: string, dto: UpdateProfileDto): Promise<ProfileResponse> {
@@ -78,7 +78,54 @@ export class ProfileService {
       },
     });
 
-    return profile as any;
+    return (await this.hydrateMediaUrls(profile)) as any;
+  }
+
+  private async hydrateMediaUrls(profile: any): Promise<any> {
+    const next = { ...profile };
+
+    if (typeof next.avatar === 'string' && next.avatar.length > 0) {
+      next.avatar = await this.toSignedIfS3ObjectUrl(next.avatar);
+    }
+
+    if (next.jobPreferences && typeof next.jobPreferences === 'object') {
+      const jobPreferences = { ...(next.jobPreferences as Record<string, unknown>) };
+      const coverImageUrl = jobPreferences['coverImageUrl'];
+
+      if (typeof coverImageUrl === 'string' && coverImageUrl.length > 0) {
+        jobPreferences['coverImageUrl'] = await this.toSignedIfS3ObjectUrl(coverImageUrl);
+      }
+
+      next.jobPreferences = jobPreferences;
+    }
+
+    return next;
+  }
+
+  private async toSignedIfS3ObjectUrl(urlValue: string): Promise<string> {
+    const bucketName = process.env['AWS_S3_BUCKET'];
+    if (!bucketName) {
+      return urlValue;
+    }
+
+    try {
+      const parsed = new URL(urlValue);
+      const host = parsed.hostname.toLowerCase();
+      const bucketHostPrefix = `${bucketName.toLowerCase()}.s3`;
+
+      if (!host.startsWith(bucketHostPrefix) || !host.includes('amazonaws.com')) {
+        return urlValue;
+      }
+
+      const key = parsed.pathname.replace(/^\//, '');
+      if (!key) {
+        return urlValue;
+      }
+
+      return await this.s3Service.generatePresignedDownloadUrl(key);
+    } catch {
+      return urlValue;
+    }
   }
 
   async deleteProfile(userId: string): Promise<void> {

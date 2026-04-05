@@ -217,6 +217,16 @@ function isValidHttpUrl(value: string): boolean {
   }
 }
 
+function isValidLinkedInUrl(value: string): boolean {
+  if (!isValidHttpUrl(value)) return false;
+  try {
+    const url = new URL(value);
+    return url.hostname.includes("linkedin.com");
+  } catch {
+    return false;
+  }
+}
+
 function flagFromCode(code: string): string {
   if (!/^[A-Za-z]{2}$/.test(code)) return "";
   return code
@@ -334,6 +344,11 @@ export default function ProfilePage() {
   });
   const [editingWorkId, setEditingWorkId] = useState<string | null>(null);
 
+  const resetWorkEditor = () => {
+    setEditingWorkId(null);
+    setWorkForm({ id: "", role: "", company: "", startDate: "", endDate: "", current: false, summary: "" });
+  };
+
   const [coverPreview, setCoverPreview] = useState("");
   const [coverImageUrl, setCoverImageUrl] = useState("");
   const [avatarPreview, setAvatarPreview] = useState("");
@@ -343,7 +358,34 @@ export default function ProfilePage() {
   const [locationCountryCode, setLocationCountryCode] = useState("MA");
   const [locationPlace, setLocationPlace] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [extractingProfile, setExtractingProfile] = useState(false);
+  const [extractProgress, setExtractProgress] = useState(0);
+  const [extractStage, setExtractStage] = useState("");
+  const [extractModeReason, setExtractModeReason] = useState("");
+  const [showLinkedInModal, setShowLinkedInModal] = useState(false);
+  const [linkedInInput, setLinkedInInput] = useState("");
   const firstNameInputRef = useRef<HTMLInputElement | null>(null);
+  const extractProgressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const stopExtractProgressTimer = () => {
+    if (extractProgressTimerRef.current) {
+      clearInterval(extractProgressTimerRef.current);
+      extractProgressTimerRef.current = null;
+    }
+  };
+
+  const startExtractProgressTimer = () => {
+    stopExtractProgressTimer();
+    extractProgressTimerRef.current = setInterval(() => {
+      setExtractProgress((prev) => {
+        if (prev >= 92) {
+          return prev;
+        }
+        const jump = prev < 45 ? 8 : 4;
+        return Math.min(prev + jump, 92);
+      });
+    }, 260);
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -440,6 +482,17 @@ export default function ProfilePage() {
         setWorkEntries(Array.isArray(persistedWork) ? persistedWork : []);
         setCoverImageUrl(persistedCover);
         setEducation(eduList);
+
+        const likelyNewProfile =
+          !selectedForm.firstName.trim() &&
+          !selectedForm.lastName.trim() &&
+          !selectedForm.title.trim() &&
+          !selectedForm.linkedinUrl.trim() &&
+          eduList.length === 0 &&
+          (!Array.isArray(persistedWork) || persistedWork.length === 0);
+
+        setLinkedInInput(selectedForm.linkedinUrl || "");
+        setShowLinkedInModal(likelyNewProfile);
       } catch (loadErr) {
         if (axios.isAxiosError(loadErr) && loadErr.response?.status === 404) {
           setEducation([]);
@@ -455,6 +508,25 @@ export default function ProfilePage() {
 
     loadData();
   }, []);
+
+  useEffect(() => {
+    return () => {
+      stopExtractProgressTimer();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (extractingProfile || extractProgress < 100) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setExtractProgress(0);
+      setExtractStage("");
+    }, 1800);
+
+    return () => clearTimeout(timer);
+  }, [extractProgress, extractingProfile]);
 
   useEffect(() => {
     if (loading || typeof window === "undefined") return;
@@ -926,8 +998,7 @@ export default function ProfilePage() {
       setSuccess("Work entry added locally. Click Save Work Info to persist.");
     }
 
-    setEditingWorkId(null);
-    setWorkForm({ id: "", role: "", company: "", startDate: "", endDate: "", current: false, summary: "" });
+    resetWorkEditor();
   };
 
   const editWorkEntry = (entry: WorkEntry) => {
@@ -943,10 +1014,107 @@ export default function ProfilePage() {
   const removeWorkEntry = (id: string) => {
     setWorkEntries((prev) => prev.filter((entry) => entry.id !== id));
     if (editingWorkId === id) {
-      setEditingWorkId(null);
-      setWorkForm({ id: "", role: "", company: "", startDate: "", endDate: "", current: false, summary: "" });
+      resetWorkEditor();
     }
     setSuccess("Work entry removed locally. Click Save Work Info to persist.");
+  };
+
+  const importFromLinkedIn = async () => {
+    const url = linkedInInput.trim() || form.linkedinUrl.trim();
+    if (!isValidLinkedInUrl(url)) {
+      setError("Please enter a valid LinkedIn profile URL.");
+      return;
+    }
+
+    setExtractingProfile(true);
+    setExtractProgress(6);
+    setExtractStage("Starting extraction...");
+    setExtractModeReason("");
+    startExtractProgressTimer();
+    setError("");
+    setSuccess("");
+
+    try {
+      const importRes = await apiClient.post("/api/v1/users/profile/import/linkedin", {
+        linkedInUrl: url,
+      });
+      const importPayload = unwrap<{ mode?: "scraped" | "fallback"; modeReason?: string }>(importRes.data);
+      setExtractProgress((prev) => Math.max(prev, 58));
+      setExtractStage("Applying extracted profile data...");
+
+      const [profileRes, educationRes] = await Promise.all([
+        apiClient.get("/api/v1/users/profile"),
+        apiClient.get("/api/v1/users/education"),
+      ]);
+      setExtractProgress((prev) => Math.max(prev, 82));
+      setExtractStage("Syncing education and work sections...");
+
+      const profile = unwrap<ApiProfile>(profileRes.data);
+      const list = unwrap<EducationEntry[] | { items?: EducationEntry[] }>(educationRes.data);
+      const eduList = Array.isArray(list) ? list : list?.items || [];
+
+      const nextForm: ProfileForm = {
+        firstName: profile?.firstName || "",
+        lastName: profile?.lastName || "",
+        phone: profile?.phone || "",
+        bio: profile?.bio || "",
+        avatar: profile?.avatar || "",
+        title: profile?.title || "",
+        company: profile?.company || "",
+        industry: profile?.industry || "",
+        experienceYears: profile?.experienceYears?.toString?.() || "",
+        salary: profile?.salary?.toString?.() || "",
+        salaryCurrency: profile?.salaryCurrency || "USD",
+        location: profile?.location || "",
+        remote: Boolean(profile?.remote),
+        linkedinUrl: profile?.linkedinUrl || url,
+        githubUrl: profile?.githubUrl || "",
+        portfolioUrl: profile?.portfolioUrl || "",
+        websiteUrl: profile?.websiteUrl || "",
+        birthDate: toDateInput(profile?.birthDate),
+        city: profile?.city || "",
+        country: profile?.country || "",
+        postalCode: profile?.postalCode || "",
+        address: profile?.address || "",
+        visibility: (profile?.visibility as Visibility) || "PUBLIC",
+      };
+
+      setForm(nextForm);
+      setEducation(eduList);
+      setWorkEntries(Array.isArray(profile?.jobPreferences?.workEntries) ? profile.jobPreferences.workEntries : []);
+      resetWorkEditor();
+      setLinkedInInput(nextForm.linkedinUrl);
+
+      const locationParts = splitLocation(nextForm.location);
+      setLocationCountryCode(locationParts.countryCode);
+      setLocationPlace(locationParts.place);
+
+      const inferredCountry =
+        findCountryByName(nextForm.country) ||
+        findCountryByPhone(nextForm.phone) ||
+        COUNTRY_OPTIONS[0];
+      setPhoneCountryCode(inferredCountry.code);
+      setPhoneLocalNumber(splitLocalPhone(nextForm.phone, inferredCountry.code));
+
+      setShowLinkedInModal(false);
+      setActiveTab("personal");
+      setExtractProgress(100);
+      setExtractStage("Completed");
+
+      if (importPayload?.mode === "fallback") {
+        setExtractModeReason(importPayload.modeReason || "Extraction returned partial data.");
+        setSuccess("LinkedIn import completed with partial data. Personal info was filled, but education/work may be missing.");
+      } else {
+        setSuccess("LinkedIn profile extracted and sections were auto-filled.");
+      }
+    } catch (importErr) {
+      setExtractProgress(100);
+      setExtractStage("Failed");
+      setError(parseError(importErr, "Could not extract profile data from LinkedIn."));
+    } finally {
+      stopExtractProgressTimer();
+      setExtractingProfile(false);
+    }
   };
 
   const copyProfileLink = async () => {
@@ -972,12 +1140,12 @@ export default function ProfilePage() {
     <div
       className="space-y-5 profile-shell"
       style={{
-        fontFamily: "Sora, Manrope, ui-sans-serif, system-ui",
+        fontFamily: "Plus Jakarta Sans, Sora, ui-sans-serif, system-ui",
       }}
     >
       <div className="profile-bg" aria-hidden="true" />
 
-      <div className="rounded-2xl border border-[#bfe6cf] bg-[#e6f7ee] text-[#1f5d44] px-4 py-3 text-sm flex items-start gap-2 animate-enter">
+      <div className="rounded-2xl border border-[#d9dde4] bg-white text-[#26303d] px-4 py-3 text-sm flex items-start gap-2 animate-enter">
         <svg className="w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
@@ -985,7 +1153,7 @@ export default function ProfilePage() {
       </div>
 
       <div className="glass-card overflow-hidden animate-enter delay-1">
-        <div className="relative h-52 sm:h-64">
+        <div className="relative h-40 sm:h-48">
           <div
             role="img"
             aria-label="Cover"
@@ -994,10 +1162,10 @@ export default function ProfilePage() {
               backgroundImage: `url(${coverPreview || coverImageUrl || "https://images.unsplash.com/photo-1557682250-33bd709cbe85?auto=format&fit=crop&w=1600&q=80"})`,
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0d2b30]/75 via-[#0d2b30]/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/20 to-transparent" />
           <div className="absolute left-6 bottom-6 text-white max-w-xl">
-            <p className="text-xs uppercase tracking-[0.18em] text-[#ffd8a8] font-semibold">Professional Identity</p>
-            <h1 className="text-2xl sm:text-4xl leading-tight font-semibold">Shape a profile recruiters remember</h1>
+            <p className="text-xs uppercase tracking-[0.18em] text-[#e6c78e] font-semibold">Professional Identity</p>
+            <h1 className="text-xl sm:text-3xl leading-tight font-semibold">Shape a profile recruiters remember</h1>
           </div>
           <label className="absolute right-4 top-4 w-11 h-11 rounded-full bg-white/90 hover:bg-white text-[#0e3a40] flex items-center justify-center cursor-pointer transition-transform hover:scale-105">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1011,10 +1179,10 @@ export default function ProfilePage() {
         </div>
 
         <div className="relative px-5 sm:px-8 pb-6">
-          <div className="-mt-12 sm:-mt-16 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div className="-mt-10 sm:-mt-12 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="flex items-end gap-4">
-              <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white bg-white overflow-hidden shadow-lg relative flex items-center justify-center">
-                {avatarPreview || form.avatar ? (
+              <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-full border-4 border-white bg-white overflow-hidden shadow-lg relative flex items-center justify-center">
+                {avatarPreview || (form.avatar && isLikelyImageUrl(form.avatar)) ? (
                   <div
                     role="img"
                     aria-label="Avatar"
@@ -1030,7 +1198,7 @@ export default function ProfilePage() {
                 </label>
               </div>
               {uploadingMedia === "avatar" && (
-                <div className="text-[11px] px-2 py-1 rounded bg-[#0b5561] text-white h-fit">Uploading avatar...</div>
+                <div className="text-[11px] px-2 py-1 rounded bg-[#181818] text-[#f1f1f1] h-fit border border-[#2f2f2f]">Uploading avatar...</div>
               )}
 
               <div className="pb-1">
@@ -1044,14 +1212,21 @@ export default function ProfilePage() {
               <button
                 type="button"
                 onClick={copyProfileLink}
-                className="px-4 py-2 bg-[#0b5561] text-white rounded-xl hover:bg-[#083d46] text-sm font-semibold transition-transform hover:-translate-y-0.5"
+                className="px-4 py-2 bg-[#111111] border border-[#2f2f2f] text-white rounded-xl hover:bg-[#1a1a1a] text-sm font-semibold transition-transform hover:-translate-y-0.5"
               >
                 Copy link
               </button>
               <button
                 type="button"
+                onClick={() => setShowLinkedInModal(true)}
+                className="px-4 py-2 bg-[#e6c78e] text-[#111111] rounded-xl hover:bg-[#f2d9ab] text-sm font-semibold"
+              >
+                {extractingProfile ? "Extracting..." : "Extract your profile info"}
+              </button>
+              <button
+                type="button"
                 onClick={() => firstNameInputRef.current?.focus()}
-                className="px-4 py-2 border border-[#0b5561]/30 text-[#0b5561] rounded-xl hover:bg-[#e8f4f6] text-sm font-semibold"
+                className="px-4 py-2 border border-[#353535] text-[#e8e8e8] rounded-xl hover:bg-[#181818] text-sm font-semibold"
               >
                 Edit profile
               </button>
@@ -1074,8 +1249,8 @@ export default function ProfilePage() {
               onClick={() => setActiveTab(tab.id as ProfileTab)}
               className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
                 activeTab === tab.id
-                  ? "bg-[#0b5561] text-white shadow"
-                  : "text-[#38545b] hover:bg-[#edf4f4]"
+                  ? "bg-[#161616] border border-[#3a3a3a] text-white shadow"
+                  : "text-[#bbbbbb] hover:bg-[#141414]"
               }`}
             >
               {tab.label}
@@ -1116,14 +1291,16 @@ export default function ProfilePage() {
                       })
                     }
                     disabled={savingSection === "personal" || uploadingMedia !== ""}
-                    className="px-3 py-1.5 bg-[#0b5561] text-white rounded-lg text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2.5 bg-[#111111] border border-[#1f1f1f] text-white rounded-lg text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {savingSection === "personal" ? "Saving..." : uploadingMedia !== "" ? "Uploading photo..." : "Save Personal"}
                   </button>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <p className="section-label">Basic identity</p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <input
                   ref={firstNameInputRef}
                   value={form.firstName}
@@ -1139,7 +1316,9 @@ export default function ProfilePage() {
                 <input value={form.websiteUrl} onChange={(e) => setField("websiteUrl", e.target.value)} placeholder="Website URL" className="input" />
               </div>
 
-              <div className="mt-4 rounded-xl border border-[#d8e2df] bg-white p-3">
+              <p className="section-label mt-5">Contact and location</p>
+
+              <div className="mt-3 rounded-xl border border-[#e2e8f0] bg-[#fcfcfd] p-4">
                 <p className="text-xs font-semibold text-[#45656d] uppercase tracking-[0.08em] mb-2">Location with country flag</p>
                 <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-3">
                   <div className="input px-3 py-2 flex items-center gap-2">
@@ -1166,12 +1345,12 @@ export default function ProfilePage() {
                 <p className="mt-2 text-xs text-[#6d848a]">Saved as: {form.location || composeLocation(locationPlace, locationCountryCode)}</p>
               </div>
 
-              <div className="mt-4 rounded-xl border border-[#d8e2df] bg-[#f8fbfc] p-3">
+              <div className="mt-4 rounded-xl border border-[#e2e8f0] bg-[#fcfcfd] p-4">
                 <p className="text-xs font-semibold text-[#45656d] uppercase tracking-[0.08em]">Profile photo source</p>
                 <p className="mt-1 text-sm text-[#5b747a]">Use the avatar upload button above. Direct avatar URLs are restricted to image links only.</p>
               </div>
 
-              <div className="mt-4 rounded-xl border border-[#d8e2df] bg-white p-3">
+              <div className="mt-4 rounded-xl border border-[#e2e8f0] bg-[#fcfcfd] p-4">
                 <p className="text-xs font-semibold text-[#45656d] uppercase tracking-[0.08em] mb-2">Phone (Google-style international format)</p>
                 <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-3">
                   <div className="input px-3 py-2 flex items-center gap-2">
@@ -1225,18 +1404,28 @@ export default function ProfilePage() {
             <section className="glass-card p-6 animate-enter">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold text-[#102a2f]">Education Info</h3>
-                {editingEduId && (
+                <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={() => {
-                      setEditingEduId(null);
-                      setEduForm(emptyEducation);
-                    }}
-                    className="px-3 py-1.5 border border-[#d6d6d6] text-[#56666b] rounded-lg text-xs font-semibold"
+                    onClick={() => setShowLinkedInModal(true)}
+                    disabled={extractingProfile}
+                    className="px-3 py-1.5 bg-[#e6c78e] text-[#111111] rounded-lg text-xs font-semibold disabled:opacity-50"
                   >
-                    Cancel Edit
+                    {extractingProfile ? "Extracting..." : "Extract LinkedIn"}
                   </button>
-                )}
+                  {editingEduId && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingEduId(null);
+                        setEduForm(emptyEducation);
+                      }}
+                      className="px-3 py-1.5 border border-[#d6d6d6] text-[#56666b] rounded-lg text-xs font-semibold"
+                    >
+                      Cancel Edit
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1261,7 +1450,7 @@ export default function ProfilePage() {
                 type="button"
                 onClick={saveEducation}
                 disabled={eduSaving}
-                className="mt-4 px-4 py-2 bg-[#0b5561] text-white rounded-xl text-sm font-semibold disabled:opacity-50"
+                className="mt-4 px-4 py-2.5 bg-[#111111] border border-[#1f1f1f] text-white rounded-xl text-sm font-semibold disabled:opacity-50"
               >
                 {eduSaving ? "Saving..." : editingEduId ? "Update Education" : "Add Education"}
               </button>
@@ -1291,9 +1480,16 @@ export default function ProfilePage() {
                 <div className="flex gap-2">
                   <button
                     type="button"
+                    onClick={() => setShowLinkedInModal(true)}
+                    disabled={extractingProfile}
+                    className="px-3 py-1.5 bg-[#e6c78e] text-[#111111] rounded-lg text-xs font-semibold disabled:opacity-50"
+                  >
+                    {extractingProfile ? "Extracting..." : "Extract LinkedIn"}
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => {
-                      setEditingWorkId(null);
-                      setWorkForm({ id: "", role: "", company: "", startDate: "", endDate: "", current: false, summary: "" });
+                      resetWorkEditor();
                     }}
                     className="w-8 h-8 rounded-full border border-[#d6d6d6] text-[#45656d] grid place-items-center"
                     aria-label="Add experience"
@@ -1322,7 +1518,7 @@ export default function ProfilePage() {
                       )
                     }
                     disabled={savingSection === "work"}
-                    className="px-3 py-1.5 bg-[#0b5561] text-white rounded-lg text-xs font-semibold disabled:opacity-50"
+                    className="px-4 py-2.5 bg-[#111111] border border-[#1f1f1f] text-white rounded-lg text-sm font-semibold disabled:opacity-50"
                   >
                     {savingSection === "work" ? "Saving..." : "Save Work Info"}
                   </button>
@@ -1343,8 +1539,20 @@ export default function ProfilePage() {
                 </label>
               </div>
 
-              <div className="mt-6 rounded-2xl border border-[#dbe6e3] bg-white/80 p-4">
+              <div className="mt-6 rounded-2xl border border-[#e2e8f0] bg-[#fcfcfd] p-4">
                 <h4 className="font-semibold text-[#102a2f] mb-3">Add or Edit Experience</h4>
+                {editingWorkId && (
+                  <div className="mb-3 rounded-lg border border-[#d7e3ea] bg-[#f4f8fb] px-3 py-2 text-xs text-[#345762] flex items-center justify-between">
+                    <span>You are editing an existing work entry.</span>
+                    <button
+                      type="button"
+                      onClick={resetWorkEditor}
+                      className="px-2 py-1 rounded border border-[#c9d8df] text-[#2f535d] font-semibold"
+                    >
+                      Switch to Add Mode
+                    </button>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <input value={workForm.role} onChange={(e) => setWorkForm((p) => ({ ...p, role: e.target.value }))} placeholder="Role" className="input" />
                   <input value={workForm.company} onChange={(e) => setWorkForm((p) => ({ ...p, company: e.target.value }))} placeholder="Company" className="input" />
@@ -1356,7 +1564,7 @@ export default function ProfilePage() {
                   Current role
                 </label>
                 <textarea value={workForm.summary || ""} onChange={(e) => setWorkForm((p) => ({ ...p, summary: e.target.value }))} rows={3} placeholder="What did you accomplish?" className="input mt-3 resize-none" />
-                <button type="button" onClick={saveWorkEntry} className="mt-3 px-4 py-2 bg-[#0b5561] text-white rounded-xl text-sm font-semibold">
+                <button type="button" onClick={saveWorkEntry} className="mt-3 px-4 py-2.5 bg-[#111111] border border-[#1f1f1f] text-white rounded-xl text-sm font-semibold">
                   {editingWorkId ? "Update Work Entry" : "Add Work Entry"}
                 </button>
 
@@ -1427,7 +1635,7 @@ export default function ProfilePage() {
                       })
                     }
                     disabled={savingSection === "demographic"}
-                    className="px-3 py-1.5 bg-[#0b5561] text-white rounded-lg text-xs font-semibold disabled:opacity-50"
+                    className="px-4 py-2.5 bg-[#111111] border border-[#1f1f1f] text-white rounded-lg text-sm font-semibold disabled:opacity-50"
                   >
                     {savingSection === "demographic" ? "Saving..." : "Save Demographic"}
                   </button>
@@ -1470,11 +1678,11 @@ export default function ProfilePage() {
           )}
         </div>
 
-        <aside className="glass-card p-6 h-fit animate-enter delay-3">
+        <aside className="glass-card p-6 h-fit xl:sticky xl:top-5 animate-enter delay-3">
           <h3 className="text-lg font-bold text-[#102a2f] mb-4">Profile completion</h3>
           <div className="flex items-center gap-4 mb-5">
-            <div className="relative w-24 h-24 rounded-full grid place-items-center progress-ring" style={{ ["--progress" as string]: `${completion}%` }}>
-              <span className="text-xl font-bold text-[#102a2f]">{completion}%</span>
+            <div className="relative w-28 h-28 rounded-full grid place-items-center progress-ring" style={{ ["--progress" as string]: `${completion}%` }}>
+              <span className="text-2xl font-bold text-[#102a2f]">{completion}%</span>
             </div>
             <p className="text-sm text-[#4c666c]">Balanced profiles perform better in discovery and shortlisting.</p>
           </div>
@@ -1486,7 +1694,7 @@ export default function ProfilePage() {
               { label: "Work", done: workEntries.length > 0 || Boolean(form.title) },
               { label: "Demographic", done: Boolean(form.country && form.city) },
             ].map((item) => (
-              <div key={item.label} className="flex items-center gap-2">
+              <div key={item.label} className="flex items-center gap-2 rounded-lg border border-[#e2e8f0] bg-[#f8fafc] px-3 py-2">
                 {item.done ? (
                   <svg className="w-4 h-4 text-[#29a36a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -1504,12 +1712,81 @@ export default function ProfilePage() {
       </div>
 
       {error && <div className="rounded-lg border border-[#f2c9c9] bg-[#fff4f4] p-3 text-sm text-[#9a3f3f]">{error}</div>}
-      {success && <div className="rounded-lg border border-[#b9e5cc] bg-[#eafaf0] p-3 text-sm text-[#1f6b48]">{success}</div>}
+      {success && <div className="rounded-lg border border-[#c7d2fe] bg-[#eef2ff] p-3 text-sm text-[#1e3a8a]">{success}</div>}
+      {(extractingProfile || extractProgress > 0) && (
+        <div className="rounded-lg border border-[#d7dfe8] bg-white p-3 text-sm">
+          <div className="flex items-center justify-between text-[#1f2937] font-semibold">
+            <span>{extractStage || "Extracting from LinkedIn..."}</span>
+            <span>{extractProgress}%</span>
+          </div>
+          <div className="mt-2 h-2.5 w-full rounded-full bg-[#e5e7eb] overflow-hidden">
+            <div
+              className="h-full rounded-full bg-[#111111] transition-all duration-300"
+              style={{ width: `${extractProgress}%` }}
+            />
+          </div>
+          {extractModeReason && (
+            <p className="mt-2 text-xs text-[#8a5a10]">
+              Partial extraction reason: {extractModeReason}
+            </p>
+          )}
+        </div>
+      )}
+
+      {showLinkedInModal && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/45 px-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white border border-[#d4e4e2] p-6 shadow-2xl">
+            <h3 className="text-xl font-bold text-[#102a2f]">Import from LinkedIn</h3>
+            <p className="mt-2 text-sm text-[#49656c]">
+              Paste your LinkedIn profile URL. We will extract and auto-fill Personal Information, Education Info, Work Info, and Demographic Info.
+            </p>
+
+            <input
+              value={linkedInInput}
+              onChange={(e) => setLinkedInInput(e.target.value)}
+              placeholder="https://www.linkedin.com/in/your-profile"
+              className="input mt-4"
+            />
+
+            {extractingProfile && (
+              <div className="mt-4 rounded-lg border border-[#d7dfe8] bg-[#f8fafc] p-3">
+                <div className="flex items-center justify-between text-xs font-semibold text-[#1f2937]">
+                  <span>{extractStage || "Extracting..."}</span>
+                  <span>{extractProgress}%</span>
+                </div>
+                <div className="mt-2 h-2.5 w-full rounded-full bg-[#e5e7eb] overflow-hidden">
+                  <div className="h-full rounded-full bg-[#111111] transition-all duration-300" style={{ width: `${extractProgress}%` }} />
+                </div>
+              </div>
+            )}
+
+            <div className="mt-5 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowLinkedInModal(false)}
+                disabled={extractingProfile}
+                className="px-4 py-2 rounded-lg border border-[#d6d6d6] text-[#56666b] text-sm font-semibold disabled:opacity-50"
+              >
+                Later
+              </button>
+              <button
+                type="button"
+                onClick={importFromLinkedIn}
+                disabled={extractingProfile}
+                className="px-4 py-2 rounded-lg bg-[#171717] border border-[#313131] text-white text-sm font-semibold disabled:opacity-50"
+              >
+                {extractingProfile ? `Extracting... ${extractProgress}%` : "Extract now"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         .profile-shell {
           position: relative;
           isolation: isolate;
+          color: #111827;
         }
 
         .profile-bg {
@@ -1517,41 +1794,45 @@ export default function ProfilePage() {
           inset: -40px -20px auto -20px;
           height: 360px;
           background:
-            radial-gradient(circle at 15% 20%, rgba(11, 85, 97, 0.18), transparent 45%),
-            radial-gradient(circle at 80% 10%, rgba(228, 146, 72, 0.2), transparent 42%),
-            linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(233, 245, 244, 0.85));
+            radial-gradient(circle at 15% 20%, rgba(17, 17, 17, 0.08), transparent 45%),
+            radial-gradient(circle at 80% 10%, rgba(88, 99, 255, 0.06), transparent 42%),
+            linear-gradient(140deg, rgba(250, 251, 255, 1), rgba(241, 245, 249, 0.95));
           z-index: -1;
           filter: blur(0.2px);
           border-radius: 28px;
         }
 
         .glass-card {
-          border: 1px solid #dbe7e4;
-          background: rgba(255, 255, 255, 0.78);
+          border: 1px solid #e2e8f0;
+          background: linear-gradient(160deg, rgba(255, 255, 255, 0.96), rgba(249, 250, 252, 0.96));
           backdrop-filter: blur(8px);
           border-radius: 18px;
-          box-shadow: 0 8px 26px rgba(20, 55, 62, 0.07);
+          box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
         }
 
         .input {
           width: 100%;
-          border: 1px solid #d8e2df;
+          border: 1px solid #d1d5db;
           background: #ffffff;
           border-radius: 12px;
-          padding: 0.62rem 0.78rem;
+          padding: 0.68rem 0.82rem;
           font-size: 0.92rem;
-          color: #13343b;
+          color: #111827;
           transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .input::placeholder {
+          color: #6b7280;
         }
 
         .input:focus {
           outline: none;
-          border-color: #0b5561;
-          box-shadow: 0 0 0 3px rgba(11, 85, 97, 0.14);
+          border-color: #111111;
+          box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.12);
         }
 
         .progress-ring {
-          background: conic-gradient(#0b5561 var(--progress), #d9e4e6 0);
+          background: conic-gradient(#111111 var(--progress), #d1d5db 0);
           border-radius: 50%;
         }
 
@@ -1559,8 +1840,31 @@ export default function ProfilePage() {
           content: "";
           position: absolute;
           inset: 8px;
-          background: #fff;
+          background: #ffffff;
           border-radius: 50%;
+        }
+
+        .section-label {
+          font-size: 0.74rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: #374151;
+          margin-bottom: 0.55rem;
+        }
+
+        .profile-shell h1,
+        .profile-shell h2,
+        .profile-shell h3,
+        .profile-shell h4 {
+          color: #111827 !important;
+          letter-spacing: -0.01em;
+        }
+
+        .profile-shell p,
+        .profile-shell span,
+        .profile-shell label {
+          color: #475569;
         }
 
         .progress-ring span {

@@ -227,6 +227,9 @@ services:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/ostora
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      LINKEDIN_SCRAPER_SCRIPT_PATH: /app/apps/scraping-service/src/scrape_profil.py
+      LINKEDIN_SCRAPER_PYTHON_CMD: /opt/pyenv/bin/python
+      LINKEDIN_SCRAPER_TIMEOUT_MS: 90000
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       AWS_REGION: ${AWS_REGION:-us-east-1}

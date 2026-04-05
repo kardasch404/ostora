@@ -47,6 +47,38 @@ export class UserProxyController {
     }
   }
 
+  @Post('profile/import/linkedin')
+  async importProfileFromLinkedIn(@Body() body: any, @Headers('authorization') auth: string) {
+    try {
+      const url = `${this.userServiceUrl}/api/v1/profile/import/linkedin`;
+      const response = await firstValueFrom(
+        this.httpService.post(url, body, { headers: { authorization: auth } })
+      );
+      return response.data;
+    } catch (error) {
+      throw new HttpException(
+        error instanceof Error ? error.message : 'Failed to import profile from LinkedIn',
+        (axios.isAxiosError(error) && error.response?.status) || HttpStatus.BAD_GATEWAY,
+      );
+    }
+  }
+
+  @Post('profile/import/linkedin/payload')
+  async importProfileFromLinkedInPayload(@Body() body: any, @Headers('authorization') auth: string) {
+    try {
+      const url = `${this.userServiceUrl}/api/v1/profile/import/linkedin/payload`;
+      const response = await firstValueFrom(
+        this.httpService.post(url, body, { headers: { authorization: auth } })
+      );
+      return response.data;
+    } catch (error) {
+      throw new HttpException(
+        error instanceof Error ? error.message : 'Failed to import profile from LinkedIn payload',
+        (axios.isAxiosError(error) && error.response?.status) || HttpStatus.BAD_GATEWAY,
+      );
+    }
+  }
+
   @Post('profile/upload-url')
   async generateProfileUploadUrl(@Body() body: any, @Headers('authorization') auth: string) {
     try {

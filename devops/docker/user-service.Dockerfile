@@ -1,6 +1,8 @@
-FROM node:20-alpine AS builder
+FROM node:20-bookworm-slim AS builder
 
-RUN apk add --no-cache openssl
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends openssl \
+  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -12,15 +14,32 @@ RUN npx prisma generate
 
 COPY apps/user-service ./apps/user-service
 
-FROM node:20-alpine
+FROM node:20-bookworm-slim
 
-RUN apk add --no-cache openssl && addgroup -g 1001 -S ostora && adduser -S ostora -u 1001
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    openssl \
+    python3 \
+    python3-venv \
+    python3-pip \
+    chromium \
+    ca-certificates \
+    fonts-freefont-ttf \
+    libnss3 \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN python3 -m venv /opt/pyenv \
+  && /opt/pyenv/bin/pip install --no-cache-dir playwright \
+  && PLAYWRIGHT_BROWSERS_PATH=/ms-playwright /opt/pyenv/bin/python -m playwright install chromium
+
+RUN groupadd -g 1001 ostora && useradd -m -u 1001 -g ostora ostora
 
 WORKDIR /app
 
 COPY --from=builder --chown=ostora:ostora /app/node_modules ./node_modules
 COPY --from=builder --chown=ostora:ostora /app/apps/user-service ./apps/user-service
 COPY --from=builder --chown=ostora:ostora /app/node_modules/.prisma ./node_modules/.prisma
+COPY --chown=ostora:ostora apps/scraping-service/src ./apps/scraping-service/src
 
 RUN npm install -g ts-node typescript @swc/core @swc/helpers && chown -R ostora:ostora /app
 
@@ -31,6 +50,10 @@ USER ostora
 ENV NODE_ENV=production
 ENV PORT=4719
 ENV TS_NODE_TRANSPILE_ONLY=true
+ENV PATH=/opt/pyenv/bin:$PATH
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+ENV LINKEDIN_SCRAPER_SCRIPT_PATH=/app/apps/scraping-service/src/scrape_profil.py
+ENV LINKEDIN_SCRAPER_PYTHON_CMD=/opt/pyenv/bin/python
 
 EXPOSE 4719
 
