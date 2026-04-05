@@ -10,6 +10,7 @@
     "ai-service": "apps/ai-service",
     "payment-service": "apps/payment-service",
     "analytics-service": "apps/analytics-service",
+    "ostoracv-service": "apps/ostoracv-service",
     "b2b-service": "apps/b2b-service",
     "notification-service": "apps/notification-service",
     "networking-service": "apps/networking-service",

@@ -15,6 +15,7 @@ import { FastApplyController } from './fast-apply/fast-apply.controller';
 import { FastApplyService } from './fast-apply/fast-apply.service';
 import { FastApplyProgressService } from './fast-apply/fast-apply-progress.service';
 import { AiResultController } from './result/ai-result.controller';
+import { CoverLetterController } from './cover-letter/cover-letter.controller';
 import { CvAnalysisProcessor } from './queues/cv-analysis.processor';
 import { CoverLetterProcessor } from './queues/cover-letter.processor';
 import { JobMatchingProcessor } from './queues/job-matching.processor';
@@ -48,7 +49,7 @@ import { AssistantMode } from './unified-ai/modes/assistant.mode';
       { name: 'fast-apply' },
     ),
   ],
-  controllers: [UnifiedAiController, FastApplyController, AiResultController],
+  controllers: [UnifiedAiController, FastApplyController, AiResultController, CoverLetterController],
   providers: [
     PrismaService,
     BlazeAiProvider,

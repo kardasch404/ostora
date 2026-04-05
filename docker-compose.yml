@@ -385,6 +385,38 @@ services:
       - ostora-network
     restart: unless-stopped
 
+  ai-service:
+    build:
+      context: .
+      dockerfile: ./devops/docker/ai-service.Dockerfile
+    container_name: ostora-ai-service
+    environment:
+      PORT: 4723
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/ostora
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      OLLAMA_API_URL: ${OLLAMA_API_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3}
+      BLAZEAI_API_URL: ${BLAZEAI_API_URL:-https://blazeai.boxu.dev}
+      BLAZEAI_API_KEY: ${BLAZEAI_API_KEY}
+      OSTORACV_SERVICE_URL: http://ostoracv-service:4731
+      INTERNAL_SERVICE_SECRET: ${INTERNAL_SERVICE_SECRET:-ostora-internal-secret}
+    ports:
+      - "4723:4723"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ostoracv-service:
+        condition: service_started
+    networks:
+      - ostora-network
+    restart: unless-stopped
+
   frontend:
     build:
       context: ./frontend
