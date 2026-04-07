@@ -42,11 +42,12 @@ if (parentPort) {
       success: true,
       matchScore,
     });
-  } catch (error) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     parentPort.postMessage({
       taskId: task.taskId,
       success: false,
-      error: error.message,
+      error: errorMessage,
     });
   }
 }

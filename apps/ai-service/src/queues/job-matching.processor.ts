@@ -23,10 +23,10 @@ export class JobMatchingProcessor {
   async handleJobMatching(job: Job<JobMatchingJob>) {
     this.logger.log(`[Ollama] Matching jobs for user ${job.data.userId}`);
 
-    const prompt = this.promptBuilder.buildJobMatchPrompt(
-      job.data.cvText,
-      job.data.jobs,
-    );
+    const prompt = this.promptBuilder.buildJobMatchPrompt({
+      cvText: job.data.cvText,
+      jobs: job.data.jobs,
+    });
 
     const result = await this.tokenRouter.route(
       TaskType.JOB_MATCHING,

@@ -14,6 +14,15 @@ export interface AppliedJobRecord {
   message: string;
   sentAt: string;
   status: "sent" | "failed";
+  templateName?: string;
+  sourceUrl?: string;
+  attachments?: Array<{
+    id: string;
+    filename: string;
+    fileSize: number;
+    type: string;
+    bundleName?: string;
+  }>;
 }
 
 function safeParseArray<T>(raw: string | null): T[] {

@@ -4,7 +4,7 @@ import { Job } from 'bull';
 import axios from 'axios';
 import { TokenRouterService, TaskType, TaskPriority } from '../token-router/token-router.service';
 import { PromptBuilderService } from '../prompt-builder/prompt-builder.service';
-import { PromptType } from '../prompt-builder/system-prompts.config';
+import { PromptType } from '../prompt-builder/prompt-type.enum';
 
 export interface CoverLetterJob {
   userId: string;
@@ -74,8 +74,9 @@ export class CoverLetterProcessor {
             job.data.bundleId,
           );
           this.logger.log(`[AI] PDF rendered for user ${job.data.userId}: ${pdfResult.s3Key}`);
-        } catch (error) {
-          this.logger.warn(`[AI] PDF rendering failed for user ${job.data.userId}: ${error.message}`);
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          this.logger.warn(`[AI] PDF rendering failed for user ${job.data.userId}: ${errorMessage}`);
         }
       }
 
@@ -86,8 +87,9 @@ export class CoverLetterProcessor {
         timestamp: Date.now(),
         pdf: pdfResult,
       };
-    } catch (error) {
-      this.logger.error(`[AI] Cover letter generation failed for user ${job.data.userId}: ${error.message}`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`[AI] Cover letter generation failed for user ${job.data.userId}: ${errorMessage}`);
       throw error;
     }
   }

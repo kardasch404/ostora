@@ -3,7 +3,7 @@ FROM node:20-bookworm-slim AS builder
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci --ignore-scripts
+RUN sh -c 'for i in 1 2 3 4; do npm ci --ignore-scripts --no-audit --no-fund --fetch-retries=5 --fetch-retry-factor=2 --fetch-retry-mintimeout=20000 --fetch-retry-maxtimeout=120000 && exit 0; echo "npm ci failed (attempt $i), retrying..."; npm cache clean --force; done; exit 1'
 
 COPY tsconfig.base.json ./
 COPY apps/ostoracv-service ./apps/ostoracv-service
@@ -23,7 +23,7 @@ RUN groupadd -g 1001 ostora && useradd -m -u 1001 -g ostora ostora
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci --only=production --ignore-scripts && npm cache clean --force
+RUN sh -c 'for i in 1 2 3 4; do npm ci --only=production --ignore-scripts --no-audit --no-fund --fetch-retries=5 --fetch-retry-factor=2 --fetch-retry-mintimeout=20000 --fetch-retry-maxtimeout=120000 && npm cache clean --force && exit 0; echo "npm ci failed (attempt $i), retrying..."; npm cache clean --force; done; exit 1'
 
 COPY --from=builder /app/apps/ostoracv-service/dist ./apps/ostoracv-service/dist
 COPY apps/ostoracv-service/src/templates ./apps/ostoracv-service/src/templates

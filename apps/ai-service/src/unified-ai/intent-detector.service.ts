@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { TokenRouterService, TaskType, TaskPriority } from '../token-router/token-router.service';
 
 export enum AiMode {
@@ -18,19 +18,25 @@ export interface IntentResult {
 
 @Injectable()
 export class IntentDetectorService {
-  private readonly logger = new Logger(IntentDetectorService.name);
-
   constructor(private tokenRouter: TokenRouterService) {}
 
   async detectIntent(message: string): Promise<IntentResult> {
     const prompt = `Classify this message as one of: ANALYZE_CV | COMPARE_JOB | CHAT_ASSIST | FAST_APPLY_SUGGEST | MISSING_SKILLS | GENERATE_COVER_LETTER | OPTIMIZE_PROFILE. Message: ${message}. Return JSON only.`;
 
-    const result = await this.tokenRouter.route(
-      TaskType.INTENT_DETECTION,
-      TaskPriority.REALTIME,
-      prompt,
-      { temperature: 0.2, maxTokens: 50 },
-    );
+    let result = '';
+    try {
+      result = await this.tokenRouter.route(
+        TaskType.INTENT_DETECTION,
+        TaskPriority.REALTIME,
+        prompt,
+        { temperature: 0.2, maxTokens: 50 },
+      );
+    } catch {
+      return {
+        mode: this.fallbackDetection(message),
+        confidence: 0.2,
+      };
+    }
 
     try {
       const parsed = JSON.parse(result);

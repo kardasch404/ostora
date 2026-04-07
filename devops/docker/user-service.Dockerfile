@@ -7,7 +7,7 @@ RUN apt-get update \
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci --ignore-scripts && npm cache clean --force
+RUN sh -c 'for i in 1 2 3 4; do npm ci --ignore-scripts --no-audit --no-fund --fetch-retries=5 --fetch-retry-factor=2 --fetch-retry-mintimeout=20000 --fetch-retry-maxtimeout=120000 && npm cache clean --force && exit 0; echo "npm ci failed (attempt $i), retrying..."; npm cache clean --force; done; exit 1'
 
 COPY prisma ./prisma
 RUN npx prisma generate

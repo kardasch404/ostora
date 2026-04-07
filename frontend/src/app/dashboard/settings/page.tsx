@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { apiClient } from "@/lib/api-client";
 import axios from "axios";
 
@@ -99,6 +100,28 @@ export default function SettingsPage() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Settings</h1>
         <p className="text-gray-600">Manage your account settings and email accounts</p>
+        <div className="mt-4">
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/dashboard/settings/payments"
+              className="inline-flex items-center rounded-lg border border-black px-4 py-2 text-sm font-semibold text-black hover:bg-gray-100"
+            >
+              Payments
+            </Link>
+            <Link
+              href="/dashboard/settings/payments-faq"
+              className="inline-flex items-center rounded-lg border border-black px-4 py-2 text-sm font-semibold text-black hover:bg-gray-100"
+            >
+              Payments FAQ
+            </Link>
+            <Link
+              href="/dashboard/settings/password"
+              className="inline-flex items-center rounded-lg border border-black px-4 py-2 text-sm font-semibold text-black hover:bg-gray-100"
+            >
+              Password
+            </Link>
+          </div>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">

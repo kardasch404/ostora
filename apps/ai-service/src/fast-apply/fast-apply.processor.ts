@@ -75,8 +75,9 @@ export class FastApplyProcessor {
         jobId: job.data.jobId,
         timestamp: Date.now(),
       };
-    } catch (error) {
-      this.logger.error(`[FastApply] Failed job ${job.data.jobId}: ${error.message}`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`[FastApply] Failed job ${job.data.jobId}: ${errorMessage}`);
       await this.progressService.incrementFailed(job.data.batchId);
       throw error;
     }
@@ -115,7 +116,7 @@ Generate a personalized, professional email. Replace placeholders like ~#rh_name
     // TODO: Emit via WebSocket
     await this.redis.publish('fast-apply:progress', JSON.stringify({
       batchId,
-      done: progress.done,
+      done: progress.completed,
       total: progress.total,
       currentJob,
     }));
@@ -186,6 +187,7 @@ Generate a personalized, professional email. Replace placeholders like ~#rh_name
     // TODO: Integrate with email-service via Kafka or HTTP
     // For now, just log
     this.logger.log(`Email would be sent to ${to} from ${config.email}`);
+    this.logger.log(`Body preview: ${body.slice(0, 80)}`);
     this.logger.log(`Attachments: ${bundle?.documents.map(d => d.filename).join(', ')}`);
   }
 

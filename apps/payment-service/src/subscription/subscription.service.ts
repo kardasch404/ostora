@@ -10,6 +10,52 @@ import { Plan, PLAN_FEATURES, PLAN_PRICES } from './plan.enum';
 import { SubscriptionStatus } from './subscription-status.enum';
 import { Money } from '../value-objects/money.vo';
 
+type PlanCard = {
+  id: Plan;
+  name: string;
+  priceMad: number;
+  cycle: 'forever' | 'month' | 'year';
+  badge?: string;
+  features: string[];
+};
+
+type PaymentDashboard = {
+  subscription: SubscriptionResponse;
+  status: {
+    label: string;
+    tone: 'success' | 'warning' | 'danger';
+    validUntil: Date;
+  };
+  paymentDue: {
+    amountMad: number;
+    dueAt: Date;
+  };
+  incompleteTransactions: Array<{
+    id: string;
+    date: Date;
+    amount: number;
+    currency: string;
+    description: string;
+    status: string;
+    reason: string;
+  }>;
+  invoices: Array<{
+    id: string;
+    date: Date;
+    amount: number;
+    currency: string;
+    status: string;
+    title: string;
+  }>;
+  receipts: Array<{
+    id: string;
+    date: Date;
+    amount: number;
+    currency: string;
+    title: string;
+  }>;
+};
+
 @Injectable()
 export class SubscriptionService {
   private prisma = new PrismaClient() as any;
@@ -101,6 +147,153 @@ export class SubscriptionService {
       default:
         throw new BadRequestException('Invalid payment provider');
     }
+  }
+
+  getAvailablePlans(): PlanCard[] {
+    return [
+      {
+        id: Plan.FREE,
+        name: 'Free',
+        priceMad: PLAN_PRICES[Plan.FREE].mad,
+        cycle: 'forever',
+        features: [
+          '5 applications/month',
+          '1 bundle max',
+          '1 email config',
+          'Basic job search',
+          'No AI features',
+          'No networking',
+        ],
+      },
+      {
+        id: Plan.PREMIUM_MONTHLY,
+        name: 'Premium Monthly',
+        priceMad: PLAN_PRICES[Plan.PREMIUM_MONTHLY].mad,
+        cycle: 'month',
+        badge: '7 days FREE trial',
+        features: [
+          'Unlimited applications',
+          '10 bundles',
+          '5 email configs',
+          'AI CV analysis',
+          'AI cover letter gen',
+          'Networking module',
+          'Bulk apply',
+        ],
+      },
+      {
+        id: Plan.PREMIUM_ANNUAL,
+        name: 'Premium Annual',
+        priceMad: PLAN_PRICES[Plan.PREMIUM_ANNUAL].mad,
+        cycle: 'year',
+        badge: 'Save 2 months free',
+        features: [
+          'Everything in Monthly',
+          'Priority AI queue',
+          'Advanced analytics',
+          'B2B API access',
+          'Invoice PDF download',
+        ],
+      },
+      {
+        id: Plan.B2B_STARTER,
+        name: 'B2B Starter',
+        priceMad: PLAN_PRICES[Plan.B2B_STARTER].mad,
+        cycle: 'month',
+        features: [
+          '1000 API calls/day',
+          'Company data access',
+          'Job market stats',
+          'Webhook support',
+        ],
+      },
+      {
+        id: Plan.B2B_PRO,
+        name: 'B2B Pro',
+        priceMad: PLAN_PRICES[Plan.B2B_PRO].mad,
+        cycle: 'month',
+        features: [
+          '10000 API calls/day',
+          'RH profile access',
+          'Bulk data export',
+          'SLA 99.9%',
+        ],
+      },
+    ];
+  }
+
+  async getPaymentDashboard(userId: string): Promise<PaymentDashboard> {
+    const subscription = await this.getUserSubscription(userId);
+    const today = new Date();
+
+    const payments = await this.prisma.payment.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: 40,
+    });
+
+    const incompleteTransactions = payments
+      .filter((p: any) => !['SUCCEEDED', 'REFUNDED'].includes(p.status))
+      .slice(0, 10)
+      .map((p: any) => ({
+        id: p.id,
+        date: p.createdAt,
+        amount: p.amount,
+        currency: p.currency,
+        description: p.description || `${subscription.plan} subscription`,
+        status: p.status,
+        reason: p.status === 'PENDING' ? 'Payment initialized' : p.status.toLowerCase(),
+      }));
+
+    const invoices = payments.slice(0, 20).map((p: any) => ({
+      id: p.id,
+      date: p.createdAt,
+      amount: p.amount,
+      currency: p.currency,
+      status: p.status === 'SUCCEEDED' ? 'Paid' : 'Unpaid',
+      title: `Invoice ${subscription.plan} #${p.id.slice(0, 8)}`,
+    }));
+
+    const receipts = payments
+      .filter((p: any) => p.status === 'SUCCEEDED')
+      .slice(0, 20)
+      .map((p: any) => ({
+        id: p.id,
+        date: p.createdAt,
+        amount: p.amount,
+        currency: p.currency,
+        title: `Receipt ${subscription.plan} #${p.id.slice(0, 8)}`,
+      }));
+
+    const validUntil = subscription.currentPeriodEnd || new Date('2099-12-31');
+    const tone =
+      subscription.status === SubscriptionStatus.ACTIVE ||
+      subscription.status === SubscriptionStatus.TRIALING
+        ? 'success'
+        : subscription.status === SubscriptionStatus.PAST_DUE
+          ? 'warning'
+          : 'danger';
+
+    return {
+      subscription,
+      status: {
+        label:
+          tone === 'success'
+            ? 'Active'
+            : tone === 'warning'
+              ? 'Past due'
+              : 'Inactive',
+        tone,
+        validUntil,
+      },
+      paymentDue: {
+        amountMad: PLAN_PRICES[subscription.plan].mad,
+        dueAt: validUntil > today ? validUntil : today,
+      },
+      incompleteTransactions,
+      invoices,
+      receipts,
+    };
   }
 
   async createSubscription(
@@ -207,6 +400,10 @@ export class SubscriptionService {
     });
 
     if (!subscription) {
+      const user = await this.prisma.user.findUnique({ where: { id: userId } });
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
       return this.createFreeSubscription(userId);
     }
 

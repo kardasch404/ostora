@@ -5,7 +5,7 @@
   "projectType": "application",
   "targets": {
     "build": {
-      "executor": "@nx/node:build",
+      "executor": "@nx/js:tsc",
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "dist/apps/ostoracv-service",
@@ -21,7 +21,7 @@
       }
     },
     "serve": {
-      "executor": "@nx/node:execute",
+      "executor": "@nx/js:node",
       "options": {
         "buildTarget": "ostoracv-service:build"
       }

@@ -16,6 +16,16 @@ export default function DashboardHeader() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [user, setUser] = useState<any>(null);
 
+  const resolveDisplayName = (value: any) => {
+    const fromProfile = [value?.firstName, value?.lastName].filter(Boolean).join(" ").trim();
+    if (fromProfile) return fromProfile;
+    if (typeof value?.name === "string" && value.name.trim().length > 0) return value.name.trim();
+    return "User";
+  };
+
+  const resolveAvatar = (value: any) =>
+    value?.avatar || value?.profile?.avatar || value?.profileImage || value?.image || null;
+
   useEffect(() => {
     const loadUser = async () => {
       try {
@@ -135,16 +145,14 @@ export default function DashboardHeader() {
             className="flex items-center space-x-3 p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
             <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center text-white font-semibold">
-              {user?.avatar ? (
-                <img src={user.avatar} alt={user.name} className="w-full h-full rounded-full object-cover" />
+              {resolveAvatar(user) ? (
+                <img src={resolveAvatar(user)} alt={resolveDisplayName(user)} className="w-full h-full rounded-full object-cover" />
               ) : (
-                getInitials(user?.firstName || user?.name)
+                getInitials(resolveDisplayName(user))
               )}
             </div>
             <div className="text-left hidden md:block">
-              <p className="text-sm font-semibold text-gray-900">
-                {user?.firstName || user?.name || "User"}
-              </p>
+              <p className="text-sm font-semibold text-gray-900">{resolveDisplayName(user)}</p>
               <p className="text-xs text-gray-500">{user?.email || "user@ostora.com"}</p>
             </div>
             <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -155,7 +163,7 @@ export default function DashboardHeader() {
           {showProfileMenu && (
             <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
               <div className="p-4 border-b border-gray-200">
-                <p className="font-semibold text-gray-900">{user?.firstName || user?.name || "User"}</p>
+                <p className="font-semibold text-gray-900">{resolveDisplayName(user)}</p>
                 <p className="text-sm text-gray-500">{user?.email || "user@ostora.com"}</p>
               </div>
               <div className="py-2">

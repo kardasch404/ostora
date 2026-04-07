@@ -1,9 +1,8 @@
-import { Controller, Post, Body, Get, Param } from '@nestjs/common';
+import { Controller, Post, Body, Get } from '@nestjs/common';
 import { ChatRequestDto, FastApplyRequestDto } from '../dto/ai-request.dto';
 import { IntentDetectorService, AiMode } from './intent-detector.service';
 import { SessionManagerService } from './session-manager.service';
-import { TokenRouterService, TaskType, TaskPriority } from '../token-router/token-router.service';
-import { PromptBuilderService } from '../prompt-builder/prompt-builder.service';
+import { TokenRouterService } from '../token-router/token-router.service';
 import { ParsedCV, JobPost } from '../interfaces/analyzer.interface';
 import { AnalyzerMode } from './modes/analyzer.mode';
 import { ComparatorMode } from './modes/comparator.mode';
@@ -17,7 +16,6 @@ export class UnifiedAiController {
     private intentDetector: IntentDetectorService,
     private sessionManager: SessionManagerService,
     private tokenRouter: TokenRouterService,
-    private promptBuilder: PromptBuilderService,
     private analyzerMode: AnalyzerMode,
     private comparatorMode: ComparatorMode,
     private assistantMode: AssistantMode,
@@ -33,7 +31,7 @@ export class UnifiedAiController {
 
     // Step 2: Context loading
     const session = await this.sessionManager.getSession(sessionId);
-    let cvData = await this.sessionManager.getCachedCV(sessionId);
+    const cvData = await this.sessionManager.getCachedCV(sessionId);
     
     // TODO: Load CV from S3 if needed and not cached
     // TODO: Load job post from PostgreSQL if needed

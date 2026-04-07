@@ -122,344 +122,580 @@
   "fileMap": {
     "nonProjectFiles": [
       {
-        "file": ".env.example",
-        "hash": "7032258473609549277"
+        "file": "devops/docker/notification-service.Dockerfile",
+        "hash": "6738243470134220757"
       },
       {
-        "file": ".eslintrc.json",
-        "hash": "2182100824821217434"
+        "file": "frontend/src/app/dashboard/documents/page.tsx",
+        "hash": "9088993261470470400"
       },
       {
-        "file": ".gitignore",
-        "hash": "15686979603068457947"
+        "file": "frontend/middleware.ts",
+        "hash": "8675613992340327208"
       },
       {
-        "file": ".huskyrc.json",
-        "hash": "3755404097982764199"
+        "file": "frontend/postcss.config.mjs",
+        "hash": "16325831446291273164"
       },
       {
-        "file": ".prettierrc",
-        "hash": "5265871919894009"
+        "file": "prisma/schema.prisma",
+        "hash": "10236467376167222332"
       },
       {
         "file": "EMAIL-DIAGNOSTIC.md",
         "hash": "87764142153478002"
       },
       {
-        "file": "IMPLEMENTATION-SUMMARY.md",
-        "hash": "16244097841666982433"
+        "file": "devops/k8s/user-service/deployment.yaml",
+        "hash": "5962610713311976991"
       },
       {
-        "file": "INSTALL_NODEJS.md",
-        "hash": "2185866143719944615"
+        "file": ".env.example",
+        "hash": "7032258473609549277"
       },
       {
         "file": "OTP-FIX-SUMMARY.md",
         "hash": "2670111753787634676"
       },
       {
-        "file": "PROJECT-COMPLETE.md",
-        "hash": "12081095902141410260"
-      },
-      {
-        "file": "README.md",
-        "hash": "14267732121799234232"
-      },
-      {
-        "file": "START_HERE.md",
-        "hash": "17819373114112775718"
-      },
-      {
-        "file": "TASK-3.4-COMPLETE.md",
-        "hash": "2036225965557377508"
-      },
-      {
-        "file": "TASK-4.2-VERIFICATION.md",
-        "hash": "7366232909157567014"
-      },
-      {
-        "file": "TASK-4.4-COMPLETE.md",
-        "hash": "17012199343154038238"
+        "file": "package.json",
+        "hash": "14930979578450177228"
       },
       {
         "file": "TASK-4.5-COMPLETE.md",
         "hash": "3536030684537588728"
       },
       {
-        "file": "TASK-5.1-COMPLETE.md",
-        "hash": "6802066604289758002"
+        "file": "docs/notification-redis-optimization.md",
+        "hash": "8203257785825176244"
       },
       {
-        "file": "TASK-5.5-COMPLETE.md",
-        "hash": "13419788076682323679"
-      },
-      {
-        "file": "TEST_FIXES.md",
-        "hash": "15829130401648159024"
-      },
-      {
-        "file": "TEST_FIXES_FINAL.md",
-        "hash": "7627135803736458264"
-      },
-      {
-        "file": "apps/networking-service/src/app.module.ts",
-        "hash": "30191616967987969"
-      },
-      {
-        "file": "apps/networking-service/src/campaign/campaign.controller.ts",
-        "hash": "13158960909928926801"
-      },
-      {
-        "file": "apps/networking-service/src/campaign/campaign.service.ts",
-        "hash": "9370777518922704933"
-      },
-      {
-        "file": "apps/networking-service/src/linkedin/linkedin.controller.ts",
-        "hash": "10604989184254762047"
-      },
-      {
-        "file": "apps/networking-service/src/linkedin/linkedin.service.ts",
-        "hash": "10751713735416123391"
-      },
-      {
-        "file": "apps/networking-service/src/main.ts",
-        "hash": "3110283673170818562"
-      },
-      {
-        "file": "apps/networking-service/src/outreach/outreach.controller.ts",
-        "hash": "5267891252819517460"
-      },
-      {
-        "file": "apps/networking-service/src/outreach/outreach.service.ts",
-        "hash": "14225524111668515059"
-      },
-      {
-        "file": "apps/scraping-service/src/linkedin_session.json",
-        "hash": "4984792465921907460"
-      },
-      {
-        "file": "apps/scraping-service/src/scrape_profil.py",
-        "hash": "12519697930644196395"
-      },
-      {
-        "file": "devops/README.md",
-        "hash": "5201245234053973778"
-      },
-      {
-        "file": "devops/docker/Dockerfile.base",
-        "hash": "15208568890477166220"
-      },
-      {
-        "file": "devops/docker/ai-service.Dockerfile",
-        "hash": "8331989316639902777"
-      },
-      {
-        "file": "devops/docker/analytics-service.Dockerfile",
-        "hash": "9379448817148371493"
-      },
-      {
-        "file": "devops/docker/api-gateway.Dockerfile",
-        "hash": "16145424490385322007"
-      },
-      {
-        "file": "devops/docker/auth-service.Dockerfile",
-        "hash": "6237258078094709477"
-      },
-      {
-        "file": "devops/docker/b2b-service.Dockerfile",
-        "hash": "10687377863797165797"
-      },
-      {
-        "file": "devops/docker/email-service.Dockerfile",
-        "hash": "12069433868869822092"
+        "file": "frontend/src/components/__tests__/login-form.test.tsx",
+        "hash": "4827867488949059931"
       },
       {
         "file": "devops/docker/job-service.Dockerfile",
         "hash": "6054278578342864089"
       },
       {
-        "file": "devops/docker/networking-service.Dockerfile",
-        "hash": "2950215790340290521"
+        "file": "setup-project.bat",
+        "hash": "12851317097940093639"
       },
       {
-        "file": "devops/docker/notification-service.Dockerfile",
-        "hash": "3221274998869185932"
+        "file": "frontend/src/components/dashboard/DashboardHeader.tsx",
+        "hash": "13866159426571442530"
       },
       {
-        "file": "devops/docker/ostoracv-service.Dockerfile",
-        "hash": "15603262998663854464"
+        "file": "frontend/public/window.svg",
+        "hash": "16677869292061012332"
       },
       {
-        "file": "devops/docker/payment-service.Dockerfile",
-        "hash": "9772220364135713997"
+        "file": "frontend/src/components/dashboard/RobotMascot.tsx",
+        "hash": "87916830901535453"
       },
       {
-        "file": "devops/docker/scraping-service.Dockerfile",
-        "hash": "16947100817328553207"
+        "file": "TASK-4.2-VERIFICATION.md",
+        "hash": "7366232909157567014"
       },
       {
-        "file": "devops/docker/user-service.Dockerfile",
-        "hash": "5689893379388679774"
+        "file": "apps/scraping-service/src/linkedin_session.json",
+        "hash": "4984792465921907460"
+      },
+      {
+        "file": "frontend/src/components/dashboard/FloatingAIAssistant.tsx",
+        "hash": "4885829367566298302"
+      },
+      {
+        "file": "frontend/src/app/jobs/[id]/page.tsx",
+        "hash": "14009612509056330324"
+      },
+      {
+        "file": "setup-project.ps1",
+        "hash": "15256361923168343045"
+      },
+      {
+        "file": "tsconfig.base.json",
+        "hash": "6377365718620125912"
+      },
+      {
+        "file": ".huskyrc.json",
+        "hash": "3755404097982764199"
+      },
+      {
+        "file": "frontend/src/components/dashboard/documents/MappeForm.tsx",
+        "hash": "2204497584125941858"
+      },
+      {
+        "file": "docker-compose.test.yml",
+        "hash": "12343267864777278653"
+      },
+      {
+        "file": "tsconfig.json",
+        "hash": "7349318364703066055"
+      },
+      {
+        "file": "apps/networking-service/src/campaign/campaign.service.ts",
+        "hash": "9370777518922704933"
       },
       {
         "file": "devops/jenkins/Jenkinsfile",
         "hash": "4964626298221448095"
       },
       {
-        "file": "devops/jenkins/Jenkinsfile.auth-service",
-        "hash": "12018456950947732129"
+        "file": "frontend/src/app/dashboard/fast-apply/page.tsx",
+        "hash": "1479760088687901496"
+      },
+      {
+        "file": "restart-api.bat",
+        "hash": "15368632727257497230"
+      },
+      {
+        "file": "frontend/public/vercel.svg",
+        "hash": "3007623926711696394"
       },
       {
         "file": "devops/k8s/ai-service-deployment.yaml",
         "hash": "5315405068468905611"
       },
       {
-        "file": "devops/k8s/base/api-gateway.yaml",
-        "hash": "13408349722943926047"
+        "file": "frontend/src/app/dashboard/layout.tsx",
+        "hash": "14235719505348549509"
       },
       {
-        "file": "devops/k8s/base/auth-service-configmap.yaml",
-        "hash": "14375294622231689748"
+        "file": "frontend/src/components/auth/register-form.tsx",
+        "hash": "12889414829163920712"
       },
       {
-        "file": "devops/k8s/base/auth-service-secret.yaml",
-        "hash": "10374351362287473239"
+        "file": "frontend/src/app/dashboard/profile/page.tsx",
+        "hash": "7151122466549156148"
       },
       {
-        "file": "devops/k8s/base/auth-service.yaml",
-        "hash": "7457155422159940514"
+        "file": "nx.json",
+        "hash": "16220432666974105064"
       },
       {
-        "file": "devops/k8s/base/configmap.yaml",
-        "hash": "6948548683616933490"
+        "file": "frontend/src/app/page.tsx",
+        "hash": "7404966170811442889"
       },
       {
-        "file": "devops/k8s/base/namespace.yaml",
-        "hash": "5057326092980588479"
+        "file": ".prettierrc",
+        "hash": "5265871919894009"
       },
       {
-        "file": "devops/k8s/base/secret.yaml",
-        "hash": "149368949291344581"
+        "file": "TASK-4.4-COMPLETE.md",
+        "hash": "17012199343154038238"
       },
       {
-        "file": "devops/k8s/production/auth-service.yaml",
-        "hash": "15246887618219567858"
+        "file": "devops/docker/email-service.Dockerfile",
+        "hash": "12069433868869822092"
       },
       {
-        "file": "devops/k8s/staging/auth-service.yaml",
-        "hash": "8934550279993896757"
-      },
-      {
-        "file": "devops/k8s/user-service/configmap.yaml",
-        "hash": "12256014512204865913"
-      },
-      {
-        "file": "devops/k8s/user-service/deployment.yaml",
-        "hash": "5962610713311976991"
-      },
-      {
-        "file": "devops/k8s/user-service/hpa.yaml",
-        "hash": "8246885271192830835"
-      },
-      {
-        "file": "devops/k8s/user-service/pvc.yaml",
-        "hash": "2770040096849802483"
-      },
-      {
-        "file": "devops/k8s/user-service/secret.yaml",
-        "hash": "13017318001950070460"
-      },
-      {
-        "file": "devops/k8s/user-service/service.yaml",
-        "hash": "9558819633711123777"
-      },
-      {
-        "file": "devops/k8s/user-service/serviceaccount.yaml",
-        "hash": "16834189172367241968"
-      },
-      {
-        "file": "devops/terraform/main.tf",
-        "hash": "2042357219925904751"
-      },
-      {
-        "file": "devops/terraform/outputs.tf",
-        "hash": "1920070844936755823"
-      },
-      {
-        "file": "devops/terraform/variables.tf",
-        "hash": "308051006382918447"
-      },
-      {
-        "file": "docker-compose.test.yml",
-        "hash": "13885587512814365467"
-      },
-      {
-        "file": "docker-compose.yml",
-        "hash": "12940448177148151912"
-      },
-      {
-        "file": "docs/email-notifications-implementation.md",
-        "hash": "14163029007601778994"
-      },
-      {
-        "file": "docs/notification-redis-optimization.md",
-        "hash": "8203257785825176244"
-      },
-      {
-        "file": "docs/push-notifications-implementation.md",
-        "hash": "3234048736323468055"
-      },
-      {
-        "file": "docs/user-preferences-implementation.md",
-        "hash": "1250517290514292678"
-      },
-      {
-        "file": "fix-path.ps1",
-        "hash": "2050269990299378432"
-      },
-      {
-        "file": "frontend/.dockerignore",
-        "hash": "13141217011087361170"
-      },
-      {
-        "file": "frontend/.gitignore",
-        "hash": "3377529041528991192"
+        "file": "scripts/init-postgres.sql",
+        "hash": "17202630500789043895"
       },
       {
         "file": "frontend/BLACK_WHITE_DESIGN_UPDATE.md",
         "hash": "10259878219988292910"
       },
       {
-        "file": "frontend/BLACK_WHITE_UPDATE_GUIDE.md",
-        "hash": "11902549842532484794"
+        "file": "frontend/package.json",
+        "hash": "478573180150018421"
       },
       {
-        "file": "frontend/DESIGN_SYSTEM.md",
-        "hash": "1237972477154651814"
+        "file": "otp_response.json",
+        "hash": "12016820641269926513"
       },
       {
-        "file": "frontend/Dockerfile",
-        "hash": "13156761446034731900"
+        "file": "devops/k8s/base/secret.yaml",
+        "hash": "149368949291344581"
       },
       {
-        "file": "frontend/README.md",
-        "hash": "10011398316402962549"
+        "file": "frontend/src/components/auth/login-form.tsx",
+        "hash": "1676109566970357408"
       },
       {
-        "file": "frontend/eslint.config.mjs",
-        "hash": "5072742284577310158"
+        "file": "frontend/src/types/js-cookie.d.ts",
+        "hash": "15492047900472520814"
+      },
+      {
+        "file": "jest.preset.js",
+        "hash": "3612300490656737904"
+      },
+      {
+        "file": "devops/jenkins/Jenkinsfile.ostoracv-service",
+        "hash": "17707867901793593928"
+      },
+      {
+        "file": "frontend/src/components/jobs/JobCard.tsx",
+        "hash": "7130560869682881586"
+      },
+      {
+        "file": "frontend/src/lib/constants.ts",
+        "hash": "4500933630289316169"
+      },
+      {
+        "file": "frontend/src/app/dashboard/settings/payments-faq/page.tsx",
+        "hash": "5962546684531590485"
+      },
+      {
+        "file": "apps/scraping-service/src/scrape_profil.py",
+        "hash": "12519697930644196395"
+      },
+      {
+        "file": "frontend/src/app/dashboard/ostoracv/cover-letter/page.tsx",
+        "hash": "3058659265874331449"
+      },
+      {
+        "file": "devops/k8s/user-service/pvc.yaml",
+        "hash": "2770040096849802483"
+      },
+      {
+        "file": "TEST_FIXES.md",
+        "hash": "15829130401648159024"
+      },
+      {
+        "file": "devops/k8s/base/namespace.yaml",
+        "hash": "5057326092980588479"
+      },
+      {
+        "file": "frontend/src/providers/app-providers.tsx",
+        "hash": "13921766620394796878"
+      },
+      {
+        "file": "INSTALL_NODEJS.md",
+        "hash": "2185866143719944615"
+      },
+      {
+        "file": "devops/k8s/base/auth-service-configmap.yaml",
+        "hash": "14375294622231689748"
       },
       {
         "file": "frontend/jest.config.ts",
         "hash": "3772749160739813265"
       },
       {
+        "file": "scripts/setup-and-test.bat",
+        "hash": "10066093394885156682"
+      },
+      {
+        "file": "ostora_logo.png",
+        "hash": "16902384624226892717"
+      },
+      {
+        "file": "docker-compose.yml",
+        "hash": "7540139263410366115"
+      },
+      {
+        "file": "frontend/src/types/auth.ts",
+        "hash": "4780549665823474670"
+      },
+      {
+        "file": "frontend/src/app/forbidden/page.tsx",
+        "hash": "3751862551136975849"
+      },
+      {
+        "file": "devops/terraform/outputs.tf",
+        "hash": "1920070844936755823"
+      },
+      {
+        "file": "docs/email-notifications-implementation.md",
+        "hash": "14163029007601778994"
+      },
+      {
+        "file": "IMPLEMENTATION-SUMMARY.md",
+        "hash": "16244097841666982433"
+      },
+      {
+        "file": ".gitignore",
+        "hash": "15686979603068457947"
+      },
+      {
+        "file": "TASK-5.5-COMPLETE.md",
+        "hash": "13419788076682323679"
+      },
+      {
+        "file": "frontend/src/lib/application-state.ts",
+        "hash": "15889065468930405462"
+      },
+      {
+        "file": "test-and-commit-gateway.bat",
+        "hash": "8920908435989561590"
+      },
+      {
+        "file": "apps/networking-service/src/linkedin/linkedin.controller.ts",
+        "hash": "10604989184254762047"
+      },
+      {
+        "file": "scripts/init-mysql.sql",
+        "hash": "17505709288912723968"
+      },
+      {
+        "file": "README.md",
+        "hash": "14267732121799234232"
+      },
+      {
+        "file": "devops/k8s/user-service/secret.yaml",
+        "hash": "13017318001950070460"
+      },
+      {
+        "file": "docs/push-notifications-implementation.md",
+        "hash": "3234048736323468055"
+      },
+      {
+        "file": "frontend/BLACK_WHITE_UPDATE_GUIDE.md",
+        "hash": "11902549842532484794"
+      },
+      {
+        "file": "devops/docker/Dockerfile.base",
+        "hash": "15208568890477166220"
+      },
+      {
+        "file": "devops/k8s/production/auth-service.yaml",
+        "hash": "15246887618219567858"
+      },
+      {
+        "file": "frontend/src/app/layout.tsx",
+        "hash": "3912701982941672368"
+      },
+      {
+        "file": ".eslintrc.json",
+        "hash": "2182100824821217434"
+      },
+      {
+        "file": "devops/k8s/user-service/serviceaccount.yaml",
+        "hash": "16834189172367241968"
+      },
+      {
+        "file": "frontend/src/app/dashboard/applications/page.tsx",
+        "hash": "14769581733971076144"
+      },
+      {
+        "file": "frontend/src/components/dashboard/documents/DocumentForm.tsx",
+        "hash": "8528982529260338166"
+      },
+      {
+        "file": "frontend/src/lib/jwt.ts",
+        "hash": "802182341626885643"
+      },
+      {
+        "file": "validate-and-commit.bat",
+        "hash": "8190865983947132676"
+      },
+      {
+        "file": "START_HERE.md",
+        "hash": "17819373114112775718"
+      },
+      {
+        "file": "apps/networking-service/src/app.module.ts",
+        "hash": "30191616967987969"
+      },
+      {
+        "file": "frontend/src/app/dashboard/page.tsx",
+        "hash": "2048113040291302533"
+      },
+      {
+        "file": "frontend/src/app/globals.css",
+        "hash": "254495971727891513"
+      },
+      {
+        "file": "frontend/src/store/hooks.ts",
+        "hash": "16990710529571675914"
+      },
+      {
+        "file": "frontend/src/features/auth/__tests__/auth-flow.test.tsx",
+        "hash": "7757120095844989006"
+      },
+      {
+        "file": "frontend/tsconfig.json",
+        "hash": "371619562070809093"
+      },
+      {
+        "file": "docs/user-preferences-implementation.md",
+        "hash": "1250517290514292678"
+      },
+      {
+        "file": "frontend/src/app/dashboard/ostoracv/page.tsx",
+        "hash": "6286393413772664917"
+      },
+      {
+        "file": "TASK-3.4-COMPLETE.md",
+        "hash": "2036225965557377508"
+      },
+      {
         "file": "frontend/jest.setup.ts",
         "hash": "6455336208239407611"
       },
       {
-        "file": "frontend/middleware.ts",
-        "hash": "8675613992340327208"
+        "file": "frontend/src/app/dashboard/settings/password/page.tsx",
+        "hash": "15861615040369253451"
+      },
+      {
+        "file": "tmp_linkedin_payload.json",
+        "hash": "8108802738177629557"
+      },
+      {
+        "file": "devops/terraform/variables.tf",
+        "hash": "308051006382918447"
+      },
+      {
+        "file": "frontend/src/app/login/page.tsx",
+        "hash": "15698158026789328974"
+      },
+      {
+        "file": "frontend/public/next.svg",
+        "hash": "8300767200008744458"
+      },
+      {
+        "file": "frontend/src/components/brand/OstoraLogo.tsx",
+        "hash": "952495939736105951"
+      },
+      {
+        "file": "frontend/.dockerignore",
+        "hash": "13141217011087361170"
+      },
+      {
+        "file": "PROJECT-COMPLETE.md",
+        "hash": "12081095902141410260"
+      },
+      {
+        "file": "devops/docker/payment-service.Dockerfile",
+        "hash": "14573487738898836186"
+      },
+      {
+        "file": "devops/k8s/base/configmap.yaml",
+        "hash": "6948548683616933490"
+      },
+      {
+        "file": "frontend/DESIGN_SYSTEM.md",
+        "hash": "1237972477154651814"
+      },
+      {
+        "file": "frontend/src/lib/server-api.ts",
+        "hash": "492990768095866637"
+      },
+      {
+        "file": "frontend/src/components/dashboard/AccountBillingSettings.tsx",
+        "hash": "10099827192951205472"
+      },
+      {
+        "file": "frontend/src/lib/api-client.ts",
+        "hash": "6517297094525244412"
+      },
+      {
+        "file": "jest.config.js",
+        "hash": "5788031201447047313"
+      },
+      {
+        "file": "devops/README.md",
+        "hash": "5201245234053973778"
+      },
+      {
+        "file": "devops/terraform/main.tf",
+        "hash": "2042357219925904751"
+      },
+      {
+        "file": "frontend/src/app/dashboard/saved/page.tsx",
+        "hash": "9184769588270697887"
+      },
+      {
+        "file": "prisma/seed.ts",
+        "hash": "14932743816946814567"
+      },
+      {
+        "file": "frontend/src/app/dashboard/settings/payments/page.tsx",
+        "hash": "7243167885580772084"
+      },
+      {
+        "file": "devops/docker/b2b-service.Dockerfile",
+        "hash": "17084227326124026887"
+      },
+      {
+        "file": "setup.bat",
+        "hash": "17040147802881657003"
+      },
+      {
+        "file": "devops/k8s/user-service/hpa.yaml",
+        "hash": "8246885271192830835"
+      },
+      {
+        "file": "frontend/public/ostora_logo.png",
+        "hash": "16902384624226892717"
+      },
+      {
+        "file": "frontend/src/app/dashboard/messages/page.tsx",
+        "hash": "14204179073387308016"
+      },
+      {
+        "file": "frontend/src/app/register/page.tsx",
+        "hash": "2641979717224927262"
+      },
+      {
+        "file": "devops/k8s/base/auth-service.yaml",
+        "hash": "7457155422159940514"
+      },
+      {
+        "file": "TEST_FIXES_FINAL.md",
+        "hash": "7627135803736458264"
+      },
+      {
+        "file": "devops/k8s/user-service/service.yaml",
+        "hash": "9558819633711123777"
+      },
+      {
+        "file": "devops/k8s/base/auth-service-secret.yaml",
+        "hash": "10374351362287473239"
+      },
+      {
+        "file": "fix-path.ps1",
+        "hash": "2050269990299378432"
+      },
+      {
+        "file": "apps/networking-service/src/outreach/outreach.controller.ts",
+        "hash": "5267891252819517460"
+      },
+      {
+        "file": "devops/docker/auth-service.Dockerfile",
+        "hash": "14549770719452179927"
+      },
+      {
+        "file": "devops/k8s/staging/auth-service.yaml",
+        "hash": "8934550279993896757"
+      },
+      {
+        "file": "frontend/.gitignore",
+        "hash": "3377529041528991192"
+      },
+      {
+        "file": "frontend/Dockerfile",
+        "hash": "6774787613220787782"
+      },
+      {
+        "file": "frontend/public/file.svg",
+        "hash": "15617830351863523835"
+      },
+      {
+        "file": "frontend/src/types/bewerbung.ts",
+        "hash": "6865213491426237019"
+      },
+      {
+        "file": "frontend/src/app/dashboard/ostoracv/resume/page.tsx",
+        "hash": "10925121317254068433"
+      },
+      {
+        "file": "devops/docker/ai-service.Dockerfile",
+        "hash": "3103910603402764462"
+      },
+      {
+        "file": "apps/networking-service/src/main.ts",
+        "hash": "3110283673170818562"
+      },
+      {
+        "file": "scripts/setup-git.sh",
+        "hash": "6356974443740305000"
+      },
+      {
+        "file": "frontend/src/store/slices/bewerbung-slice.ts",
+        "hash": "10593150513077086179"
       },
       {
         "file": "frontend/next.config.ts",
@@ -470,789 +706,392 @@
         "hash": "9095832973251043995"
       },
       {
-        "file": "frontend/package.json",
-        "hash": "478573180150018421"
+        "file": "devops/jenkins/Jenkinsfile.auth-service",
+        "hash": "12018456950947732129"
       },
       {
-        "file": "frontend/postcss.config.mjs",
-        "hash": "16325831446291273164"
+        "file": "devops/docker/api-gateway.Dockerfile",
+        "hash": "8162342783652442405"
       },
       {
-        "file": "frontend/public/file.svg",
-        "hash": "15617830351863523835"
+        "file": "apps/networking-service/src/linkedin/linkedin.service.ts",
+        "hash": "10751713735416123391"
       },
       {
         "file": "frontend/public/globe.svg",
         "hash": "9134466864871335697"
       },
       {
-        "file": "frontend/public/next.svg",
-        "hash": "8300767200008744458"
-      },
-      {
-        "file": "frontend/public/vercel.svg",
-        "hash": "3007623926711696394"
-      },
-      {
-        "file": "frontend/public/window.svg",
-        "hash": "16677869292061012332"
-      },
-      {
         "file": "frontend/src/app/admin/page.tsx",
         "hash": "12702320837390203068"
-      },
-      {
-        "file": "frontend/src/app/dashboard/applications/page.tsx",
-        "hash": "14769581733971076144"
-      },
-      {
-        "file": "frontend/src/app/dashboard/documents/page.tsx",
-        "hash": "9088993261470470400"
-      },
-      {
-        "file": "frontend/src/app/dashboard/fast-apply/page.tsx",
-        "hash": "1479760088687901496"
-      },
-      {
-        "file": "frontend/src/app/dashboard/jobs/page.tsx",
-        "hash": "12103692098683556887"
-      },
-      {
-        "file": "frontend/src/app/dashboard/layout.tsx",
-        "hash": "14235719505348549509"
-      },
-      {
-        "file": "frontend/src/app/dashboard/messages/page.tsx",
-        "hash": "14204179073387308016"
-      },
-      {
-        "file": "frontend/src/app/dashboard/page.tsx",
-        "hash": "2048113040291302533"
-      },
-      {
-        "file": "frontend/src/app/dashboard/profile/page.tsx",
-        "hash": "7151122466549156148"
-      },
-      {
-        "file": "frontend/src/app/dashboard/saved/page.tsx",
-        "hash": "9184769588270697887"
-      },
-      {
-        "file": "frontend/src/app/dashboard/settings/page.tsx",
-        "hash": "12691260850743091049"
-      },
-      {
-        "file": "frontend/src/app/favicon.ico",
-        "hash": "9157999678830540297"
-      },
-      {
-        "file": "frontend/src/app/forbidden/page.tsx",
-        "hash": "3751862551136975849"
-      },
-      {
-        "file": "frontend/src/app/globals.css",
-        "hash": "254495971727891513"
-      },
-      {
-        "file": "frontend/src/app/jobs/[id]/page.tsx",
-        "hash": "14009612509056330324"
-      },
-      {
-        "file": "frontend/src/app/layout.tsx",
-        "hash": "16093673540726132658"
-      },
-      {
-        "file": "frontend/src/app/login/page.tsx",
-        "hash": "10244741658329552223"
-      },
-      {
-        "file": "frontend/src/app/page.tsx",
-        "hash": "4568280651881774003"
-      },
-      {
-        "file": "frontend/src/app/register/page.tsx",
-        "hash": "11707051474564956150"
       },
       {
         "file": "frontend/src/app/register/verify-email/page.tsx",
         "hash": "3886239951554330667"
       },
       {
-        "file": "frontend/src/components/__tests__/login-form.test.tsx",
-        "hash": "4827867488949059931"
-      },
-      {
-        "file": "frontend/src/components/auth/login-form.tsx",
-        "hash": "12601808698661990031"
-      },
-      {
-        "file": "frontend/src/components/auth/register-form.tsx",
-        "hash": "5977706564880413467"
-      },
-      {
-        "file": "frontend/src/components/dashboard/DashboardHeader.tsx",
-        "hash": "791985967322953963"
-      },
-      {
-        "file": "frontend/src/components/dashboard/DashboardSidebar.tsx",
-        "hash": "5419799202228354660"
-      },
-      {
-        "file": "frontend/src/components/dashboard/FloatingAIAssistant.tsx",
-        "hash": "9808445722864696090"
-      },
-      {
-        "file": "frontend/src/components/dashboard/RobotMascot.tsx",
-        "hash": "87916830901535453"
-      },
-      {
-        "file": "frontend/src/components/dashboard/documents/DocumentForm.tsx",
-        "hash": "8528982529260338166"
-      },
-      {
-        "file": "frontend/src/components/dashboard/documents/MappeForm.tsx",
-        "hash": "2204497584125941858"
-      },
-      {
-        "file": "frontend/src/components/dashboard/documents/Modal.tsx",
-        "hash": "12756282834260652646"
-      },
-      {
-        "file": "frontend/src/components/jobs/JobCard.tsx",
-        "hash": "7130560869682881586"
-      },
-      {
-        "file": "frontend/src/features/auth/__tests__/auth-flow.test.tsx",
-        "hash": "7757120095844989006"
-      },
-      {
-        "file": "frontend/src/lib/api-client.ts",
-        "hash": "6517297094525244412"
-      },
-      {
-        "file": "frontend/src/lib/application-state.ts",
-        "hash": "15889065468930405462"
-      },
-      {
-        "file": "frontend/src/lib/constants.ts",
-        "hash": "16916148636485474474"
-      },
-      {
-        "file": "frontend/src/lib/contact-extractor.ts",
-        "hash": "3424693774772403957"
-      },
-      {
-        "file": "frontend/src/lib/jwt.ts",
-        "hash": "802182341626885643"
-      },
-      {
-        "file": "frontend/src/lib/server-api.ts",
-        "hash": "492990768095866637"
-      },
-      {
-        "file": "frontend/src/providers/app-providers.tsx",
-        "hash": "13921766620394796878"
-      },
-      {
-        "file": "frontend/src/services/auth.service.ts",
-        "hash": "4913682945097562655"
-      },
-      {
-        "file": "frontend/src/store/hooks.ts",
-        "hash": "16990710529571675914"
+        "file": "frontend/src/store/slices/auth-slice.ts",
+        "hash": "11604467832829696531"
       },
       {
         "file": "frontend/src/store/index.ts",
         "hash": "17500132074310798396"
       },
       {
-        "file": "frontend/src/store/slices/auth-slice.ts",
-        "hash": "11604467832829696531"
+        "file": "frontend/src/components/dashboard/documents/Modal.tsx",
+        "hash": "12756282834260652646"
       },
       {
-        "file": "frontend/src/store/slices/bewerbung-slice.ts",
-        "hash": "10593150513077086179"
-      },
-      {
-        "file": "frontend/src/types/auth.ts",
-        "hash": "4780549665823474670"
-      },
-      {
-        "file": "frontend/src/types/bewerbung.ts",
-        "hash": "6865213491426237019"
-      },
-      {
-        "file": "frontend/src/types/job.ts",
-        "hash": "17559027414313083691"
-      },
-      {
-        "file": "frontend/src/types/js-cookie.d.ts",
-        "hash": "15492047900472520814"
-      },
-      {
-        "file": "frontend/tailwind.config.js",
-        "hash": "3277218422809125003"
-      },
-      {
-        "file": "frontend/tsconfig.json",
-        "hash": "371619562070809093"
-      },
-      {
-        "file": "jest.config.js",
-        "hash": "5788031201447047313"
-      },
-      {
-        "file": "jest.preset.js",
-        "hash": "3612300490656737904"
-      },
-      {
-        "file": "job-card-component.jsx",
-        "hash": "12461451661301228937"
-      },
-      {
-        "file": "nx.json",
-        "hash": "16220432666974105064"
-      },
-      {
-        "file": "otp_response.json",
-        "hash": "12016820641269926513"
+        "file": "frontend/eslint.config.mjs",
+        "hash": "5072742284577310158"
       },
       {
         "file": "package-lock.json",
-        "hash": "9864900316811733885"
-      },
-      {
-        "file": "package.json",
-        "hash": "14930979578450177228"
-      },
-      {
-        "file": "prisma/schema.prisma",
-        "hash": "10236467376167222332"
-      },
-      {
-        "file": "prisma/seed.ts",
-        "hash": "14932743816946814567"
-      },
-      {
-        "file": "restart-api.bat",
-        "hash": "15368632727257497230"
-      },
-      {
-        "file": "scripts/init-mysql.sql",
-        "hash": "17505709288912723968"
-      },
-      {
-        "file": "scripts/init-postgres.sql",
-        "hash": "17202630500789043895"
-      },
-      {
-        "file": "scripts/install-nodejs.bat",
-        "hash": "2579752933790323418"
+        "hash": "13333199081102542009"
       },
       {
         "file": "scripts/migration/mysql-to-postgres.ts",
         "hash": "8419764176937358668"
       },
       {
-        "file": "scripts/setup-and-test.bat",
-        "hash": "10066093394885156682"
+        "file": "apps/networking-service/src/outreach/outreach.service.ts",
+        "hash": "14225524111668515059"
       },
       {
-        "file": "scripts/setup-git.sh",
-        "hash": "6356974443740305000"
-      },
-      {
-        "file": "setup-project.bat",
-        "hash": "12851317097940093639"
-      },
-      {
-        "file": "setup-project.ps1",
-        "hash": "15256361923168343045"
-      },
-      {
-        "file": "setup.bat",
-        "hash": "17040147802881657003"
+        "file": "frontend/src/components/dashboard/DashboardSidebar.tsx",
+        "hash": "16755119854709707036"
       },
       {
         "file": "standalone-jobs-api.js",
         "hash": "671740237434651851"
       },
       {
-        "file": "start-frontend.bat",
-        "hash": "6612443443692409306"
+        "file": "devops/docker/networking-service.Dockerfile",
+        "hash": "6615156730653620200"
       },
       {
-        "file": "test-and-commit-gateway.bat",
-        "hash": "8920908435989561590"
+        "file": "frontend/src/app/dashboard/settings/page.tsx",
+        "hash": "12227551325263503834"
       },
       {
-        "file": "tmp_linkedin_payload.json",
-        "hash": "8108802738177629557"
+        "file": "frontend/src/app/favicon.ico",
+        "hash": "9157999678830540297"
       },
       {
-        "file": "tsconfig.base.json",
-        "hash": "6377365718620125912"
-      },
-      {
-        "file": "tsconfig.json",
-        "hash": "7349318364703066055"
-      },
-      {
-        "file": "validate-and-commit.bat",
-        "hash": "8190865983947132676"
+        "file": "devops/k8s/user-service/configmap.yaml",
+        "hash": "12256014512204865913"
       },
       {
         "file": "workspace.json",
         "hash": "2150427924373924574"
+      },
+      {
+        "file": "TASK-5.1-COMPLETE.md",
+        "hash": "6802066604289758002"
+      },
+      {
+        "file": "frontend/src/types/job.ts",
+        "hash": "17559027414313083691"
+      },
+      {
+        "file": "scripts/install-nodejs.bat",
+        "hash": "2579752933790323418"
+      },
+      {
+        "file": "apps/networking-service/src/campaign/campaign.controller.ts",
+        "hash": "13158960909928926801"
+      },
+      {
+        "file": "devops/k8s/base/api-gateway.yaml",
+        "hash": "13408349722943926047"
+      },
+      {
+        "file": "devops/k8s/ostoracv-service-deployment.yaml",
+        "hash": "17091783363264481829"
+      },
+      {
+        "file": "frontend/src/app/dashboard/jobs/page.tsx",
+        "hash": "12103692098683556887"
+      },
+      {
+        "file": "frontend/README.md",
+        "hash": "10011398316402962549"
+      },
+      {
+        "file": "devops/docker/user-service.Dockerfile",
+        "hash": "5367526186820309197"
+      },
+      {
+        "file": "devops/docker/scraping-service.Dockerfile",
+        "hash": "12421791705222753034"
+      },
+      {
+        "file": "frontend/src/lib/contact-extractor.ts",
+        "hash": "3424693774772403957"
+      },
+      {
+        "file": "frontend/src/services/auth.service.ts",
+        "hash": "4913682945097562655"
+      },
+      {
+        "file": "frontend/tailwind.config.js",
+        "hash": "3277218422809125003"
+      },
+      {
+        "file": "job-card-component.jsx",
+        "hash": "12461451661301228937"
+      },
+      {
+        "file": "frontend/src/lib/payment-client.ts",
+        "hash": "9845005559886615920"
+      },
+      {
+        "file": "devops/docker/analytics-service.Dockerfile",
+        "hash": "1550581890216308403"
+      },
+      {
+        "file": "start-frontend.bat",
+        "hash": "6612443443692409306"
+      },
+      {
+        "file": "devops/docker/ostoracv-service.Dockerfile",
+        "hash": "326360332045016954"
       }
     ],
     "projectFileMap": {
-      "ai-service": [
+      "@ostora/shared-interfaces": [
         {
-          "file": "apps/ai-service/.dockerignore",
-          "hash": "151539185292918788"
+          "file": "libs/shared-interfaces/package.json",
+          "hash": "18013178706857667717"
         },
         {
-          "file": "apps/ai-service/.env.example",
-          "hash": "2507858974938429538"
+          "file": "libs/shared-interfaces/src/index.ts",
+          "hash": "3737214394007349657"
         },
         {
-          "file": "apps/ai-service/ANALYZER-MODE-IMPLEMENTATION.md",
-          "hash": "17943569585856085529"
+          "file": "libs/shared-interfaces/src/interfaces.ts",
+          "hash": "9465692003546581619"
+        }
+      ],
+      "notification-service": [
+        {
+          "file": "apps/notification-service/project.json",
+          "hash": "7508099709710633038"
         },
         {
-          "file": "apps/ai-service/COMPARATOR-MODE-IMPLEMENTATION.md",
-          "hash": "17323621176327512055"
-        },
-        {
-          "file": "apps/ai-service/Dockerfile",
-          "hash": "10708531966158704913"
-        },
-        {
-          "file": "apps/ai-service/FAST-APPLY-CHECKLIST.md",
-          "hash": "783979217370495866"
-        },
-        {
-          "file": "apps/ai-service/FAST-APPLY-COMPLETE.md",
-          "hash": "7430340210371454796"
-        },
-        {
-          "file": "apps/ai-service/FAST-APPLY-IMPLEMENTATION.md",
-          "hash": "8888718629260965023"
-        },
-        {
-          "file": "apps/ai-service/FAST-APPLY-QUICKSTART.md",
-          "hash": "15721867757888329819"
-        },
-        {
-          "file": "apps/ai-service/FAST-APPLY-SUMMARY.md",
-          "hash": "4536593863828206968"
-        },
-        {
-          "file": "apps/ai-service/IMPLEMENTATION.md",
-          "hash": "1241150532332589656"
-        },
-        {
-          "file": "apps/ai-service/OLLAMA-IMPLEMENTATION.md",
-          "hash": "15907586832273966417"
-        },
-        {
-          "file": "apps/ai-service/OLLAMA-PROMPT-BUILDER-COMPLETE.md",
-          "hash": "8838268049902305657"
-        },
-        {
-          "file": "apps/ai-service/OLLAMA-PROMPT-BUILDER.md",
-          "hash": "5063600638162836765"
-        },
-        {
-          "file": "apps/ai-service/PROMPT-BUILDER-QUICKREF.md",
-          "hash": "7916717133717187944"
-        },
-        {
-          "file": "apps/ai-service/README.md",
-          "hash": "10372709521306754343"
-        },
-        {
-          "file": "apps/ai-service/UNIFIED-AI-IMPLEMENTATION.md",
-          "hash": "15645024095195427156"
-        },
-        {
-          "file": "apps/ai-service/jest.config.js",
-          "hash": "14951617846550581130"
-        },
-        {
-          "file": "apps/ai-service/nest-cli.json",
-          "hash": "13608289614493451993"
-        },
-        {
-          "file": "apps/ai-service/package.json",
-          "hash": "10809783603066705816",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/core",
-            "npm:@nestjs/platform-express",
-            "npm:@nestjs/microservices",
-            "npm:@nestjs/bull",
-            "npm:@nestjs/websockets",
-            "npm:@nestjs/platform-socket.io",
-            "npm:@prisma/client",
-            "npm:bull",
-            "npm:socket.io",
-            "npm:ioredis",
-            "npm:kafkajs",
-            "npm:node-fetch",
-            "npm:class-validator",
-            "npm:class-transformer",
-            "npm:winston",
-            "npm:uuid",
-            "npm:rxjs",
-            "npm:@nestjs/cli",
-            "npm:@nestjs/schematics",
-            "npm:@nestjs/testing",
-            "npm:@types/node",
-            "npm:@types/jest",
-            "npm:@types/uuid",
-            "npm:jest",
-            "npm:ts-jest",
-            "npm:typescript"
-          ]
-        },
-        {
-          "file": "apps/ai-service/project.json",
-          "hash": "3856946429570372968"
-        },
-        {
-          "file": "apps/ai-service/src/app.module.ts",
-          "hash": "12814425547126962252",
+          "file": "apps/notification-service/src/app.module.ts",
+          "hash": "116390687587320853",
           "deps": [
             "npm:@nestjs/common",
             "npm:@nestjs/config",
-            "npm:@nestjs/bull"
+            "npm:@nestjs/schedule"
           ]
         },
         {
-          "file": "apps/ai-service/src/dto/ai-request.dto.ts",
-          "hash": "5322952400419628982",
-          "deps": [
-            "npm:class-validator"
-          ]
-        },
-        {
-          "file": "apps/ai-service/src/dto/fast-apply.dto.ts",
-          "hash": "12658334768275957980",
-          "deps": [
-            "npm:class-validator"
-          ]
-        },
-        {
-          "file": "apps/ai-service/src/fast-apply/fast-apply-progress.service.ts",
-          "hash": "16838611622211411407",
+          "file": "apps/notification-service/src/cache/redis.service.ts",
+          "hash": "910838144779751530",
           "deps": [
             "npm:@nestjs/common",
-            "npm:@nestjs/config",
-            "npm:ioredis"
+            "npm:redis"
           ]
         },
         {
-          "file": "apps/ai-service/src/fast-apply/fast-apply.controller.ts",
-          "hash": "8677557089703709524",
+          "file": "apps/notification-service/src/channels/channel-router.service.ts",
+          "hash": "8317614547823220426",
           "deps": [
             "npm:@nestjs/common"
           ]
         },
         {
-          "file": "apps/ai-service/src/fast-apply/fast-apply.processor.ts",
-          "hash": "15146038501852843837",
-          "deps": [
-            "npm:@nestjs/bull",
-            "npm:@nestjs/common",
-            "npm:bull",
-            "npm:@nestjs/config",
-            "npm:ioredis"
-          ]
-        },
-        {
-          "file": "apps/ai-service/src/fast-apply/fast-apply.service.ts",
-          "hash": "10689557977280855188",
+          "file": "apps/notification-service/src/channels/email.channel.ts",
+          "hash": "11822080543484572808",
           "deps": [
             "npm:@nestjs/common",
-            "npm:@nestjs/bull",
-            "npm:bull",
-            "npm:uuid"
+            "npm:kafkajs"
           ]
         },
         {
-          "file": "apps/ai-service/src/interfaces/ai-response.interface.ts",
-          "hash": "1651643405310078409"
-        },
-        {
-          "file": "apps/ai-service/src/interfaces/analyzer.interface.ts",
-          "hash": "11618191096086039080"
-        },
-        {
-          "file": "apps/ai-service/src/interfaces/comparator.interface.ts",
-          "hash": "14963845827954627599"
-        },
-        {
-          "file": "apps/ai-service/src/interfaces/fast-apply.interface.ts",
-          "hash": "2118541633606022148"
-        },
-        {
-          "file": "apps/ai-service/src/main.ts",
-          "hash": "3559851954394428606",
-          "deps": [
-            "npm:@nestjs/core",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/ai-service/src/prisma.service.ts",
-          "hash": "4488494652581606473",
+          "file": "apps/notification-service/src/channels/fcm-token.service.ts",
+          "hash": "5923058885948415352",
           "deps": [
             "npm:@nestjs/common",
             "npm:@prisma/client"
           ]
         },
         {
-          "file": "apps/ai-service/src/prompt-builder/prompt-builder.service.ts",
-          "hash": "5089501536287075668",
+          "file": "apps/notification-service/src/channels/push.channel.ts",
+          "hash": "11594872808976620284",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:firebase-admin"
+          ]
+        },
+        {
+          "file": "apps/notification-service/src/channels/websocket.channel.ts",
+          "hash": "5658146487179329867",
           "deps": [
             "npm:@nestjs/common"
           ]
         },
         {
-          "file": "apps/ai-service/src/prompt-builder/prompt-type.enum.ts",
-          "hash": "16103824057099641226"
-        },
-        {
-          "file": "apps/ai-service/src/prompt-builder/system-prompts.config.ts",
-          "hash": "332622420012000607"
-        },
-        {
-          "file": "apps/ai-service/src/queues/cover-letter.processor.ts",
-          "hash": "16856961611818119732",
+          "file": "apps/notification-service/src/consumers/ai-events.consumer.ts",
+          "hash": "16271160835949711501",
           "deps": [
-            "npm:@nestjs/bull",
             "npm:@nestjs/common",
-            "npm:bull"
+            "npm:kafkajs"
           ]
         },
         {
-          "file": "apps/ai-service/src/queues/cover-letter.queue.ts",
-          "hash": "18340263266044285919",
+          "file": "apps/notification-service/src/consumers/job-events.consumer.ts",
+          "hash": "12615287111154853114",
           "deps": [
             "npm:@nestjs/common",
-            "npm:@nestjs/bull",
-            "npm:bull"
+            "npm:kafkajs"
           ]
         },
         {
-          "file": "apps/ai-service/src/queues/cv-analysis.processor.ts",
-          "hash": "5921250905735878548",
-          "deps": [
-            "npm:@nestjs/bull",
-            "npm:@nestjs/common",
-            "npm:bull"
-          ]
-        },
-        {
-          "file": "apps/ai-service/src/queues/cv-analysis.queue.ts",
-          "hash": "4259769876888080007",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/bull",
-            "npm:bull"
-          ]
-        },
-        {
-          "file": "apps/ai-service/src/queues/job-matching.processor.ts",
-          "hash": "12457426626009986684",
-          "deps": [
-            "npm:@nestjs/bull",
-            "npm:@nestjs/common",
-            "npm:bull"
-          ]
-        },
-        {
-          "file": "apps/ai-service/src/queues/job-matching.queue.ts",
-          "hash": "2614728780698581072",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/bull",
-            "npm:bull"
-          ]
-        },
-        {
-          "file": "apps/ai-service/src/queues/profile-optimizer.processor.ts",
-          "hash": "9518524390644176577",
-          "deps": [
-            "npm:@nestjs/bull",
-            "npm:@nestjs/common",
-            "npm:bull"
-          ]
-        },
-        {
-          "file": "apps/ai-service/src/queues/profile-optimizer.queue.ts",
-          "hash": "814533543454352564",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/bull",
-            "npm:bull"
-          ]
-        },
-        {
-          "file": "apps/ai-service/src/rate-limiter/ai-quota.guard.ts",
-          "hash": "9452265551594501827",
+          "file": "apps/notification-service/src/consumers/notification.consumer.ts",
+          "hash": "11935311937735777528",
           "deps": [
             "npm:@nestjs/common"
           ]
         },
         {
-          "file": "apps/ai-service/src/rate-limiter/ai-usage.service.ts",
-          "hash": "113365106862005729",
+          "file": "apps/notification-service/src/consumers/payment-events.consumer.ts",
+          "hash": "17998132206495577545",
           "deps": [
             "npm:@nestjs/common",
-            "npm:@nestjs/config",
-            "npm:ioredis"
+            "npm:kafkajs"
           ]
         },
         {
-          "file": "apps/ai-service/src/result/ai-result.controller.ts",
-          "hash": "15739922036849505657",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/config",
-            "npm:ioredis"
-          ]
-        },
-        {
-          "file": "apps/ai-service/src/token-router/blazeai.provider.ts",
-          "hash": "12677364601341833581",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/config",
-            "npm:node-fetch"
-          ]
-        },
-        {
-          "file": "apps/ai-service/src/token-router/ollama.provider.ts",
-          "hash": "1847511448867544208",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/config",
-            "npm:node-fetch"
-          ]
-        },
-        {
-          "file": "apps/ai-service/src/token-router/provider.interface.ts",
-          "hash": "3827757510833868318"
-        },
-        {
-          "file": "apps/ai-service/src/token-router/token-router.service.ts",
-          "hash": "5966332065170435689",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/config",
-            "npm:ioredis"
-          ]
-        },
-        {
-          "file": "apps/ai-service/src/unified-ai/intent-detector.service.ts",
-          "hash": "3511285002855759628",
+          "file": "apps/notification-service/src/digest/digest.service.ts",
+          "hash": "3925228835825543685",
           "deps": [
             "npm:@nestjs/common"
           ]
         },
         {
-          "file": "apps/ai-service/src/unified-ai/modes/analyzer.mode.ts",
-          "hash": "7687118118331293304",
+          "file": "apps/notification-service/src/digest/fcm-token-cleanup.cron.ts",
+          "hash": "3328528619934578140",
           "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/schedule"
+          ]
+        },
+        {
+          "file": "apps/notification-service/src/digest/trial-warning.cron.ts",
+          "hash": "10802477218858762211",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/schedule",
+            "npm:@prisma/client"
+          ]
+        },
+        {
+          "file": "apps/notification-service/src/digest/weekly-digest.cron.ts",
+          "hash": "9766194306147742683",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/schedule",
+            "npm:@prisma/client"
+          ]
+        },
+        {
+          "file": "apps/notification-service/src/gateway/notification.gateway.ts",
+          "hash": "4311807146465222818",
+          "deps": [
+            "npm:@nestjs/websockets",
+            "npm:socket.io",
             "npm:@nestjs/common"
           ]
         },
         {
-          "file": "apps/ai-service/src/unified-ai/modes/assistant.mode.ts",
-          "hash": "18381122427994989451",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/ai-service/src/unified-ai/modes/comparator.mode.ts",
-          "hash": "4660599034566910540",
+          "file": "apps/notification-service/src/gateway/ws-auth.guard.ts",
+          "hash": "10433192690466458509",
           "deps": [
             "npm:@nestjs/common",
-            "npm:@nestjs/config",
-            "npm:ioredis"
+            "npm:@nestjs/websockets"
           ]
         },
         {
-          "file": "apps/ai-service/src/unified-ai/session-manager.service.ts",
-          "hash": "2987953105801135990",
+          "file": "apps/notification-service/src/main.ts",
+          "hash": "14670361957448065476",
+          "deps": [
+            "npm:@nestjs/core",
+            "npm:@nestjs/common",
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/notification-service/src/notification/dto/mark-read.dto.ts",
+          "hash": "14415081267871522564",
+          "deps": [
+            "npm:class-validator"
+          ]
+        },
+        {
+          "file": "apps/notification-service/src/notification/dto/notification.response.ts",
+          "hash": "17849069601962126658"
+        },
+        {
+          "file": "apps/notification-service/src/notification/dto/register-fcm-token.dto.ts",
+          "hash": "16048310293255742670",
+          "deps": [
+            "npm:class-validator",
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/notification-service/src/notification/notification.controller.ts",
+          "hash": "7129886188486104394",
           "deps": [
             "npm:@nestjs/common",
-            "npm:@nestjs/config",
-            "npm:ioredis",
-            "npm:uuid"
+            "npm:@nestjs/swagger"
           ]
         },
         {
-          "file": "apps/ai-service/src/unified-ai/unified-ai.controller.ts",
-          "hash": "4174648614109644335",
+          "file": "apps/notification-service/src/notification/notification.service.ts",
+          "hash": "8173858746403130709",
           "deps": [
             "npm:@nestjs/common",
-            "npm:@nestjs/bull",
-            "npm:bull"
+            "npm:@prisma/client"
           ]
         },
         {
-          "file": "apps/ai-service/src/value-objects/ai-metrics.vo.ts",
-          "hash": "3795917515632438300"
-        },
-        {
-          "file": "apps/ai-service/src/workers/pdf-parser.worker.ts",
-          "hash": "7025609545146714203",
+          "file": "apps/notification-service/src/preferences/dto/preferences-response.dto.ts",
+          "hash": "5407466703448121753",
           "deps": [
-            "npm:worker_threads",
-            "npm:pdfjs-dist"
+            "npm:@nestjs/swagger"
           ]
         },
         {
-          "file": "apps/ai-service/src/workers/tfidf-matcher.worker.ts",
-          "hash": "15299161156169322227",
+          "file": "apps/notification-service/src/preferences/dto/update-preferences.dto.ts",
+          "hash": "2259706216850954833",
           "deps": [
-            "npm:worker_threads",
-            "npm:natural"
+            "npm:class-validator",
+            "npm:@nestjs/swagger"
           ]
         },
         {
-          "file": "apps/ai-service/tsconfig.json",
-          "hash": "2516315410474728346"
-        }
-      ],
-      "@ostora/shared-utils": [
-        {
-          "file": "libs/shared-utils/package.json",
-          "hash": "12580115154479882853",
+          "file": "apps/notification-service/src/preferences/preferences.controller.ts",
+          "hash": "589639339830168593",
           "deps": [
-            "npm:bcrypt",
-            "npm:uuid",
-            "npm:uuidv7"
+            "npm:@nestjs/common",
+            "npm:@nestjs/swagger"
           ]
         },
         {
-          "file": "libs/shared-utils/src/index.ts",
-          "hash": "8213285748717114530"
-        },
-        {
-          "file": "libs/shared-utils/src/utils.ts",
-          "hash": "11342867830733951060",
+          "file": "apps/notification-service/src/preferences/preferences.service.ts",
+          "hash": "2185401918966275115",
           "deps": [
-            "npm:bcrypt",
-            "npm:crypto",
-            "npm:uuid",
-            "npm:uuidv7"
+            "npm:@nestjs/common",
+            "npm:@prisma/client"
           ]
+        },
+        {
+          "file": "apps/notification-service/tsconfig.json",
+          "hash": "13482203411062471337"
         }
       ],
       "payment-service": [
@@ -1302,7 +1141,7 @@
         },
         {
           "file": "apps/payment-service/src/app.module.ts",
-          "hash": "10453288593098835582",
+          "hash": "9680740012506420027",
           "deps": [
             "npm:@nestjs/common",
             "npm:@nestjs/config",
@@ -1432,7 +1271,7 @@
         },
         {
           "file": "apps/payment-service/src/providers/promo-code/promo-code.service.ts",
-          "hash": "6930749158072912088",
+          "hash": "6067974964810419604",
           "deps": [
             "npm:@nestjs/common",
             "npm:@prisma/client",
@@ -1500,7 +1339,7 @@
         },
         {
           "file": "apps/payment-service/src/subscription/subscription.controller.ts",
-          "hash": "14068964625752580718",
+          "hash": "3103913042989984917",
           "deps": [
             "npm:@nestjs/common",
             "npm:@nestjs/swagger"
@@ -1508,7 +1347,7 @@
         },
         {
           "file": "apps/payment-service/src/subscription/subscription.service.ts",
-          "hash": "6966166274884891188",
+          "hash": "10960549366480252563",
           "deps": [
             "npm:@nestjs/common",
             "npm:@prisma/client"
@@ -1692,6 +1531,1128 @@
         {
           "file": "apps/payment-service/tsconfig.json",
           "hash": "9901111136885296153"
+        }
+      ],
+      "@ostora/shared-interceptors": [
+        {
+          "file": "libs/shared-interceptors/package.json",
+          "hash": "4290182328883889716",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:rxjs",
+            "@ostora/shared-dto"
+          ]
+        },
+        {
+          "file": "libs/shared-interceptors/src/index.ts",
+          "hash": "18389510941027743092"
+        },
+        {
+          "file": "libs/shared-interceptors/src/interceptors.ts",
+          "hash": "6983588182879687993",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:rxjs",
+            "npm:express",
+            "@ostora/shared-dto"
+          ]
+        }
+      ],
+      "api-gateway": [
+        {
+          "file": "apps/api-gateway/README.md",
+          "hash": "13534837612663784551"
+        },
+        {
+          "file": "apps/api-gateway/package.json",
+          "hash": "4873770786409750917",
+          "deps": [
+            "npm:@nestjs/core",
+            "npm:@nestjs/common",
+            "npm:@nestjs/platform-express",
+            "npm:@nestjs/swagger",
+            "npm:@nestjs/throttler",
+            "npm:@nestjs/terminus",
+            "npm:@nestjs/microservices",
+            "npm:@nestjs/config",
+            "npm:@nestjs/graphql",
+            "npm:@nestjs/apollo",
+            "npm:@apollo/server",
+            "npm:@apollo/gateway",
+            "npm:@apollo/subgraph",
+            "npm:graphql",
+            "npm:helmet",
+            "npm:express-rate-limit",
+            "npm:uuid",
+            "npm:class-validator",
+            "npm:class-transformer",
+            "npm:winston",
+            "npm:nest-winston",
+            "npm:kafkajs",
+            "npm:cache-manager-ioredis-yet",
+            "npm:reflect-metadata",
+            "npm:rxjs",
+            "npm:@types/node",
+            "npm:typescript",
+            "npm:ts-node"
+          ]
+        },
+        {
+          "file": "apps/api-gateway/project.json",
+          "hash": "17910634142903657361"
+        },
+        {
+          "file": "apps/api-gateway/src/app.module.ts",
+          "hash": "10400047614183149379",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:@nestjs/throttler",
+            "npm:@nestjs/core",
+            "npm:@nestjs/cache-manager",
+            "npm:@nestjs/axios",
+            "npm:cache-manager-ioredis-yet",
+            "npm:@nestjs/graphql",
+            "npm:@nestjs/apollo",
+            "npm:@apollo/gateway"
+          ]
+        },
+        {
+          "file": "apps/api-gateway/src/common/filters/http-exception.filter.ts",
+          "hash": "5089487208887641763",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:axios",
+            "npm:express"
+          ]
+        },
+        {
+          "file": "apps/api-gateway/src/common/interceptors/request-logger.interceptor.ts",
+          "hash": "10511405844873898382",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:rxjs",
+            "npm:express"
+          ]
+        },
+        {
+          "file": "apps/api-gateway/src/common/middleware/correlation-id.middleware.ts",
+          "hash": "9954258668949155704",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:express",
+            "npm:uuid"
+          ]
+        },
+        {
+          "file": "apps/api-gateway/src/common/middleware/request-id.middleware.ts",
+          "hash": "1189389628258916545",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:express",
+            "npm:uuid"
+          ]
+        },
+        {
+          "file": "apps/api-gateway/src/config/config.service.ts",
+          "hash": "16257811594924410509",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config"
+          ]
+        },
+        {
+          "file": "apps/api-gateway/src/gateway/gateway.controller.ts",
+          "hash": "1006169129037181074",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/microservices",
+            "npm:@nestjs/swagger",
+            "npm:@nestjs/throttler",
+            "npm:rxjs",
+            "npm:express"
+          ]
+        },
+        {
+          "file": "apps/api-gateway/src/gateway/gateway.module.ts",
+          "hash": "1850738176415718583",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/microservices"
+          ]
+        },
+        {
+          "file": "apps/api-gateway/src/health/health.controller.ts",
+          "hash": "12940946784324094959",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/swagger",
+            "npm:@nestjs/terminus",
+            "npm:@nestjs/microservices"
+          ]
+        },
+        {
+          "file": "apps/api-gateway/src/health/health.module.ts",
+          "hash": "13839521839877509384",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/terminus",
+            "npm:@nestjs/axios"
+          ]
+        },
+        {
+          "file": "apps/api-gateway/src/main.ts",
+          "hash": "13838368330397874311",
+          "deps": [
+            "npm:@nestjs/core",
+            "npm:@nestjs/common",
+            "npm:@nestjs/swagger",
+            "npm:nest-winston",
+            "npm:helmet",
+            "npm:winston"
+          ]
+        },
+        {
+          "file": "apps/api-gateway/src/proxy/job-proxy.controller.ts",
+          "hash": "4354984982882722305",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/swagger",
+            "npm:@nestjs/axios",
+            "npm:rxjs"
+          ]
+        },
+        {
+          "file": "apps/api-gateway/src/proxy/user-proxy.controller.ts",
+          "hash": "3707934450136081410",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/swagger",
+            "npm:@nestjs/axios",
+            "npm:rxjs",
+            "npm:axios"
+          ]
+        },
+        {
+          "file": "apps/api-gateway/test/integration/full-flow.spec.ts",
+          "hash": "12132860377531258458",
+          "deps": [
+            "npm:rxjs"
+          ]
+        },
+        {
+          "file": "apps/api-gateway/tsconfig.app.json",
+          "hash": "14157088991616308821"
+        },
+        {
+          "file": "apps/api-gateway/tsconfig.json",
+          "hash": "3170028462270897752"
+        }
+      ],
+      "@ostora/shared-guards": [
+        {
+          "file": "libs/shared-guards/package.json",
+          "hash": "17567852176893551228",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/core",
+            "npm:rxjs",
+            "@ostora/shared-decorators"
+          ]
+        },
+        {
+          "file": "libs/shared-guards/src/guards.ts",
+          "hash": "569227486650020281",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/core",
+            "npm:rxjs",
+            "@ostora/shared-decorators"
+          ]
+        },
+        {
+          "file": "libs/shared-guards/src/index.ts",
+          "hash": "11579263375226770447"
+        }
+      ],
+      "@ostora/job-service": [
+        {
+          "file": "apps/job-service/.env.example",
+          "hash": "17495669940083856193"
+        },
+        {
+          "file": "apps/job-service/README.md",
+          "hash": "14734956787259950283"
+        },
+        {
+          "file": "apps/job-service/TASK-5.4-CHECKLIST.md",
+          "hash": "8500859970117166118"
+        },
+        {
+          "file": "apps/job-service/TASK-5.4-SUMMARY.md",
+          "hash": "1845377589412494099"
+        },
+        {
+          "file": "apps/job-service/package.json",
+          "hash": "3070477775255752407",
+          "deps": [
+            "npm:@nestjs/core",
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:@nestjs/platform-express",
+            "npm:@nestjs/microservices",
+            "npm:@nestjs/swagger",
+            "npm:@nestjs/bull",
+            "npm:@prisma/client",
+            "npm:@elastic/elasticsearch",
+            "npm:mysql2",
+            "npm:ioredis",
+            "npm:bull",
+            "npm:kafkajs",
+            "npm:class-validator",
+            "npm:class-transformer",
+            "npm:winston",
+            "npm:nest-winston",
+            "npm:rxjs",
+            "npm:reflect-metadata",
+            "npm:prisma",
+            "npm:@types/node",
+            "npm:typescript"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/app.module.ts",
+          "hash": "7403666739465714675",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/application/application.controller.ts",
+          "hash": "7393960756788500654",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/application/application.module.ts",
+          "hash": "465395321491944752",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/bull"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/application/application.service.ts",
+          "hash": "9700142349154532863",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/bull",
+            "npm:bull"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/application/dto/application.response.ts",
+          "hash": "1745355791090722987",
+          "deps": [
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/application/dto/apply.dto.ts",
+          "hash": "10735928374298157416",
+          "deps": [
+            "npm:class-validator",
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/application/dto/bulk-apply.dto.ts",
+          "hash": "1355570414664969897",
+          "deps": [
+            "npm:class-validator",
+            "npm:class-transformer",
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/application/queue/application.processor.ts",
+          "hash": "13877319141245777348",
+          "deps": [
+            "npm:@nestjs/bull",
+            "npm:@nestjs/common",
+            "npm:bull"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/application/queue/application.queue.ts",
+          "hash": "3016683551522178971"
+        },
+        {
+          "file": "apps/job-service/src/application/value-objects/application-data.vo.ts",
+          "hash": "14043850638899819530"
+        },
+        {
+          "file": "apps/job-service/src/company/company.response.ts",
+          "hash": "16519829083804549493",
+          "deps": [
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/company/company.service.ts",
+          "hash": "7909801208618759606",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/favorite/dto/toggle-favorite.dto.ts",
+          "hash": "7261509787305174856",
+          "deps": [
+            "npm:class-validator",
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/favorite/favorite.controller.ts",
+          "hash": "1868231419777835277",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/favorite/favorite.service.ts",
+          "hash": "6539180118207460406",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/health/health.controller.ts",
+          "hash": "16911571022869847196",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/job/dto/get-jobs.dto.ts",
+          "hash": "5904717603747106976",
+          "deps": [
+            "npm:class-validator",
+            "npm:class-transformer",
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/job/dto/job-filters.dto.ts",
+          "hash": "2770381004912801709",
+          "deps": [
+            "npm:class-validator",
+            "npm:class-transformer",
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/job/dto/job.response.ts",
+          "hash": "8307300204240382765",
+          "deps": [
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/job/dto/paginated-jobs.response.ts",
+          "hash": "15545868539565742461",
+          "deps": [
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/job/dto/search-jobs.dto.ts",
+          "hash": "14896920041935417828",
+          "deps": [
+            "npm:class-validator",
+            "npm:class-transformer",
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/job/dto/stellen-job.dto.ts",
+          "hash": "6587573141197070424",
+          "deps": [
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/job/job-dedup.service.ts",
+          "hash": "11868529348154622757",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@prisma/client"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/job/job.controller.ts",
+          "hash": "14643600652626633804",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/job/job.module.ts",
+          "hash": "2212240764656934681",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/job/job.service.ts",
+          "hash": "13434165534031578166",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:crypto",
+            "npm:mysql2"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/job/value-objects/job-search-query.vo.ts",
+          "hash": "2191586786823548662"
+        },
+        {
+          "file": "apps/job-service/src/job/value-objects/salary-range.vo.ts",
+          "hash": "13483675455759092436"
+        },
+        {
+          "file": "apps/job-service/src/kafka/job-event.listener.ts",
+          "hash": "13693553476709683588",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:kafkajs"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/kafka/kafka.module.ts",
+          "hash": "13901785024570140328",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/kafka/kafka.service.ts",
+          "hash": "7963627715587807992",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:kafkajs"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/main.ts",
+          "hash": "6189293740614398891",
+          "deps": [
+            "npm:@nestjs/core",
+            "npm:@nestjs/common",
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/mysql/mysql.module.ts",
+          "hash": "11027024347236611743",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/mysql/mysql.service.ts",
+          "hash": "15848227706778302825",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:mysql2"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/prisma/prisma.module.ts",
+          "hash": "9953693136448664954",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/prisma/prisma.service.ts",
+          "hash": "718592270783167474",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@prisma/client"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/redis/redis.module.ts",
+          "hash": "12285439854055938490",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/redis/redis.service.ts",
+          "hash": "15957474816803294257",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:ioredis",
+            "npm:@nestjs/config"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/search/elasticsearch.service.ts",
+          "hash": "267949917615694610",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@elastic/elasticsearch",
+            "npm:@nestjs/config"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/search/index-mapping.ts",
+          "hash": "14776849289904832353"
+        },
+        {
+          "file": "apps/job-service/src/search/job-indexing.service.ts",
+          "hash": "11965818096109871751",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/search/search-query-builder.ts",
+          "hash": "13619687807821159426"
+        },
+        {
+          "file": "apps/job-service/src/sync/job-sync.service.ts",
+          "hash": "6190481345858021872",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/sync/mysql-reader.service.ts",
+          "hash": "8866727618415509786",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:mysql2"
+          ]
+        },
+        {
+          "file": "apps/job-service/src/sync/sync.cron.ts",
+          "hash": "8772141227540837422",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/schedule"
+          ]
+        },
+        {
+          "file": "apps/job-service/test/e2e/full-flow.e2e-spec.ts",
+          "hash": "11693357447136512502",
+          "deps": [
+            "npm:@nestjs/testing",
+            "npm:@nestjs/common",
+            "npm:supertest"
+          ]
+        },
+        {
+          "file": "apps/job-service/test/unit/elasticsearch.service.spec.ts",
+          "hash": "12446190908299667788",
+          "deps": [
+            "npm:@nestjs/testing",
+            "npm:@nestjs/config"
+          ]
+        },
+        {
+          "file": "apps/job-service/test/unit/job-dedup.service.spec.ts",
+          "hash": "759623221179350061",
+          "deps": [
+            "npm:@nestjs/testing"
+          ]
+        },
+        {
+          "file": "apps/job-service/test/unit/job-search-query.spec.ts",
+          "hash": "2660306926625878448"
+        },
+        {
+          "file": "apps/job-service/tsconfig.json",
+          "hash": "12589753147200761673"
+        }
+      ],
+      "@ostora/shared-decorators": [
+        {
+          "file": "libs/shared-decorators/package.json",
+          "hash": "11901553111853038216",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "libs/shared-decorators/src/decorators.ts",
+          "hash": "4408401609612821962",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "libs/shared-decorators/src/index.ts",
+          "hash": "10545845954697214321"
+        }
+      ],
+      "ai-service": [
+        {
+          "file": "apps/ai-service/.dockerignore",
+          "hash": "151539185292918788"
+        },
+        {
+          "file": "apps/ai-service/.env.example",
+          "hash": "13800550938405682253"
+        },
+        {
+          "file": "apps/ai-service/AI-COVER-LETTER-FLOW.md",
+          "hash": "2136736136173310677"
+        },
+        {
+          "file": "apps/ai-service/ANALYZER-MODE-IMPLEMENTATION.md",
+          "hash": "17943569585856085529"
+        },
+        {
+          "file": "apps/ai-service/COMPARATOR-MODE-IMPLEMENTATION.md",
+          "hash": "17323621176327512055"
+        },
+        {
+          "file": "apps/ai-service/Dockerfile",
+          "hash": "10708531966158704913"
+        },
+        {
+          "file": "apps/ai-service/FAST-APPLY-CHECKLIST.md",
+          "hash": "783979217370495866"
+        },
+        {
+          "file": "apps/ai-service/FAST-APPLY-COMPLETE.md",
+          "hash": "7430340210371454796"
+        },
+        {
+          "file": "apps/ai-service/FAST-APPLY-IMPLEMENTATION.md",
+          "hash": "8888718629260965023"
+        },
+        {
+          "file": "apps/ai-service/FAST-APPLY-QUICKSTART.md",
+          "hash": "15721867757888329819"
+        },
+        {
+          "file": "apps/ai-service/FAST-APPLY-SUMMARY.md",
+          "hash": "4536593863828206968"
+        },
+        {
+          "file": "apps/ai-service/IMPLEMENTATION.md",
+          "hash": "1241150532332589656"
+        },
+        {
+          "file": "apps/ai-service/OLLAMA-IMPLEMENTATION.md",
+          "hash": "15907586832273966417"
+        },
+        {
+          "file": "apps/ai-service/OLLAMA-PROMPT-BUILDER-COMPLETE.md",
+          "hash": "8838268049902305657"
+        },
+        {
+          "file": "apps/ai-service/OLLAMA-PROMPT-BUILDER.md",
+          "hash": "5063600638162836765"
+        },
+        {
+          "file": "apps/ai-service/PROMPT-BUILDER-QUICKREF.md",
+          "hash": "7916717133717187944"
+        },
+        {
+          "file": "apps/ai-service/README.md",
+          "hash": "10372709521306754343"
+        },
+        {
+          "file": "apps/ai-service/UNIFIED-AI-IMPLEMENTATION.md",
+          "hash": "15645024095195427156"
+        },
+        {
+          "file": "apps/ai-service/jest.config.js",
+          "hash": "14951617846550581130"
+        },
+        {
+          "file": "apps/ai-service/nest-cli.json",
+          "hash": "13608289614493451993"
+        },
+        {
+          "file": "apps/ai-service/package.json",
+          "hash": "10809783603066705816",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/core",
+            "npm:@nestjs/platform-express",
+            "npm:@nestjs/microservices",
+            "npm:@nestjs/bull",
+            "npm:@nestjs/websockets",
+            "npm:@nestjs/platform-socket.io",
+            "npm:@prisma/client",
+            "npm:bull",
+            "npm:socket.io",
+            "npm:ioredis",
+            "npm:kafkajs",
+            "npm:node-fetch",
+            "npm:class-validator",
+            "npm:class-transformer",
+            "npm:winston",
+            "npm:uuid",
+            "npm:rxjs",
+            "npm:@nestjs/cli",
+            "npm:@nestjs/schematics",
+            "npm:@nestjs/testing",
+            "npm:@types/node",
+            "npm:@types/jest",
+            "npm:@types/uuid",
+            "npm:jest",
+            "npm:ts-jest",
+            "npm:typescript"
+          ]
+        },
+        {
+          "file": "apps/ai-service/project.json",
+          "hash": "5481528437924488230"
+        },
+        {
+          "file": "apps/ai-service/src/app.module.ts",
+          "hash": "14737626146221812101",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:@nestjs/bull",
+            "npm:path"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/cover-letter/cover-letter.controller.ts",
+          "hash": "13599557194632961972",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/cover-letter/dto/generate-cover-letter.dto.ts",
+          "hash": "2987244475149748072",
+          "deps": [
+            "npm:@nestjs/swagger",
+            "npm:class-validator"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/dto/ai-request.dto.ts",
+          "hash": "5322952400419628982",
+          "deps": [
+            "npm:class-validator"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/dto/fast-apply.dto.ts",
+          "hash": "12658334768275957980",
+          "deps": [
+            "npm:class-validator"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/fast-apply/fast-apply-progress.service.ts",
+          "hash": "16838611622211411407",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:ioredis"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/fast-apply/fast-apply.controller.ts",
+          "hash": "12478952225351953090",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/fast-apply/fast-apply.processor.ts",
+          "hash": "12230903448323231050",
+          "deps": [
+            "npm:@nestjs/bull",
+            "npm:@nestjs/common",
+            "npm:bull",
+            "npm:@nestjs/config",
+            "npm:ioredis"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/fast-apply/fast-apply.service.ts",
+          "hash": "9423210950187336631",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/bull",
+            "npm:bull",
+            "npm:uuid"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/interfaces/ai-response.interface.ts",
+          "hash": "1651643405310078409"
+        },
+        {
+          "file": "apps/ai-service/src/interfaces/analyzer.interface.ts",
+          "hash": "11618191096086039080"
+        },
+        {
+          "file": "apps/ai-service/src/interfaces/comparator.interface.ts",
+          "hash": "14963845827954627599"
+        },
+        {
+          "file": "apps/ai-service/src/interfaces/fast-apply.interface.ts",
+          "hash": "2118541633606022148"
+        },
+        {
+          "file": "apps/ai-service/src/main.ts",
+          "hash": "3559851954394428606",
+          "deps": [
+            "npm:@nestjs/core",
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/prisma.service.ts",
+          "hash": "4488494652581606473",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@prisma/client"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/prompt-builder/prompt-builder.service.ts",
+          "hash": "5089501536287075668",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/prompt-builder/prompt-type.enum.ts",
+          "hash": "16103824057099641226"
+        },
+        {
+          "file": "apps/ai-service/src/prompt-builder/system-prompts.config.ts",
+          "hash": "332622420012000607"
+        },
+        {
+          "file": "apps/ai-service/src/queues/cover-letter.processor.ts",
+          "hash": "7391213488172482691",
+          "deps": [
+            "npm:@nestjs/bull",
+            "npm:@nestjs/common",
+            "npm:bull",
+            "npm:axios"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/queues/cover-letter.queue.ts",
+          "hash": "18340263266044285919",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/bull",
+            "npm:bull"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/queues/cv-analysis.processor.ts",
+          "hash": "9728501575128469025",
+          "deps": [
+            "npm:@nestjs/bull",
+            "npm:@nestjs/common",
+            "npm:bull"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/queues/cv-analysis.queue.ts",
+          "hash": "4259769876888080007",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/bull",
+            "npm:bull"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/queues/job-matching.processor.ts",
+          "hash": "2067643881561704894",
+          "deps": [
+            "npm:@nestjs/bull",
+            "npm:@nestjs/common",
+            "npm:bull"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/queues/job-matching.queue.ts",
+          "hash": "2614728780698581072",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/bull",
+            "npm:bull"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/queues/profile-optimizer.processor.ts",
+          "hash": "9518524390644176577",
+          "deps": [
+            "npm:@nestjs/bull",
+            "npm:@nestjs/common",
+            "npm:bull"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/queues/profile-optimizer.queue.ts",
+          "hash": "814533543454352564",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/bull",
+            "npm:bull"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/rate-limiter/ai-quota.guard.ts",
+          "hash": "9452265551594501827",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/rate-limiter/ai-usage.service.ts",
+          "hash": "113365106862005729",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:ioredis"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/result/ai-result.controller.ts",
+          "hash": "15739922036849505657",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:ioredis"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/token-router/blazeai.provider.ts",
+          "hash": "14167396265500189097",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:node-fetch"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/token-router/ollama.provider.ts",
+          "hash": "2422768992805088607",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:node-fetch"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/token-router/provider.interface.ts",
+          "hash": "3827757510833868318"
+        },
+        {
+          "file": "apps/ai-service/src/token-router/token-router.service.ts",
+          "hash": "7343633957415916824",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:ioredis"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/unified-ai/intent-detector.service.ts",
+          "hash": "792041884145316577",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/unified-ai/modes/analyzer.mode.ts",
+          "hash": "10814457719801452368",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/unified-ai/modes/assistant.mode.ts",
+          "hash": "15590462735216140744",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/unified-ai/modes/comparator.mode.ts",
+          "hash": "3297682697819276874",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:ioredis"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/unified-ai/session-manager.service.ts",
+          "hash": "5363520570010345303",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:ioredis",
+            "npm:uuid"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/unified-ai/unified-ai.controller.ts",
+          "hash": "10334353747029849513",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/bull",
+            "npm:bull"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/value-objects/ai-metrics.vo.ts",
+          "hash": "3795917515632438300"
+        },
+        {
+          "file": "apps/ai-service/src/workers/pdf-parser.worker.ts",
+          "hash": "5873802234135820033",
+          "deps": [
+            "npm:worker_threads",
+            "npm:pdfjs-dist"
+          ]
+        },
+        {
+          "file": "apps/ai-service/src/workers/tfidf-matcher.worker.ts",
+          "hash": "2569649173645468820",
+          "deps": [
+            "npm:worker_threads",
+            "npm:natural"
+          ]
+        },
+        {
+          "file": "apps/ai-service/tsconfig.json",
+          "hash": "2516315410474728346"
         }
       ],
       "auth-service": [
@@ -2436,253 +3397,6 @@
           "hash": "5375733013749742056"
         }
       ],
-      "notification-service": [
-        {
-          "file": "apps/notification-service/project.json",
-          "hash": "7508099709710633038"
-        },
-        {
-          "file": "apps/notification-service/src/app.module.ts",
-          "hash": "116390687587320853",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/config",
-            "npm:@nestjs/schedule"
-          ]
-        },
-        {
-          "file": "apps/notification-service/src/cache/redis.service.ts",
-          "hash": "910838144779751530",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:redis"
-          ]
-        },
-        {
-          "file": "apps/notification-service/src/channels/channel-router.service.ts",
-          "hash": "8317614547823220426",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/notification-service/src/channels/email.channel.ts",
-          "hash": "11822080543484572808",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:kafkajs"
-          ]
-        },
-        {
-          "file": "apps/notification-service/src/channels/fcm-token.service.ts",
-          "hash": "5923058885948415352",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@prisma/client"
-          ]
-        },
-        {
-          "file": "apps/notification-service/src/channels/push.channel.ts",
-          "hash": "11594872808976620284",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:firebase-admin"
-          ]
-        },
-        {
-          "file": "apps/notification-service/src/channels/websocket.channel.ts",
-          "hash": "5658146487179329867",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/notification-service/src/consumers/ai-events.consumer.ts",
-          "hash": "16271160835949711501",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:kafkajs"
-          ]
-        },
-        {
-          "file": "apps/notification-service/src/consumers/job-events.consumer.ts",
-          "hash": "12615287111154853114",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:kafkajs"
-          ]
-        },
-        {
-          "file": "apps/notification-service/src/consumers/notification.consumer.ts",
-          "hash": "11935311937735777528",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/notification-service/src/consumers/payment-events.consumer.ts",
-          "hash": "17998132206495577545",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:kafkajs"
-          ]
-        },
-        {
-          "file": "apps/notification-service/src/digest/digest.service.ts",
-          "hash": "3925228835825543685",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/notification-service/src/digest/fcm-token-cleanup.cron.ts",
-          "hash": "3328528619934578140",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/schedule"
-          ]
-        },
-        {
-          "file": "apps/notification-service/src/digest/trial-warning.cron.ts",
-          "hash": "10802477218858762211",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/schedule",
-            "npm:@prisma/client"
-          ]
-        },
-        {
-          "file": "apps/notification-service/src/digest/weekly-digest.cron.ts",
-          "hash": "9766194306147742683",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/schedule",
-            "npm:@prisma/client"
-          ]
-        },
-        {
-          "file": "apps/notification-service/src/gateway/notification.gateway.ts",
-          "hash": "4311807146465222818",
-          "deps": [
-            "npm:@nestjs/websockets",
-            "npm:socket.io",
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/notification-service/src/gateway/ws-auth.guard.ts",
-          "hash": "10433192690466458509",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/websockets"
-          ]
-        },
-        {
-          "file": "apps/notification-service/src/main.ts",
-          "hash": "14670361957448065476",
-          "deps": [
-            "npm:@nestjs/core",
-            "npm:@nestjs/common",
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/notification-service/src/notification/dto/mark-read.dto.ts",
-          "hash": "14415081267871522564",
-          "deps": [
-            "npm:class-validator"
-          ]
-        },
-        {
-          "file": "apps/notification-service/src/notification/dto/notification.response.ts",
-          "hash": "17849069601962126658"
-        },
-        {
-          "file": "apps/notification-service/src/notification/dto/register-fcm-token.dto.ts",
-          "hash": "16048310293255742670",
-          "deps": [
-            "npm:class-validator",
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/notification-service/src/notification/notification.controller.ts",
-          "hash": "7129886188486104394",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/notification-service/src/notification/notification.service.ts",
-          "hash": "8173858746403130709",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@prisma/client"
-          ]
-        },
-        {
-          "file": "apps/notification-service/src/preferences/dto/preferences-response.dto.ts",
-          "hash": "5407466703448121753",
-          "deps": [
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/notification-service/src/preferences/dto/update-preferences.dto.ts",
-          "hash": "2259706216850954833",
-          "deps": [
-            "npm:class-validator",
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/notification-service/src/preferences/preferences.controller.ts",
-          "hash": "589639339830168593",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/notification-service/src/preferences/preferences.service.ts",
-          "hash": "2185401918966275115",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@prisma/client"
-          ]
-        },
-        {
-          "file": "apps/notification-service/tsconfig.json",
-          "hash": "13482203411062471337"
-        }
-      ],
-      "@ostora/shared-guards": [
-        {
-          "file": "libs/shared-guards/package.json",
-          "hash": "17567852176893551228",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/core",
-            "npm:rxjs",
-            "@ostora/shared-decorators"
-          ]
-        },
-        {
-          "file": "libs/shared-guards/src/guards.ts",
-          "hash": "569227486650020281",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/core",
-            "npm:rxjs",
-            "@ostora/shared-decorators"
-          ]
-        },
-        {
-          "file": "libs/shared-guards/src/index.ts",
-          "hash": "11579263375226770447"
-        }
-      ],
       "@ostora/shared-filters": [
         {
           "file": "libs/shared-filters/package.json",
@@ -2706,652 +3420,28 @@
           "hash": "13361373403365443580"
         }
       ],
-      "@ostora/shared-decorators": [
+      "@ostora/shared-utils": [
         {
-          "file": "libs/shared-decorators/package.json",
-          "hash": "11901553111853038216",
+          "file": "libs/shared-utils/package.json",
+          "hash": "12580115154479882853",
           "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/swagger"
+            "npm:bcrypt",
+            "npm:uuid",
+            "npm:uuidv7"
           ]
         },
         {
-          "file": "libs/shared-decorators/src/decorators.ts",
-          "hash": "4408401609612821962",
+          "file": "libs/shared-utils/src/index.ts",
+          "hash": "8213285748717114530"
+        },
+        {
+          "file": "libs/shared-utils/src/utils.ts",
+          "hash": "11342867830733951060",
           "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "libs/shared-decorators/src/index.ts",
-          "hash": "10545845954697214321"
-        }
-      ],
-      "@ostora/shared-logger": [
-        {
-          "file": "libs/shared-logger/package.json",
-          "hash": "7754393892233571924"
-        },
-        {
-          "file": "libs/shared-logger/src/index.ts",
-          "hash": "16649338060020874399"
-        },
-        {
-          "file": "libs/shared-logger/src/logger.module.ts",
-          "hash": "18093176858169847993",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:nest-winston",
-            "npm:winston",
-            "npm:winston-daily-rotate-file"
-          ]
-        },
-        {
-          "file": "libs/shared-logger/tsconfig.json",
-          "hash": "15758653278413531619"
-        }
-      ],
-      "@ostora/job-service": [
-        {
-          "file": "apps/job-service/.env.example",
-          "hash": "17495669940083856193"
-        },
-        {
-          "file": "apps/job-service/README.md",
-          "hash": "14734956787259950283"
-        },
-        {
-          "file": "apps/job-service/TASK-5.4-CHECKLIST.md",
-          "hash": "8500859970117166118"
-        },
-        {
-          "file": "apps/job-service/TASK-5.4-SUMMARY.md",
-          "hash": "1845377589412494099"
-        },
-        {
-          "file": "apps/job-service/package.json",
-          "hash": "3070477775255752407",
-          "deps": [
-            "npm:@nestjs/core",
-            "npm:@nestjs/common",
-            "npm:@nestjs/config",
-            "npm:@nestjs/platform-express",
-            "npm:@nestjs/microservices",
-            "npm:@nestjs/swagger",
-            "npm:@nestjs/bull",
-            "npm:@prisma/client",
-            "npm:@elastic/elasticsearch",
-            "npm:mysql2",
-            "npm:ioredis",
-            "npm:bull",
-            "npm:kafkajs",
-            "npm:class-validator",
-            "npm:class-transformer",
-            "npm:winston",
-            "npm:nest-winston",
-            "npm:rxjs",
-            "npm:reflect-metadata",
-            "npm:prisma",
-            "npm:@types/node",
-            "npm:typescript"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/app.module.ts",
-          "hash": "7403666739465714675",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/config"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/application/application.controller.ts",
-          "hash": "7393960756788500654",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/application/application.module.ts",
-          "hash": "465395321491944752",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/bull"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/application/application.service.ts",
-          "hash": "9700142349154532863",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/bull",
-            "npm:bull"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/application/dto/application.response.ts",
-          "hash": "1745355791090722987",
-          "deps": [
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/application/dto/apply.dto.ts",
-          "hash": "10735928374298157416",
-          "deps": [
-            "npm:class-validator",
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/application/dto/bulk-apply.dto.ts",
-          "hash": "1355570414664969897",
-          "deps": [
-            "npm:class-validator",
-            "npm:class-transformer",
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/application/queue/application.processor.ts",
-          "hash": "13877319141245777348",
-          "deps": [
-            "npm:@nestjs/bull",
-            "npm:@nestjs/common",
-            "npm:bull"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/application/queue/application.queue.ts",
-          "hash": "3016683551522178971"
-        },
-        {
-          "file": "apps/job-service/src/application/value-objects/application-data.vo.ts",
-          "hash": "14043850638899819530"
-        },
-        {
-          "file": "apps/job-service/src/company/company.response.ts",
-          "hash": "16519829083804549493",
-          "deps": [
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/company/company.service.ts",
-          "hash": "7909801208618759606",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/favorite/dto/toggle-favorite.dto.ts",
-          "hash": "7261509787305174856",
-          "deps": [
-            "npm:class-validator",
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/favorite/favorite.controller.ts",
-          "hash": "1868231419777835277",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/favorite/favorite.service.ts",
-          "hash": "6539180118207460406",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/health/health.controller.ts",
-          "hash": "16911571022869847196",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/job/dto/get-jobs.dto.ts",
-          "hash": "5904717603747106976",
-          "deps": [
-            "npm:class-validator",
-            "npm:class-transformer",
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/job/dto/job-filters.dto.ts",
-          "hash": "2770381004912801709",
-          "deps": [
-            "npm:class-validator",
-            "npm:class-transformer",
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/job/dto/job.response.ts",
-          "hash": "8307300204240382765",
-          "deps": [
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/job/dto/paginated-jobs.response.ts",
-          "hash": "15545868539565742461",
-          "deps": [
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/job/dto/search-jobs.dto.ts",
-          "hash": "14896920041935417828",
-          "deps": [
-            "npm:class-validator",
-            "npm:class-transformer",
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/job/dto/stellen-job.dto.ts",
-          "hash": "6587573141197070424",
-          "deps": [
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/job/job-dedup.service.ts",
-          "hash": "11868529348154622757",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@prisma/client"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/job/job.controller.ts",
-          "hash": "14643600652626633804",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/job/job.module.ts",
-          "hash": "2212240764656934681",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/job/job.service.ts",
-          "hash": "13434165534031578166",
-          "deps": [
-            "npm:@nestjs/common",
+            "npm:bcrypt",
             "npm:crypto",
-            "npm:mysql2"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/job/value-objects/job-search-query.vo.ts",
-          "hash": "2191586786823548662"
-        },
-        {
-          "file": "apps/job-service/src/job/value-objects/salary-range.vo.ts",
-          "hash": "13483675455759092436"
-        },
-        {
-          "file": "apps/job-service/src/kafka/job-event.listener.ts",
-          "hash": "13693553476709683588",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/config",
-            "npm:kafkajs"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/kafka/kafka.module.ts",
-          "hash": "13901785024570140328",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/kafka/kafka.service.ts",
-          "hash": "7963627715587807992",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/config",
-            "npm:kafkajs"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/main.ts",
-          "hash": "6189293740614398891",
-          "deps": [
-            "npm:@nestjs/core",
-            "npm:@nestjs/common",
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/mysql/mysql.module.ts",
-          "hash": "11027024347236611743",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/mysql/mysql.service.ts",
-          "hash": "15848227706778302825",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/config",
-            "npm:mysql2"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/prisma/prisma.module.ts",
-          "hash": "9953693136448664954",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/prisma/prisma.service.ts",
-          "hash": "718592270783167474",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@prisma/client"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/redis/redis.module.ts",
-          "hash": "12285439854055938490",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/redis/redis.service.ts",
-          "hash": "15957474816803294257",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:ioredis",
-            "npm:@nestjs/config"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/search/elasticsearch.service.ts",
-          "hash": "267949917615694610",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@elastic/elasticsearch",
-            "npm:@nestjs/config"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/search/index-mapping.ts",
-          "hash": "14776849289904832353"
-        },
-        {
-          "file": "apps/job-service/src/search/job-indexing.service.ts",
-          "hash": "11965818096109871751",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/search/search-query-builder.ts",
-          "hash": "13619687807821159426"
-        },
-        {
-          "file": "apps/job-service/src/sync/job-sync.service.ts",
-          "hash": "6190481345858021872",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/sync/mysql-reader.service.ts",
-          "hash": "8866727618415509786",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/config",
-            "npm:mysql2"
-          ]
-        },
-        {
-          "file": "apps/job-service/src/sync/sync.cron.ts",
-          "hash": "8772141227540837422",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/schedule"
-          ]
-        },
-        {
-          "file": "apps/job-service/test/e2e/full-flow.e2e-spec.ts",
-          "hash": "11693357447136512502",
-          "deps": [
-            "npm:@nestjs/testing",
-            "npm:@nestjs/common",
-            "npm:supertest"
-          ]
-        },
-        {
-          "file": "apps/job-service/test/unit/elasticsearch.service.spec.ts",
-          "hash": "12446190908299667788",
-          "deps": [
-            "npm:@nestjs/testing",
-            "npm:@nestjs/config"
-          ]
-        },
-        {
-          "file": "apps/job-service/test/unit/job-dedup.service.spec.ts",
-          "hash": "759623221179350061",
-          "deps": [
-            "npm:@nestjs/testing"
-          ]
-        },
-        {
-          "file": "apps/job-service/test/unit/job-search-query.spec.ts",
-          "hash": "2660306926625878448"
-        },
-        {
-          "file": "apps/job-service/tsconfig.json",
-          "hash": "12589753147200761673"
-        }
-      ],
-      "ostoracv-service": [
-        {
-          "file": "apps/ostoracv-service/jest.config.js",
-          "hash": "5481705827625782542"
-        },
-        {
-          "file": "apps/ostoracv-service/nest-cli.json",
-          "hash": "4940747674204757188"
-        },
-        {
-          "file": "apps/ostoracv-service/package.json",
-          "hash": "4014418284588746843"
-        },
-        {
-          "file": "apps/ostoracv-service/project.json",
-          "hash": "7508330845729355361"
-        },
-        {
-          "file": "apps/ostoracv-service/src/app.module.ts",
-          "hash": "17255899027457367506",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/config"
-          ]
-        },
-        {
-          "file": "apps/ostoracv-service/src/cover-letter/cover-letter.controller.ts",
-          "hash": "15589818343047410272",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/ostoracv-service/src/cover-letter/cover-letter.service.ts",
-          "hash": "210635996787294283",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:axios"
-          ]
-        },
-        {
-          "file": "apps/ostoracv-service/src/cover-letter/dto/generate-cover-letter.dto.ts",
-          "hash": "10098738446618376496",
-          "deps": [
-            "npm:@nestjs/swagger",
-            "npm:class-validator"
-          ]
-        },
-        {
-          "file": "apps/ostoracv-service/src/cv/cv.controller.ts",
-          "hash": "4311160432525056199",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/ostoracv-service/src/cv/cv.service.ts",
-          "hash": "7587086137995127787",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:axios",
-            "npm:node:crypto"
-          ]
-        },
-        {
-          "file": "apps/ostoracv-service/src/cv/dto/cv-generation.response.ts",
-          "hash": "4355601080605134562",
-          "deps": [
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/ostoracv-service/src/health.controller.ts",
-          "hash": "11847753434858076990",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/ostoracv-service/src/internal/internal-auth.guard.ts",
-          "hash": "13512217701296320468",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/ostoracv-service/src/internal/internal.controller.ts",
-          "hash": "9549572435186909267",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/ostoracv-service/src/main.ts",
-          "hash": "9157763736928642492",
-          "deps": [
-            "npm:@nestjs/core",
-            "npm:@nestjs/common",
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/ostoracv-service/src/renderer/i18n-labels.config.ts",
-          "hash": "7511756273631989845"
-        },
-        {
-          "file": "apps/ostoracv-service/src/renderer/puppeteer.service.ts",
-          "hash": "568579423748935918",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:puppeteer"
-          ]
-        },
-        {
-          "file": "apps/ostoracv-service/src/renderer/template-registry.service.ts",
-          "hash": "13401239833906294384",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:node:fs",
-            "npm:node:path",
-            "npm:handlebars"
-          ]
-        },
-        {
-          "file": "apps/ostoracv-service/src/storage/s3.service.ts",
-          "hash": "6997950371063707051",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:node:crypto",
-            "npm:@aws-sdk/client-s3",
-            "npm:@aws-sdk/s3-request-presigner"
-          ]
-        },
-        {
-          "file": "apps/ostoracv-service/src/templates/classic-cv.hbs",
-          "hash": "2895760357881535706"
-        },
-        {
-          "file": "apps/ostoracv-service/src/templates/cover-letter-de.hbs",
-          "hash": "15131385155810162997"
-        },
-        {
-          "file": "apps/ostoracv-service/src/templates/cover-letter-en.hbs",
-          "hash": "15131385155810162997"
-        },
-        {
-          "file": "apps/ostoracv-service/src/templates/cover-letter-fr.hbs",
-          "hash": "15131385155810162997"
-        },
-        {
-          "file": "apps/ostoracv-service/src/templates/minimal-cv.hbs",
-          "hash": "6369121551556566183"
-        },
-        {
-          "file": "apps/ostoracv-service/src/templates/modern-cv.hbs",
-          "hash": "8756322241144577253"
-        },
-        {
-          "file": "apps/ostoracv-service/tsconfig.json",
-          "hash": "4019893767593876614"
-        }
-      ],
-      "@ostora/shared-interceptors": [
-        {
-          "file": "libs/shared-interceptors/package.json",
-          "hash": "4290182328883889716",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:rxjs",
-            "@ostora/shared-dto"
-          ]
-        },
-        {
-          "file": "libs/shared-interceptors/src/index.ts",
-          "hash": "18389510941027743092"
-        },
-        {
-          "file": "libs/shared-interceptors/src/interceptors.ts",
-          "hash": "6983588182879687993",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:rxjs",
-            "npm:express",
-            "@ostora/shared-dto"
+            "npm:uuid",
+            "npm:uuidv7"
           ]
         }
       ],
@@ -3377,485 +3467,6 @@
         {
           "file": "libs/shared-dto/src/index.ts",
           "hash": "10569551167100361170"
-        }
-      ],
-      "@ostora/email-service": [
-        {
-          "file": "apps/email-service/.env.example",
-          "hash": "17858611133180169386"
-        },
-        {
-          "file": "apps/email-service/README.md",
-          "hash": "8564322083152159871"
-        },
-        {
-          "file": "apps/email-service/TASK-5.3-SUMMARY.md",
-          "hash": "4608549488314819942"
-        },
-        {
-          "file": "apps/email-service/package.json",
-          "hash": "5177300331504749737",
-          "deps": [
-            "npm:@aws-sdk/client-s3",
-            "npm:@nestjs/core",
-            "npm:@nestjs/common",
-            "npm:@nestjs/config",
-            "npm:@nestjs/microservices",
-            "npm:@nestjs/platform-express",
-            "npm:@nestjs/swagger",
-            "npm:@nestjs/bull",
-            "npm:@prisma/client",
-            "npm:@aws-sdk/client-ses",
-            "npm:@aws-sdk/s3-request-presigner",
-            "npm:nodemailer",
-            "npm:ioredis",
-            "npm:bull",
-            "npm:kafkajs",
-            "npm:handlebars",
-            "npm:class-validator",
-            "npm:class-transformer",
-            "npm:winston",
-            "npm:nest-winston",
-            "npm:rxjs",
-            "npm:reflect-metadata",
-            "npm:prisma",
-            "npm:@types/node",
-            "npm:@types/nodemailer",
-            "npm:typescript"
-          ]
-        },
-        {
-          "file": "apps/email-service/src/app.module.ts",
-          "hash": "8947025596741705454",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/config",
-            "npm:@nestjs/bull"
-          ]
-        },
-        {
-          "file": "apps/email-service/src/email/dto/email-log.response.ts",
-          "hash": "4380574524115921502",
-          "deps": [
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/email-service/src/email/dto/send-application.dto.ts",
-          "hash": "7595000266817208264",
-          "deps": [
-            "npm:class-validator",
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/email-service/src/email/dto/send-email.dto.ts",
-          "hash": "18025729428661401360",
-          "deps": [
-            "npm:class-validator",
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/email-service/src/email/email.controller.ts",
-          "hash": "1558482387230617524",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/email-service/src/email/email.module.ts",
-          "hash": "141390718097278459",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/email-service/src/email/email.service.ts",
-          "hash": "12526536571568676133",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/config",
-            "npm:@aws-sdk/client-s3",
-            "npm:@aws-sdk/s3-request-presigner"
-          ]
-        },
-        {
-          "file": "apps/email-service/src/email/interfaces/email-event-payload.interface.ts",
-          "hash": "6647605603898556580"
-        },
-        {
-          "file": "apps/email-service/src/email/interfaces/smtp-transport.interface.ts",
-          "hash": "6388958857237734463"
-        },
-        {
-          "file": "apps/email-service/src/email/value-objects/email-message.vo.ts",
-          "hash": "14502897042773605357"
-        },
-        {
-          "file": "apps/email-service/src/kafka/email-event.consumer.ts",
-          "hash": "15413618085199950477",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/config",
-            "npm:kafkajs",
-            "npm:@nestjs/bull",
-            "npm:bull"
-          ]
-        },
-        {
-          "file": "apps/email-service/src/kafka/email-event.enum.ts",
-          "hash": "18166405635193843597"
-        },
-        {
-          "file": "apps/email-service/src/log/email-log.service.ts",
-          "hash": "7923147504586601834",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/email-service/src/main.ts",
-          "hash": "18170650812596330769",
-          "deps": [
-            "npm:@nestjs/core",
-            "npm:@nestjs/common",
-            "npm:@nestjs/swagger"
-          ]
-        },
-        {
-          "file": "apps/email-service/src/prisma/prisma.module.ts",
-          "hash": "9953693136448664954",
-          "deps": [
-            "npm:@nestjs/common"
-          ]
-        },
-        {
-          "file": "apps/email-service/src/prisma/prisma.service.ts",
-          "hash": "718592270783167474",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@prisma/client"
-          ]
-        },
-        {
-          "file": "apps/email-service/src/queue/email.processor.ts",
-          "hash": "3549488224449890574",
-          "deps": [
-            "npm:@nestjs/bull",
-            "npm:@nestjs/common",
-            "npm:bull"
-          ]
-        },
-        {
-          "file": "apps/email-service/src/queue/email.queue.ts",
-          "hash": "924672735698085591",
-          "deps": [
-            "npm:@nestjs/bull",
-            "npm:@nestjs/common",
-            "npm:bull"
-          ]
-        },
-        {
-          "file": "apps/email-service/src/template/hbs/application.hbs",
-          "hash": "2863465711673868971"
-        },
-        {
-          "file": "apps/email-service/src/template/hbs/new-device-login.hbs",
-          "hash": "15038606284474312664"
-        },
-        {
-          "file": "apps/email-service/src/template/hbs/otp.hbs",
-          "hash": "2136666920197411545"
-        },
-        {
-          "file": "apps/email-service/src/template/hbs/password-changed.hbs",
-          "hash": "5568006217872070010"
-        },
-        {
-          "file": "apps/email-service/src/template/hbs/password-reset.hbs",
-          "hash": "18355691704935837702"
-        },
-        {
-          "file": "apps/email-service/src/template/hbs/verification.hbs",
-          "hash": "13351247660170407944"
-        },
-        {
-          "file": "apps/email-service/src/template/hbs/welcome.hbs",
-          "hash": "13571347386214726781"
-        },
-        {
-          "file": "apps/email-service/src/template/template-renderer.service.ts",
-          "hash": "11882370730970509268",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:handlebars",
-            "npm:fs",
-            "npm:path"
-          ]
-        },
-        {
-          "file": "apps/email-service/src/transport/ses.transport.ts",
-          "hash": "14785906005339328490",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@aws-sdk/client-ses",
-            "npm:@nestjs/config"
-          ]
-        },
-        {
-          "file": "apps/email-service/src/transport/smtp.transport.ts",
-          "hash": "565044303363332428",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:nodemailer"
-          ]
-        },
-        {
-          "file": "apps/email-service/src/transport/transport-factory.service.ts",
-          "hash": "9501551352601473376",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/config"
-          ]
-        },
-        {
-          "file": "apps/email-service/test-gmail.js",
-          "hash": "9390443078436816671",
-          "deps": [
-            "npm:nodemailer"
-          ]
-        },
-        {
-          "file": "apps/email-service/test/unit/email-event.consumer.spec.ts",
-          "hash": "15211962585575251973",
-          "deps": [
-            "npm:@nestjs/testing",
-            "npm:@nestjs/config",
-            "npm:bull"
-          ]
-        },
-        {
-          "file": "apps/email-service/test/unit/email.processor.spec.ts",
-          "hash": "12327488375235395324",
-          "deps": [
-            "npm:@nestjs/testing",
-            "npm:bull"
-          ]
-        },
-        {
-          "file": "apps/email-service/test/unit/template-renderer.service.spec.ts",
-          "hash": "9784543276356293775"
-        },
-        {
-          "file": "apps/email-service/tsconfig.json",
-          "hash": "5870510622972732119"
-        }
-      ],
-      "@ostora/shared-interfaces": [
-        {
-          "file": "libs/shared-interfaces/package.json",
-          "hash": "18013178706857667717"
-        },
-        {
-          "file": "libs/shared-interfaces/src/index.ts",
-          "hash": "3737214394007349657"
-        },
-        {
-          "file": "libs/shared-interfaces/src/interfaces.ts",
-          "hash": "9465692003546581619"
-        }
-      ],
-      "api-gateway": [
-        {
-          "file": "apps/api-gateway/README.md",
-          "hash": "13534837612663784551"
-        },
-        {
-          "file": "apps/api-gateway/package.json",
-          "hash": "4873770786409750917",
-          "deps": [
-            "npm:@nestjs/core",
-            "npm:@nestjs/common",
-            "npm:@nestjs/platform-express",
-            "npm:@nestjs/swagger",
-            "npm:@nestjs/throttler",
-            "npm:@nestjs/terminus",
-            "npm:@nestjs/microservices",
-            "npm:@nestjs/config",
-            "npm:@nestjs/graphql",
-            "npm:@nestjs/apollo",
-            "npm:@apollo/server",
-            "npm:@apollo/gateway",
-            "npm:@apollo/subgraph",
-            "npm:graphql",
-            "npm:helmet",
-            "npm:express-rate-limit",
-            "npm:uuid",
-            "npm:class-validator",
-            "npm:class-transformer",
-            "npm:winston",
-            "npm:nest-winston",
-            "npm:kafkajs",
-            "npm:cache-manager-ioredis-yet",
-            "npm:reflect-metadata",
-            "npm:rxjs",
-            "npm:@types/node",
-            "npm:typescript",
-            "npm:ts-node"
-          ]
-        },
-        {
-          "file": "apps/api-gateway/project.json",
-          "hash": "17910634142903657361"
-        },
-        {
-          "file": "apps/api-gateway/src/app.module.ts",
-          "hash": "10400047614183149379",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/config",
-            "npm:@nestjs/throttler",
-            "npm:@nestjs/core",
-            "npm:@nestjs/cache-manager",
-            "npm:@nestjs/axios",
-            "npm:cache-manager-ioredis-yet",
-            "npm:@nestjs/graphql",
-            "npm:@nestjs/apollo",
-            "npm:@apollo/gateway"
-          ]
-        },
-        {
-          "file": "apps/api-gateway/src/common/filters/http-exception.filter.ts",
-          "hash": "5089487208887641763",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:axios",
-            "npm:express"
-          ]
-        },
-        {
-          "file": "apps/api-gateway/src/common/interceptors/request-logger.interceptor.ts",
-          "hash": "10511405844873898382",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:rxjs",
-            "npm:express"
-          ]
-        },
-        {
-          "file": "apps/api-gateway/src/common/middleware/correlation-id.middleware.ts",
-          "hash": "9954258668949155704",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:express",
-            "npm:uuid"
-          ]
-        },
-        {
-          "file": "apps/api-gateway/src/common/middleware/request-id.middleware.ts",
-          "hash": "1189389628258916545",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:express",
-            "npm:uuid"
-          ]
-        },
-        {
-          "file": "apps/api-gateway/src/config/config.service.ts",
-          "hash": "16257811594924410509",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/config"
-          ]
-        },
-        {
-          "file": "apps/api-gateway/src/gateway/gateway.controller.ts",
-          "hash": "1006169129037181074",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/microservices",
-            "npm:@nestjs/swagger",
-            "npm:@nestjs/throttler",
-            "npm:rxjs",
-            "npm:express"
-          ]
-        },
-        {
-          "file": "apps/api-gateway/src/gateway/gateway.module.ts",
-          "hash": "1850738176415718583",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/microservices"
-          ]
-        },
-        {
-          "file": "apps/api-gateway/src/health/health.controller.ts",
-          "hash": "12940946784324094959",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/swagger",
-            "npm:@nestjs/terminus",
-            "npm:@nestjs/microservices"
-          ]
-        },
-        {
-          "file": "apps/api-gateway/src/health/health.module.ts",
-          "hash": "13839521839877509384",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/terminus",
-            "npm:@nestjs/axios"
-          ]
-        },
-        {
-          "file": "apps/api-gateway/src/main.ts",
-          "hash": "13838368330397874311",
-          "deps": [
-            "npm:@nestjs/core",
-            "npm:@nestjs/common",
-            "npm:@nestjs/swagger",
-            "npm:nest-winston",
-            "npm:helmet",
-            "npm:winston"
-          ]
-        },
-        {
-          "file": "apps/api-gateway/src/proxy/job-proxy.controller.ts",
-          "hash": "4354984982882722305",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/swagger",
-            "npm:@nestjs/axios",
-            "npm:rxjs"
-          ]
-        },
-        {
-          "file": "apps/api-gateway/src/proxy/user-proxy.controller.ts",
-          "hash": "3707934450136081410",
-          "deps": [
-            "npm:@nestjs/common",
-            "npm:@nestjs/swagger",
-            "npm:@nestjs/axios",
-            "npm:rxjs",
-            "npm:axios"
-          ]
-        },
-        {
-          "file": "apps/api-gateway/test/integration/full-flow.spec.ts",
-          "hash": "12132860377531258458",
-          "deps": [
-            "npm:rxjs"
-          ]
-        },
-        {
-          "file": "apps/api-gateway/tsconfig.app.json",
-          "hash": "14157088991616308821"
-        },
-        {
-          "file": "apps/api-gateway/tsconfig.json",
-          "hash": "3170028462270897752"
         }
       ],
       "@ostora/user-service": [
@@ -4370,6 +3981,498 @@
         {
           "file": "apps/user-service/tsconfig.json",
           "hash": "6103131420996613628"
+        }
+      ],
+      "ostoracv-service": [
+        {
+          "file": "apps/ostoracv-service/.env.example",
+          "hash": "3518747349301773668"
+        },
+        {
+          "file": "apps/ostoracv-service/API-GATEWAY-INTEGRATION.md",
+          "hash": "2050960531192479913"
+        },
+        {
+          "file": "apps/ostoracv-service/BEST-PRACTICES-REVIEW.md",
+          "hash": "8989796000068856107"
+        },
+        {
+          "file": "apps/ostoracv-service/IMPLEMENTATION-COMPLETE.md",
+          "hash": "6049809947937643943"
+        },
+        {
+          "file": "apps/ostoracv-service/README.md",
+          "hash": "6591437013285190643"
+        },
+        {
+          "file": "apps/ostoracv-service/jest.config.js",
+          "hash": "5481705827625782542"
+        },
+        {
+          "file": "apps/ostoracv-service/nest-cli.json",
+          "hash": "4940747674204757188"
+        },
+        {
+          "file": "apps/ostoracv-service/package.json",
+          "hash": "4014418284588746843"
+        },
+        {
+          "file": "apps/ostoracv-service/project.json",
+          "hash": "5761063484137364664"
+        },
+        {
+          "file": "apps/ostoracv-service/src/app.module.ts",
+          "hash": "17255899027457367506",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config"
+          ]
+        },
+        {
+          "file": "apps/ostoracv-service/src/cover-letter/cover-letter.controller.ts",
+          "hash": "15589818343047410272",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/ostoracv-service/src/cover-letter/cover-letter.service.ts",
+          "hash": "210635996787294283",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:axios"
+          ]
+        },
+        {
+          "file": "apps/ostoracv-service/src/cover-letter/dto/generate-cover-letter.dto.ts",
+          "hash": "12163812103350051884",
+          "deps": [
+            "npm:@nestjs/swagger",
+            "npm:class-validator"
+          ]
+        },
+        {
+          "file": "apps/ostoracv-service/src/cv/cv.controller.ts",
+          "hash": "12783114225629373132",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/swagger",
+            "npm:class-validator"
+          ]
+        },
+        {
+          "file": "apps/ostoracv-service/src/cv/cv.service.ts",
+          "hash": "12439449354482257050",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:axios",
+            "npm:node:crypto"
+          ]
+        },
+        {
+          "file": "apps/ostoracv-service/src/cv/dto/cv-generation.response.ts",
+          "hash": "4355601080605134562",
+          "deps": [
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/ostoracv-service/src/cv/dto/generate-cv.dto.ts",
+          "hash": "2118560303926424056",
+          "deps": [
+            "npm:@nestjs/swagger",
+            "npm:class-validator"
+          ]
+        },
+        {
+          "file": "apps/ostoracv-service/src/health.controller.ts",
+          "hash": "11847753434858076990",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/ostoracv-service/src/internal/internal-auth.guard.ts",
+          "hash": "13512217701296320468",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/ostoracv-service/src/internal/internal.controller.ts",
+          "hash": "9549572435186909267",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/ostoracv-service/src/main.ts",
+          "hash": "9157763736928642492",
+          "deps": [
+            "npm:@nestjs/core",
+            "npm:@nestjs/common",
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/ostoracv-service/src/renderer/i18n-labels.config.ts",
+          "hash": "12642490954213341321"
+        },
+        {
+          "file": "apps/ostoracv-service/src/renderer/puppeteer.service.ts",
+          "hash": "568579423748935918",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:puppeteer"
+          ]
+        },
+        {
+          "file": "apps/ostoracv-service/src/renderer/template-registry.service.ts",
+          "hash": "13401239833906294384",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:node:fs",
+            "npm:node:path",
+            "npm:handlebars"
+          ]
+        },
+        {
+          "file": "apps/ostoracv-service/src/storage/s3.service.ts",
+          "hash": "6997950371063707051",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:node:crypto",
+            "npm:@aws-sdk/client-s3",
+            "npm:@aws-sdk/s3-request-presigner"
+          ]
+        },
+        {
+          "file": "apps/ostoracv-service/src/templates/classic-cv.hbs",
+          "hash": "1891715481523399940"
+        },
+        {
+          "file": "apps/ostoracv-service/src/templates/cover-letter-de.hbs",
+          "hash": "17131608352193839100"
+        },
+        {
+          "file": "apps/ostoracv-service/src/templates/cover-letter-en.hbs",
+          "hash": "9100009391177840076"
+        },
+        {
+          "file": "apps/ostoracv-service/src/templates/cover-letter-fr.hbs",
+          "hash": "14202726166448795651"
+        },
+        {
+          "file": "apps/ostoracv-service/src/templates/minimal-cv.hbs",
+          "hash": "6369121551556566183"
+        },
+        {
+          "file": "apps/ostoracv-service/src/templates/modern-cv.hbs",
+          "hash": "8756322241144577253"
+        },
+        {
+          "file": "apps/ostoracv-service/tsconfig.json",
+          "hash": "7042478811092903364"
+        }
+      ],
+      "@ostora/email-service": [
+        {
+          "file": "apps/email-service/.env.example",
+          "hash": "17858611133180169386"
+        },
+        {
+          "file": "apps/email-service/README.md",
+          "hash": "8564322083152159871"
+        },
+        {
+          "file": "apps/email-service/TASK-5.3-SUMMARY.md",
+          "hash": "4608549488314819942"
+        },
+        {
+          "file": "apps/email-service/package.json",
+          "hash": "5177300331504749737",
+          "deps": [
+            "npm:@aws-sdk/client-s3",
+            "npm:@nestjs/core",
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:@nestjs/microservices",
+            "npm:@nestjs/platform-express",
+            "npm:@nestjs/swagger",
+            "npm:@nestjs/bull",
+            "npm:@prisma/client",
+            "npm:@aws-sdk/client-ses",
+            "npm:@aws-sdk/s3-request-presigner",
+            "npm:nodemailer",
+            "npm:ioredis",
+            "npm:bull",
+            "npm:kafkajs",
+            "npm:handlebars",
+            "npm:class-validator",
+            "npm:class-transformer",
+            "npm:winston",
+            "npm:nest-winston",
+            "npm:rxjs",
+            "npm:reflect-metadata",
+            "npm:prisma",
+            "npm:@types/node",
+            "npm:@types/nodemailer",
+            "npm:typescript"
+          ]
+        },
+        {
+          "file": "apps/email-service/src/app.module.ts",
+          "hash": "8947025596741705454",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:@nestjs/bull"
+          ]
+        },
+        {
+          "file": "apps/email-service/src/email/dto/email-log.response.ts",
+          "hash": "4380574524115921502",
+          "deps": [
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/email-service/src/email/dto/send-application.dto.ts",
+          "hash": "7595000266817208264",
+          "deps": [
+            "npm:class-validator",
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/email-service/src/email/dto/send-email.dto.ts",
+          "hash": "18025729428661401360",
+          "deps": [
+            "npm:class-validator",
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/email-service/src/email/email.controller.ts",
+          "hash": "1558482387230617524",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/email-service/src/email/email.module.ts",
+          "hash": "141390718097278459",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/email-service/src/email/email.service.ts",
+          "hash": "12526536571568676133",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:@aws-sdk/client-s3",
+            "npm:@aws-sdk/s3-request-presigner"
+          ]
+        },
+        {
+          "file": "apps/email-service/src/email/interfaces/email-event-payload.interface.ts",
+          "hash": "6647605603898556580"
+        },
+        {
+          "file": "apps/email-service/src/email/interfaces/smtp-transport.interface.ts",
+          "hash": "6388958857237734463"
+        },
+        {
+          "file": "apps/email-service/src/email/value-objects/email-message.vo.ts",
+          "hash": "14502897042773605357"
+        },
+        {
+          "file": "apps/email-service/src/kafka/email-event.consumer.ts",
+          "hash": "15413618085199950477",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config",
+            "npm:kafkajs",
+            "npm:@nestjs/bull",
+            "npm:bull"
+          ]
+        },
+        {
+          "file": "apps/email-service/src/kafka/email-event.enum.ts",
+          "hash": "18166405635193843597"
+        },
+        {
+          "file": "apps/email-service/src/log/email-log.service.ts",
+          "hash": "7923147504586601834",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/email-service/src/main.ts",
+          "hash": "18170650812596330769",
+          "deps": [
+            "npm:@nestjs/core",
+            "npm:@nestjs/common",
+            "npm:@nestjs/swagger"
+          ]
+        },
+        {
+          "file": "apps/email-service/src/prisma/prisma.module.ts",
+          "hash": "9953693136448664954",
+          "deps": [
+            "npm:@nestjs/common"
+          ]
+        },
+        {
+          "file": "apps/email-service/src/prisma/prisma.service.ts",
+          "hash": "718592270783167474",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@prisma/client"
+          ]
+        },
+        {
+          "file": "apps/email-service/src/queue/email.processor.ts",
+          "hash": "3549488224449890574",
+          "deps": [
+            "npm:@nestjs/bull",
+            "npm:@nestjs/common",
+            "npm:bull"
+          ]
+        },
+        {
+          "file": "apps/email-service/src/queue/email.queue.ts",
+          "hash": "924672735698085591",
+          "deps": [
+            "npm:@nestjs/bull",
+            "npm:@nestjs/common",
+            "npm:bull"
+          ]
+        },
+        {
+          "file": "apps/email-service/src/template/hbs/application.hbs",
+          "hash": "2863465711673868971"
+        },
+        {
+          "file": "apps/email-service/src/template/hbs/new-device-login.hbs",
+          "hash": "15038606284474312664"
+        },
+        {
+          "file": "apps/email-service/src/template/hbs/otp.hbs",
+          "hash": "2136666920197411545"
+        },
+        {
+          "file": "apps/email-service/src/template/hbs/password-changed.hbs",
+          "hash": "5568006217872070010"
+        },
+        {
+          "file": "apps/email-service/src/template/hbs/password-reset.hbs",
+          "hash": "18355691704935837702"
+        },
+        {
+          "file": "apps/email-service/src/template/hbs/verification.hbs",
+          "hash": "13351247660170407944"
+        },
+        {
+          "file": "apps/email-service/src/template/hbs/welcome.hbs",
+          "hash": "13571347386214726781"
+        },
+        {
+          "file": "apps/email-service/src/template/template-renderer.service.ts",
+          "hash": "11882370730970509268",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:handlebars",
+            "npm:fs",
+            "npm:path"
+          ]
+        },
+        {
+          "file": "apps/email-service/src/transport/ses.transport.ts",
+          "hash": "14785906005339328490",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@aws-sdk/client-ses",
+            "npm:@nestjs/config"
+          ]
+        },
+        {
+          "file": "apps/email-service/src/transport/smtp.transport.ts",
+          "hash": "565044303363332428",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:nodemailer"
+          ]
+        },
+        {
+          "file": "apps/email-service/src/transport/transport-factory.service.ts",
+          "hash": "9501551352601473376",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:@nestjs/config"
+          ]
+        },
+        {
+          "file": "apps/email-service/test-gmail.js",
+          "hash": "9390443078436816671",
+          "deps": [
+            "npm:nodemailer"
+          ]
+        },
+        {
+          "file": "apps/email-service/test/unit/email-event.consumer.spec.ts",
+          "hash": "15211962585575251973",
+          "deps": [
+            "npm:@nestjs/testing",
+            "npm:@nestjs/config",
+            "npm:bull"
+          ]
+        },
+        {
+          "file": "apps/email-service/test/unit/email.processor.spec.ts",
+          "hash": "12327488375235395324",
+          "deps": [
+            "npm:@nestjs/testing",
+            "npm:bull"
+          ]
+        },
+        {
+          "file": "apps/email-service/test/unit/template-renderer.service.spec.ts",
+          "hash": "9784543276356293775"
+        },
+        {
+          "file": "apps/email-service/tsconfig.json",
+          "hash": "5870510622972732119"
+        }
+      ],
+      "@ostora/shared-logger": [
+        {
+          "file": "libs/shared-logger/package.json",
+          "hash": "7754393892233571924"
+        },
+        {
+          "file": "libs/shared-logger/src/index.ts",
+          "hash": "16649338060020874399"
+        },
+        {
+          "file": "libs/shared-logger/src/logger.module.ts",
+          "hash": "18093176858169847993",
+          "deps": [
+            "npm:@nestjs/common",
+            "npm:nest-winston",
+            "npm:winston",
+            "npm:winston-daily-rotate-file"
+          ]
+        },
+        {
+          "file": "libs/shared-logger/tsconfig.json",
+          "hash": "15758653278413531619"
         }
       ]
     }

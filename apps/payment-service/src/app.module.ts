@@ -24,7 +24,8 @@ import { InvoicePdfService } from './invoice/invoice-pdf.service';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      // Ensure local runs from workspace root still pick payment-service env first.
+      envFilePath: ['apps/payment-service/.env', '.env'],
     }),
     ScheduleModule.forRoot(),
   ],

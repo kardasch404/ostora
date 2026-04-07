@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CoverLetterQueue } from '../queues/cover-letter.queue';
 import { GenerateCoverLetterDto } from './dto/generate-cover-letter.dto';

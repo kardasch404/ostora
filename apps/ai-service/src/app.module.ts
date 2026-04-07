@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { BullModule } from '@nestjs/bull';
+import { join } from 'path';
 import { PrismaService } from './prisma.service';
 import { UnifiedAiController } from './unified-ai/unified-ai.controller';
 import { IntentDetectorService } from './unified-ai/intent-detector.service';
@@ -33,7 +34,10 @@ import { AssistantMode } from './unified-ai/modes/assistant.mode';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath: [
+        join(process.cwd(), 'apps/ai-service/.env'),
+        join(process.cwd(), '.env'),
+      ],
     }),
     BullModule.forRoot({
       redis: {

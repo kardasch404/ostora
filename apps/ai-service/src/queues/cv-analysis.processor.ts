@@ -3,7 +3,7 @@ import { Logger } from '@nestjs/common';
 import { Job } from 'bull';
 import { TokenRouterService, TaskType, TaskPriority } from '../token-router/token-router.service';
 import { PromptBuilderService } from '../prompt-builder/prompt-builder.service';
-import { PromptType } from '../prompt-builder/system-prompts.config';
+import { PromptType } from '../prompt-builder/prompt-type.enum';
 
 export interface CvAnalysisJob {
   userId: string;

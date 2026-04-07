@@ -31,7 +31,7 @@ export class FastApplyService {
     }
 
     // TODO: Load from user-service
-    const emailConfig = await this.getEmailConfig(dto.emailConfigId);
+    await this.getEmailConfig(dto.emailConfigId);
     const bundle = await this.getBundle(dto.bundleId);
     const baseTemplate = await this.getTemplate(dto.templateId);
 

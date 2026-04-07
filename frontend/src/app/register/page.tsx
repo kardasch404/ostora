@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { RegisterForm } from "@/components/auth/register-form";
+import OstoraLogo from "@/components/brand/OstoraLogo";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -12,14 +13,12 @@ export default function RegisterPage() {
       {/* Left Side - Image */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-gray-900 via-gray-800 to-black p-16 items-center justify-center relative overflow-hidden">
         <div className="absolute top-12 left-12">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-yellow-400 to-yellow-600">
-              <svg className="h-7 w-7 text-black" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />
-              </svg>
-            </div>
-            <span className="text-2xl font-bold text-white">Ostora</span>
-          </Link>
+          <OstoraLogo
+            href="/"
+            textClassName="text-2xl font-bold text-white"
+            iconWrapperClassName="grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br from-yellow-400 to-yellow-600"
+            imageClassName="h-7 w-7 object-contain"
+          />
         </div>
         
         <div className="max-w-2xl w-full">

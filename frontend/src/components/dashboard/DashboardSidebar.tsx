@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { getAppliedJobIds, getApplicationHistory, MESSAGE_TEMPLATES_STORAGE_KEY } from "@/lib/application-state";
+import OstoraLogo from "@/components/brand/OstoraLogo";
 
 type MenuChildItem = {
   name: string;
@@ -142,6 +143,15 @@ export default function DashboardSidebar() {
         </svg>
       ),
     },
+    {
+      name: "Payments",
+      href: "/dashboard/settings/payments",
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+        </svg>
+      ),
+    },
   ];
 
   return (
@@ -153,14 +163,13 @@ export default function DashboardSidebar() {
       {/* Logo */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200">
         {!isCollapsed && (
-          <Link href="/dashboard" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-black rounded-button flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />
-              </svg>
-            </div>
-            <span className="text-xl font-bold text-black">Ostora</span>
-          </Link>
+          <OstoraLogo
+            href="/dashboard"
+            textClassName="text-xl font-bold text-black"
+            containerClassName="flex items-center gap-2"
+            iconWrapperClassName="grid h-8 w-8 place-items-center rounded-button bg-black"
+            imageClassName="h-5 w-5 object-contain"
+          />
         )}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}

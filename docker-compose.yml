@@ -303,6 +303,38 @@ services:
       - ostora-network
     restart: unless-stopped
 
+  payment-service:
+    build:
+      context: .
+      dockerfile: ./devops/docker/payment-service.Dockerfile
+    container_name: ostora-payment-service
+    environment:
+      PORT: 4724
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/ostora?schema=public
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KAFKA_BROKER: kafka:29092
+      CORS_ORIGIN: http://localhost:8080
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-sk_test_dev_placeholder}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-whsec_dev_placeholder}
+      STRIPE_PRICE_PREMIUM_MONTHLY: ${STRIPE_PRICE_PREMIUM_MONTHLY:-price_dev_monthly}
+      STRIPE_PRICE_PREMIUM_ANNUAL: ${STRIPE_PRICE_PREMIUM_ANNUAL:-price_dev_annual}
+      STRIPE_PRICE_B2B_STARTER: ${STRIPE_PRICE_B2B_STARTER:-price_dev_b2b_starter}
+      STRIPE_PRICE_B2B_PRO: ${STRIPE_PRICE_B2B_PRO:-price_dev_b2b_pro}
+    ports:
+      - "4724:4724"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - ostora-network
+    restart: unless-stopped
+
   mailhog:
     image: mailhog/mailhog:latest
     container_name: ostora-mailhog
@@ -399,7 +431,7 @@ services:
       OLLAMA_API_URL: ${OLLAMA_API_URL:-http://host.docker.internal:11434}
       OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3}
       BLAZEAI_API_URL: ${BLAZEAI_API_URL:-https://blazeai.boxu.dev}
-      BLAZEAI_API_KEY: ${BLAZEAI_API_KEY}
+      BLAZEAI_API_KEY: ${BLAZEAI_API_KEY:-dev-blazeai-placeholder}
       OSTORACV_SERVICE_URL: http://ostoracv-service:4731
       INTERNAL_SERVICE_SECRET: ${INTERNAL_SERVICE_SECRET:-ostora-internal-secret}
     ports:

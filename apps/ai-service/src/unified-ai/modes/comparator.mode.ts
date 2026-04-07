@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { TokenRouterService, TaskType, TaskPriority } from '../../token-router/token-router.service';
 import { ParsedCV, JobPost } from '../../interfaces/analyzer.interface';
-import { SkillsGapResult, ExtractedSkills } from '../../interfaces/comparator.interface';
+import { SkillsGapResult } from '../../interfaces/comparator.interface';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 
@@ -156,8 +156,9 @@ Return STRICT JSON:
         priorityOrder: parsed.priorityOrder || missing,
         estimatedTimeToFill: parsed.estimatedTimeToFill || 'Unknown',
       };
-    } catch (error) {
-      this.logger.error(`Failed to parse skills gap response: ${error.message}`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to parse skills gap response: ${errorMessage}`);
       return {
         missing,
         verdict: `You are missing ${missing.length} skills. Consider learning: ${missing.slice(0, 3).join(', ')}`,

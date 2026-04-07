@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { TokenRouterService, TaskType, TaskPriority } from '../../token-router/token-router.service';
 import { PromptBuilderService } from '../../prompt-builder/prompt-builder.service';
-import { PromptType } from '../../prompt-builder/system-prompts.config';
+import { PromptType } from '../../prompt-builder/prompt-type.enum';
 
 @Injectable()
 export class AssistantMode {
@@ -18,13 +18,17 @@ export class AssistantMode {
     const systemPrompt = this.promptBuilder.getSystemPrompt(PromptType.ASSISTANT, language);
     const prompt = context ? `${context}\n\nUser: ${message}` : message;
 
-    const result = await this.tokenRouter.route(
-      TaskType.REALTIME_CHAT,
-      TaskPriority.REALTIME,
-      prompt,
-      { systemPrompt, maxTokens: 500, language },
-    );
+    try {
+      const result = await this.tokenRouter.route(
+        TaskType.REALTIME_CHAT,
+        TaskPriority.REALTIME,
+        prompt,
+        { systemPrompt, maxTokens: 300, language },
+      );
 
-    return result;
+      return result;
+    } catch {
+      return 'AI service is currently busy. Please retry in a few seconds.';
+    }
   }
 }
