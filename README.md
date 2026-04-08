@@ -247,7 +247,8 @@ See `.env.example` for all required environment variables.
 4. Update documentation
 5. Create PR with description
 
-## License
+## Et la planification du projet sur Jira :
+https://kardasch-team.atlassian.net/jira/software/projects/OS/boards/3/backlog?selectedIssue=OS-46
 
 Proprietary - All rights reserved
 
