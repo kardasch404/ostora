@@ -337,10 +337,6 @@ Principales variables:
 
 Propriétaire - Tous droits réservés
 
----
-
-## 📞 Support
-
 Pour questions et problèmes:
 - **Email**: support@ostora.com
 - **Documentation**: `/docs`
