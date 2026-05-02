@@ -9,16 +9,18 @@ export class BlazeAiProvider implements IAiProvider {
   private readonly apiUrl: string;
   private readonly apiKey: string;
   private readonly model: string;
+  private readonly requestTimeoutMs: number;
 
   constructor(private configService: ConfigService) {
     this.apiUrl = this.configService.get('BLAZEAI_API_URL');
     this.apiKey = this.configService.get('BLAZEAI_API_KEY');
     this.model = this.configService.get('BLAZEAI_MODEL', 'random-model');
+    this.requestTimeoutMs = this.configService.get('BLAZEAI_REQUEST_TIMEOUT_MS', 30000);
   }
 
   async generate(prompt: string, options?: GenerateOptions): Promise<string> {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 12000);
+    const timeoutId = setTimeout(() => controller.abort(), this.requestTimeoutMs);
 
     try {
       const response = await fetch(`${this.apiUrl}/v1/chat/completions`, {

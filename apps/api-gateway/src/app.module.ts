@@ -10,8 +10,7 @@ import { ApolloGatewayDriver, ApolloGatewayDriverConfig } from '@nestjs/apollo';
 import { IntrospectAndCompose } from '@apollo/gateway';
 import { GatewayModule } from './gateway/gateway.module';
 import { HealthModule } from './health/health.module';
-import { JobProxyController } from './proxy/job-proxy.controller';
-import { UserProxyController } from './proxy/user-proxy.controller';
+import { ProxyModule } from './proxy/proxy.module';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 
 const graphqlGatewayEnabled = process.env['ENABLE_GRAPHQL_GATEWAY'] === 'true';
@@ -102,10 +101,11 @@ const authLimit = parseInt(
 
     // Feature Modules
     HttpModule,
+    ProxyModule,   // ProxyModule BEFORE GatewayModule — ensures HTTP proxy routes register first
     GatewayModule,
     HealthModule,
   ],
-  controllers: [JobProxyController, UserProxyController],
+  controllers: [],
   providers: [
     {
       provide: APP_GUARD,

@@ -39,11 +39,12 @@ function ApplicationForm() {
   const recipientEmail = searchParams.get("recipientEmail");
   
   const [bundles, setBundles] = useState<Bundle[]>([]);
+  const [senderEmails, setSenderEmails] = useState<Array<{ email: string; isActive: boolean }>>([]);
   const [formData, setFormData] = useState({
     jobTitle: jobTitle || "",
     company: company || "",
     location: location || "",
-    sendFrom: "zz2406143@gmail.com",
+    sendFrom: "",
     recipientEmail: recipientEmail || "",
     subject: "",
     message: "",
@@ -52,6 +53,7 @@ function ApplicationForm() {
 
   useEffect(() => {
     loadBundles();
+    loadSenderEmails();
   }, []);
 
   useEffect(() => {
@@ -75,6 +77,20 @@ Best regards`,
       }));
     }
   }, [jobTitle, company, location, recipientEmail]);
+
+  const loadSenderEmails = async () => {
+    try {
+      const res = await apiClient.get("/api/v1/users/emails");
+      const data = Array.isArray(res.data) ? res.data : Array.isArray(res.data?.data) ? res.data.data : [];
+      setSenderEmails(data.map((e: any) => ({ email: e.email, isActive: e.isActive })));
+      const defaultEmail = data.find((e: any) => e.isActive);
+      if (defaultEmail && !formData.sendFrom) {
+        setFormData(prev => ({ ...prev, sendFrom: defaultEmail.email }));
+      }
+    } catch (error) {
+      console.error("Failed to load sender emails");
+    }
+  };
 
   const loadBundles = async () => {
     try {
@@ -232,7 +248,7 @@ Best regards`,
         jobTitle: "",
         company: "",
         location: "",
-        sendFrom: "zz2406143@gmail.com",
+        sendFrom: senderEmails.find(e => e.isActive)?.email || "",
         recipientEmail: "",
         subject: "",
         message: "",
@@ -336,7 +352,15 @@ Best regards`,
               onChange={(e) => setFormData({ ...formData, sendFrom: e.target.value })}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent transition-all"
             >
-              <option value="zz2406143@gmail.com">zz2406143@gmail.com (Default)</option>
+              {senderEmails.length === 0 ? (
+                <option value="">No sender emails configured</option>
+              ) : (
+                senderEmails.map((sender) => (
+                  <option key={sender.email} value={sender.email}>
+                    {sender.email}{sender.isActive ? " (Default)" : ""}
+                  </option>
+                ))
+              )}
             </select>
           </div>
           <div>
@@ -450,23 +474,6 @@ export default function ApplicationsPage() {
       return [];
     }
   });
-  const [activeHistoryId, setActiveHistoryId] = useState<string | null>(null);
-
-  const activeHistoryItem = useMemo(
-    () => history.find((item) => item.id === activeHistoryId) || null,
-    [activeHistoryId, history]
-  );
-
-  useEffect(() => {
-    if (!activeHistoryId) return;
-    const onEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setActiveHistoryId(null);
-      }
-    };
-    window.addEventListener("keydown", onEscape);
-    return () => window.removeEventListener("keydown", onEscape);
-  }, [activeHistoryId]);
 
   const stats = useMemo(() => {
     const sent = history.filter((item) => item.status === "sent").length;
@@ -486,11 +493,14 @@ export default function ApplicationsPage() {
     <div className="space-y-6">
       <section className="card">
         <p className="text-caption text-gray-400">Applications Center</p>
-        <h1 className="mt-2 text-display-md">Track Every Application</h1>
-        <p className="mt-2 text-body text-gray-600">Monitor your application history and success metrics.</p>
+        <h1 className="mt-2 text-display-md">Send Applications</h1>
+        <p className="mt-2 text-body text-gray-600">Create and send a new application email with attachments.</p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link href="/dashboard/fast-apply" className="btn-primary">
             Fast Apply
+          </Link>
+          <Link href="/dashboard/application-historys" className="btn-secondary">
+            Open Application Historys
           </Link>
           <button type="button" onClick={clearHistory} className="btn-secondary text-red-600 border-red-600 hover:bg-red-50">
             Clear History
@@ -521,139 +531,6 @@ export default function ApplicationsPage() {
       <Suspense fallback={<div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6"><p className="text-gray-500">Loading form...</p></div>}>
         <ApplicationForm />
       </Suspense>
-
-      <section className="card-flat">
-        <h2 className="text-display-sm mb-4">Application History</h2>
-        {history.length === 0 ? (
-          <p className="text-body text-gray-500">No applications yet.</p>
-        ) : (
-          <div className="space-y-2">
-            {history.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setActiveHistoryId(item.id)}
-                className="w-full text-left flex flex-wrap items-center justify-between gap-3 rounded-button border border-gray-200 bg-gray-50 px-4 py-3 hover:bg-gray-100 transition-colors"
-              >
-                <div>
-                  <p className="text-body-sm font-semibold text-black">{item.jobTitle}</p>
-                  <p className="text-xs text-gray-500">{item.company} | {item.contactEmail} | {new Date(item.sentAt).toLocaleString()}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${item.status === "sent" ? "bg-black text-white" : "bg-gray-300 text-gray-700"}`}>
-                    {item.status}
-                  </span>
-                  <span className="text-xs font-semibold text-gray-600">Details</span>
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {activeHistoryItem && (
-        <>
-          <button
-            type="button"
-            aria-label="Close details"
-            onClick={() => setActiveHistoryId(null)}
-            className="fixed inset-0 bg-black/30 z-40"
-          />
-          <aside className="fixed right-0 top-0 z-50 h-full w-full max-w-xl border-l border-gray-200 bg-white shadow-2xl">
-            <div className="flex h-full flex-col">
-              <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.12em] text-gray-400">Application Details</p>
-                  <h3 className="text-lg font-bold text-black">{activeHistoryItem.jobTitle}</h3>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setActiveHistoryId(null)}
-                  className="rounded-full border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-100"
-                >
-                  Close
-                </button>
-              </div>
-
-              <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-                <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                  <p className="text-sm font-semibold text-black">{activeHistoryItem.company}</p>
-                  <p className="text-xs text-gray-500 mt-1">To: {activeHistoryItem.contactEmail}</p>
-                  <p className="text-xs text-gray-500">From: {activeHistoryItem.senderEmail}</p>
-                  <p className="text-xs text-gray-500">{new Date(activeHistoryItem.sentAt).toLocaleString()}</p>
-                  <span className={`mt-3 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${activeHistoryItem.status === "sent" ? "bg-black text-white" : "bg-gray-300 text-gray-700"}`}>
-                    {activeHistoryItem.status}
-                  </span>
-                </div>
-
-                <div className="rounded-xl border border-gray-200 p-4">
-                  <p className="text-xs uppercase tracking-[0.12em] text-gray-400">Template</p>
-                  <p className="text-sm font-semibold text-gray-900 mt-1">{activeHistoryItem.templateName || "Manual Application Template"}</p>
-                  {activeHistoryItem.sourceUrl && (
-                    <a
-                      href={activeHistoryItem.sourceUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-2 inline-flex text-xs font-semibold text-black underline decoration-gray-300 hover:decoration-black"
-                    >
-                      Open Source URL
-                    </a>
-                  )}
-                </div>
-
-                <div className="rounded-xl border border-gray-200 p-4">
-                  <p className="text-xs uppercase tracking-[0.12em] text-gray-400">Subject</p>
-                  <p className="text-sm font-semibold text-gray-900 mt-1">{activeHistoryItem.subject}</p>
-                  <p className="text-xs uppercase tracking-[0.12em] text-gray-400 mt-4">Message</p>
-                  <p className="mt-1 whitespace-pre-line text-sm text-gray-700">{activeHistoryItem.message}</p>
-                </div>
-
-                <div className="rounded-xl border border-gray-200 p-4">
-                  <p className="text-xs uppercase tracking-[0.12em] text-gray-400">Attachments</p>
-                  {activeHistoryItem.attachments?.length ? (
-                    <div className="mt-3 space-y-2">
-                      {activeHistoryItem.attachments.map((attachment) => (
-                        <div key={attachment.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-button hover:bg-gray-100 transition-colors group">
-                          <div className="w-8 h-8 bg-white border border-gray-200 rounded-button flex items-center justify-center flex-shrink-0">
-                            <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                            </svg>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-gray-800 truncate">{attachment.filename}</p>
-                            <p className="text-xs text-gray-400">{Math.max(1, Math.round(attachment.fileSize / 1024))} KB {attachment.bundleName ? `· ${attachment.bundleName}` : ""}</p>
-                          </div>
-                          <span className="px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 bg-black text-white">{attachment.type || "DOC"}</span>
-                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button type="button" className="p-1 text-gray-400 hover:text-black rounded transition-colors" title="Preview">
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                              </svg>
-                            </button>
-                            <button type="button" className="p-1 text-gray-400 hover:text-black rounded transition-colors" title="Edit">
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                              </svg>
-                            </button>
-                            <button type="button" className="p-1 text-gray-400 hover:text-red-500 rounded transition-colors" title="Delete">
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="mt-2 text-sm text-gray-500">No attachments were saved for this application.</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          </aside>
-        </>
-      )}
     </div>
   );
 }

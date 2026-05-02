@@ -102,9 +102,24 @@ export class TokenRouterService {
     return credits ? parseInt(credits, 10) : 0;
   }
 
-private shouldFallback(error: unknown): boolean {
-  const message = error instanceof Error ? error.message : String(error || '');
-    return message.includes('429') || message.includes('5') && (message.includes('500') || message.includes('502') || message.includes('503'));
+  private shouldFallback(error: unknown): boolean {
+    const message = (error instanceof Error ? error.message : String(error || '')).toLowerCase();
+
+    // Fallback for rate limit/auth/transient provider failures and client-side abort/timeouts.
+    return (
+      message.includes('401') ||
+      message.includes('403') ||
+      message.includes('429') ||
+      message.includes('500') ||
+      message.includes('502') ||
+      message.includes('503') ||
+      message.includes('504') ||
+      message.includes('timeout') ||
+      message.includes('timed out') ||
+      message.includes('abort') ||
+      message.includes('unauthorized') ||
+      message.includes('fetcherror')
+    );
   }
 
   async getRemainingCredits(): Promise<number> {

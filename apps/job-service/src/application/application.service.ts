@@ -3,6 +3,7 @@ import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { PrismaService } from '../prisma/prisma.service';
 import { KafkaService } from '../kafka/kafka.service';
+import { ApplicationHistoryService } from './application-history.service';
 import { ApplyDto } from './dto/apply.dto';
 import { BulkApplyDto } from './dto/bulk-apply.dto';
 import { ApplicationData } from './value-objects/application-data.vo';
@@ -16,7 +17,8 @@ export class ApplicationService {
   constructor(
     private prisma: PrismaService,
     private kafka: KafkaService,
-    @InjectQueue(APPLICATION_QUEUE) private applicationQueue: Queue
+    @InjectQueue(APPLICATION_QUEUE) private applicationQueue: Queue,
+    private applicationHistoryService: ApplicationHistoryService,
   ) {}
 
   async apply(jobPostId: string, dto: ApplyDto, userId: string) {
@@ -238,4 +240,21 @@ export class ApplicationService {
       email: 'user@example.com',
     };
   }
+
+  async getApplicationHistory(userId: string) {
+    return this.applicationHistoryService.findAll(userId);
+  }
+
+  async getApplicationHistoryStats(userId: string) {
+    return this.applicationHistoryService.getStats(userId);
+  }
+
+  async createApplicationHistory(userId: string, dto: any) {
+    return this.applicationHistoryService.create(userId, dto);
+  }
+
+  async deleteApplicationHistory(userId: string) {
+    return this.applicationHistoryService.deleteAll(userId);
+  }
+
 }

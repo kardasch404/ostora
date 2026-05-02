@@ -5,10 +5,11 @@ import { firstValueFrom } from 'rxjs';
 import axios from 'axios';
 
 @ApiTags('Users Proxy')
-@Controller('users')
+@Controller({ path: 'users', version: '1' })
 export class UserProxyController {
   private readonly userServiceUrl = process.env['USER_SERVICE_URL'] || 'http://localhost:4719';
-  private readonly emailServiceUrl = process.env['EMAIL_SERVICE_URL'] || 'http://email-service:4721';
+  private readonly emailServiceUrl = process.env['EMAIL_SERVICE_URL'] || 'http://localhost:4721';
+  private readonly timeout = 30000;
 
   constructor(private readonly httpService: HttpService) {}
 
@@ -222,6 +223,27 @@ export class UserProxyController {
     return response.data;
   }
 
+  @Get('emails/providers')
+  async getEmailProviders(@Headers('authorization') auth: string) {
+    const url = `${this.userServiceUrl}/api/v1/email-configs/providers`;
+    const response = await firstValueFrom(
+      this.httpService.get(url, { headers: { authorization: auth } })
+    );
+    return response.data;
+  }
+
+  @Get('emails/providers/:provider')
+  async getEmailProviderConfig(
+    @Param('provider') provider: string,
+    @Headers('authorization') auth: string,
+  ) {
+    const url = `${this.userServiceUrl}/api/v1/email-configs/providers/${provider}`;
+    const response = await firstValueFrom(
+      this.httpService.get(url, { headers: { authorization: auth } })
+    );
+    return response.data;
+  }
+
   @Get(':id([0-9a-fA-F-]{36})')
   async getUserById(@Param('id') id: string, @Headers('authorization') auth: string) {
     const url = `${this.userServiceUrl}/api/v1/users/${id}`;
@@ -286,38 +308,45 @@ export class UserProxyController {
 
   @Post('emails/send')
   async sendEmail(@Body() body: any, @Headers('authorization') auth: string) {
-    const resolveUrl = `${this.userServiceUrl}/api/v1/email-configs/resolve-sender`;
-    const senderConfigResponse = await firstValueFrom(
-      this.httpService.post(
-        resolveUrl,
-        { email: body?.from },
-        { headers: { authorization: auth } }
-      )
-    );
+    try {
+      const senderConfig = (await firstValueFrom(
+        this.httpService.post(
+          `${this.userServiceUrl}/api/v1/email-configs/resolve-sender`,
+          { email: body?.from },
+          { headers: { authorization: auth } },
+        )
+      )).data;
 
-    const senderConfig = senderConfigResponse.data;
-
-    const url = `${this.emailServiceUrl}/api/v1/email/send`;
-    const response = await firstValueFrom(
-      this.httpService.post(
-        url,
-        {
-          ...body,
-          from: body?.from || senderConfig.fromEmail,
-          smtpConfig: {
-            smtpHost: senderConfig.smtpHost,
-            smtpPort: senderConfig.smtpPort,
-            smtpSecure: senderConfig.smtpSecure,
-            smtpUser: senderConfig.smtpUser,
-            smtpPassword: senderConfig.smtpPassword,
-            fromEmail: senderConfig.fromEmail,
-            fromName: senderConfig.fromName,
+      const response = await firstValueFrom(
+        this.httpService.post(
+          `${this.emailServiceUrl}/api/v1/email/send`,
+          {
+            ...body,
+            from: body?.from || senderConfig.fromEmail,
+            smtpConfig: {
+              provider: senderConfig.provider,
+              smtpHost: senderConfig.smtpHost,
+              smtpPort: senderConfig.smtpPort,
+              smtpSecure: senderConfig.smtpSecure,
+              smtpUser: senderConfig.smtpUser,
+              smtpPassword: senderConfig.smtpPassword,
+              fromEmail: senderConfig.fromEmail,
+              fromName: senderConfig.fromName,
+            },
           },
-        },
-        { headers: { authorization: auth } }
-      )
-    );
-    return response.data;
+          { headers: { authorization: auth } },
+        )
+      );
+      return response.data;
+    } catch (error) {
+      const status = axios.isAxiosError(error)
+        ? error.response?.status || HttpStatus.BAD_GATEWAY
+        : HttpStatus.INTERNAL_SERVER_ERROR;
+      const message = axios.isAxiosError(error)
+        ? error.response?.data?.message || error.message
+        : error instanceof Error ? error.message : 'Failed to send email';
+      throw new HttpException(message, status);
+    }
   }
 
   @Post('bundles')

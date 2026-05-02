@@ -12,12 +12,12 @@ export class CreateEmailConfigDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsEmail()
-  email: string;
+  email!: string;
 
   @ApiProperty({ description: 'Email password or app password' })
   @IsOptional()
   @IsString()
-  password: string;
+  password?: string;
 
   @ApiProperty({ description: 'Alternative field name for password' })
   @IsOptional()
@@ -28,6 +28,11 @@ export class CreateEmailConfigDto {
   @IsOptional()
   @IsString()
   smtpHost?: string;
+
+  @ApiPropertyOptional({ description: 'Optional provider key (e.g. gmail, outlook, yahoo, custom)' })
+  @IsOptional()
+  @IsString()
+  provider?: string;
 
   @ApiPropertyOptional({ description: 'Auto-detected if not provided' })
   @IsOptional()

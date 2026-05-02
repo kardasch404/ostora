@@ -47,4 +47,36 @@ export class ApplicationController {
     const userId = req.user?.id;
     return this.applicationService.getApplicationById(id, userId);
   }
+
+  @Get('application-history')
+  @ApiOperation({ summary: 'Get application history' })
+  @ApiResponse({ status: 200 })
+  async getApplicationHistory(@Req() req: any) {
+    const userId = req.user?.id;
+    return this.applicationService.getApplicationHistory(userId);
+  }
+
+  @Get('application-history/stats')
+  @ApiOperation({ summary: 'Get application history stats' })
+  @ApiResponse({ status: 200 })
+  async getApplicationHistoryStats(@Req() req: any) {
+    const userId = req.user?.id;
+    return this.applicationService.getApplicationHistoryStats(userId);
+  }
+
+  @Post('application-history')
+  @ApiOperation({ summary: 'Create application history record' })
+  @ApiResponse({ status: 201 })
+  async createApplicationHistory(@Body() dto: any, @Req() req: any) {
+    const userId = req.user?.id;
+    return this.applicationService.createApplicationHistory(userId, dto);
+  }
+
+  @Delete('application-history')
+  @ApiOperation({ summary: 'Delete all application history' })
+  @ApiResponse({ status: 200 })
+  async deleteApplicationHistory(@Req() req: any) {
+    const userId = req.user?.id;
+    return this.applicationService.deleteApplicationHistory(userId);
+  }
 }

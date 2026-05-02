@@ -9,9 +9,10 @@ export class SendEmailDto {
   @IsOptional()
   @IsObject()
   smtpConfig?: {
-    smtpHost: string;
-    smtpPort: number;
-    smtpSecure: boolean;
+    provider?: string;
+    smtpHost?: string;
+    smtpPort?: number;
+    smtpSecure?: boolean;
     smtpUser: string;
     smtpPassword: string;
     fromEmail?: string;

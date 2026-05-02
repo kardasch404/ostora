@@ -164,6 +164,7 @@ services:
       KAFKA_BROKER: kafka:29092
       JOB_SERVICE_URL: http://job-service:4720
       USER_SERVICE_URL: http://user-service:4719
+      EMAIL_SERVICE_URL: http://email-service:4721
     ports:
       - "4717:4717"
     depends_on:
@@ -283,12 +284,12 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       KAFKA_BROKER: kafka:29092
-      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
-      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_HOST: ${OUTLOOK_SMTP_HOST:-smtp-mail.outlook.com}
+      SMTP_PORT: ${OUTLOOK_SMTP_PORT:-587}
       SMTP_SECURE: "false"
-      SMTP_USER: ${SMTP_USER}
-      SMTP_PASSWORD: ${SMTP_PASSWORD}
-      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL}
+      SMTP_USER: ${OUTLOOK_SMTP_USER}
+      SMTP_PASSWORD: ${OUTLOOK_SMTP_PASSWORD}
+      SMTP_FROM_EMAIL: ${OUTLOOK_FROM_EMAIL}
       ALLOW_SES_FALLBACK: "false"
     ports:
       - "4721:4721"
@@ -422,6 +423,8 @@ services:
       context: .
       dockerfile: ./devops/docker/ai-service.Dockerfile
     container_name: ostora-ai-service
+    env_file:
+      - ./apps/ai-service/.env
     environment:
       PORT: 4723
       NODE_ENV: production
@@ -431,7 +434,6 @@ services:
       OLLAMA_API_URL: ${OLLAMA_API_URL:-http://host.docker.internal:11434}
       OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3}
       BLAZEAI_API_URL: ${BLAZEAI_API_URL:-https://blazeai.boxu.dev}
-      BLAZEAI_API_KEY: ${BLAZEAI_API_KEY:-dev-blazeai-placeholder}
       OSTORACV_SERVICE_URL: http://ostoracv-service:4731
       INTERNAL_SERVICE_SECRET: ${INTERNAL_SERVICE_SECRET:-ostora-internal-secret}
     ports:
