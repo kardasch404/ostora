@@ -43,8 +43,9 @@ export class OllamaProvider implements IAiProvider {
       const data = await response.json();
       this.logger.log(`Ollama completed in ${data.total_duration / 1e9}s`);
       return data.response;
-    } catch (error) {
-      this.logger.error(`Ollama generation failed: ${error.message}`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Ollama generation failed: ${errorMessage}`);
       throw error;
     }
   }

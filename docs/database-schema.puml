@@ -1,0 +1,452 @@
+@startuml Ostora_Database_Schema
+
+!define ENTITY class
+!define PK <<PK>>
+!define FK <<FK>>
+
+skinparam classAttributeIconSize 0
+skinparam backgroundColor #FEFEFE
+skinparam class {
+    BackgroundColor<<Core>> #E3F2FD
+    BackgroundColor<<Profile>> #F3E5F5
+    BackgroundColor<<Job>> #FFF3E0
+    BackgroundColor<<Payment>> #E8F5E9
+    BackgroundColor<<Notification>> #FCE4EC
+    BackgroundColor<<Auth>> #E0F2F1
+    BorderColor #424242
+    ArrowColor #424242
+}
+
+' ==================== CORE AUTH ENTITIES ====================
+ENTITY User <<Core>> {
+  + id: UUID PK
+  --
+  email: String
+  username: String
+  password: String
+  firstName: String
+  lastName: String
+  phone: String
+  avatar: String
+  bio: Text
+  roleId: UUID FK
+  status: UserStatus
+  emailVerified: Boolean
+  twoFactorEnabled: Boolean
+  lastLoginAt: Timestamp
+  createdAt: Timestamp
+  updatedAt: Timestamp
+}
+
+ENTITY Role <<Auth>> {
+  + id: UUID PK
+  --
+  name: String
+  description: String
+  createdAt: Timestamp
+  updatedAt: Timestamp
+}
+
+ENTITY Permission <<Auth>> {
+  + id: UUID PK
+  --
+  resource: String
+  action: String
+  description: String
+  createdAt: Timestamp
+  updatedAt: Timestamp
+}
+
+ENTITY RolePermission <<Auth>> {
+  + id: UUID PK
+  --
+  roleId: UUID FK
+  permissionId: UUID FK
+  createdAt: Timestamp
+}
+
+ENTITY Session <<Auth>> {
+  + id: UUID PK
+  --
+  userId: UUID FK
+  token: String
+  ipAddress: String
+  userAgent: String
+  expiresAt: Timestamp
+  createdAt: Timestamp
+}
+
+ENTITY OAuthAccount <<Auth>> {
+  + id: UUID PK
+  --
+  userId: UUID FK
+  provider: String
+  providerAccountId: String
+  accessToken: Text
+  refreshToken: Text
+  expiresAt: Timestamp
+  createdAt: Timestamp
+}
+
+' ==================== PROFILE ENTITIES ====================
+ENTITY Profile <<Profile>> {
+  + id: UUID PK
+  --
+  userId: UUID FK
+  firstName: String
+  lastName: String
+  phone: String
+  bio: Text
+  avatar: String
+  city: String
+  country: String
+  title: String
+  company: String
+  industry: String
+  experienceYears: Int
+  salary: Int
+  linkedinUrl: String
+  githubUrl: String
+  visibility: ProfileVisibility
+  createdAt: Timestamp
+  updatedAt: Timestamp
+}
+
+ENTITY Education <<Profile>> {
+  + id: UUID PK
+  --
+  profileId: UUID FK
+  institution: String
+  degree: String
+  field: String
+  startDate: Date
+  endDate: Date
+  current: Boolean
+  description: Text
+  grade: String
+  createdAt: Timestamp
+}
+
+ENTITY Experience <<Profile>> {
+  + id: UUID PK
+  --
+  profileId: UUID FK
+  company: String
+  title: String
+  location: String
+  employmentType: EmploymentType
+  startDate: Date
+  endDate: Date
+  current: Boolean
+  description: Text
+  createdAt: Timestamp
+}
+
+ENTITY Skill <<Profile>> {
+  + id: UUID PK
+  --
+  profileId: UUID FK
+  name: String
+  level: SkillLevel
+  category: String
+  yearsOfExperience: Int
+  createdAt: Timestamp
+}
+
+ENTITY Language <<Profile>> {
+  + id: UUID PK
+  --
+  profileId: UUID FK
+  name: String
+  proficiency: LanguageProficiency
+  createdAt: Timestamp
+}
+
+ENTITY ProfileSettings <<Profile>> {
+  + id: UUID PK
+  --
+  userId: UUID FK
+  jobSearchStatus: JobSearchStatus
+  desiredSalary: Int
+  desiredContractType: EmploymentType
+  desiredLocations: String[]
+  remotePreference: RemotePreference
+  visibility: ProfileVisibility
+  createdAt: Timestamp
+}
+
+' ==================== JOB ENTITIES ====================
+ENTITY Job <<Job>> {
+  + id: UUID PK
+  --
+  title: String
+  company: String
+  companyLogo: String
+  description: Text
+  requirements: String[]
+  location: String
+  country: String
+  city: String
+  remote: Boolean
+  salaryMin: Int
+  salaryMax: Int
+  type: JobType
+  level: JobLevel
+  category: String
+  industry: String
+  skills: String[]
+  source: String
+  status: JobStatus
+  views: Int
+  applications: Int
+  expiresAt: Timestamp
+  createdAt: Timestamp
+}
+
+ENTITY Company <<Job>> {
+  + id: UUID PK
+  --
+  name: String
+  website: String
+  industry: String
+  size: String
+  country: String
+  city: String
+  logoUrl: String
+  description: Text
+  createdAt: Timestamp
+}
+
+ENTITY JobPost <<Job>> {
+  + id: UUID PK
+  --
+  externalId: String
+  source: JobSource
+  title: String
+  companyId: UUID FK
+  location: String
+  salary: String
+  contractType: ContractType
+  remote: Boolean
+  description: Text
+  url: String
+  postedAt: Timestamp
+  isActive: Boolean
+  createdAt: Timestamp
+}
+
+ENTITY JobApplication <<Job>> {
+  + id: UUID PK
+  --
+  userId: UUID FK
+  jobId: UUID FK
+  status: ApplicationStatus
+  coverLetter: Text
+  resumeUrl: String
+  aiScore: Float
+  aiInsights: JSON
+  appliedAt: Timestamp
+  updatedAt: Timestamp
+}
+
+ENTITY SavedJob <<Job>> {
+  + id: UUID PK
+  --
+  userId: UUID FK
+  jobId: UUID FK
+  notes: Text
+  createdAt: Timestamp
+}
+
+ENTITY JobAlert <<Job>> {
+  + id: UUID PK
+  --
+  userId: UUID FK
+  name: String
+  criteria: JSON
+  frequency: String
+  active: Boolean
+  lastSentAt: Timestamp
+  createdAt: Timestamp
+}
+
+' ==================== PAYMENT ENTITIES ====================
+ENTITY Subscription <<Payment>> {
+  + id: UUID PK
+  --
+  userId: UUID FK
+  plan: SubscriptionPlan
+  status: SubscriptionStatus
+  stripeSubscriptionId: String
+  paypalSubscriptionId: String
+  currentPeriodStart: Timestamp
+  currentPeriodEnd: Timestamp
+  trialEnd: Timestamp
+  cancelAtPeriodEnd: Boolean
+  createdAt: Timestamp
+}
+
+ENTITY Payment <<Payment>> {
+  + id: UUID PK
+  --
+  userId: UUID FK
+  amount: Float
+  currency: String
+  status: PaymentStatus
+  provider: String
+  stripePaymentIntentId: String
+  paypalOrderId: String
+  description: String
+  metadata: JSON
+  createdAt: Timestamp
+}
+
+' ==================== NOTIFICATION ENTITIES ====================
+ENTITY Notification <<Notification>> {
+  + id: UUID PK
+  --
+  userId: UUID FK
+  type: NotificationType
+  title: String
+  message: Text
+  data: JSON
+  read: Boolean
+  readAt: Timestamp
+  createdAt: Timestamp
+}
+
+ENTITY NotificationPreference <<Notification>> {
+  + id: UUID PK
+  --
+  userId: UUID FK
+  inAppEnabled: Boolean
+  pushEnabled: Boolean
+  emailEnabled: Boolean
+  weeklyDigestEnabled: Boolean
+  digestFrequency: String
+  quietHours: JSON
+  types: JSON
+  createdAt: Timestamp
+}
+
+' ==================== DOCUMENT ENTITIES ====================
+ENTITY Document <<Core>> {
+  + id: UUID PK
+  --
+  userId: UUID FK
+  type: DocumentType
+  name: String
+  originalName: String
+  url: String
+  size: Int
+  mimeType: String
+  aiAnalysis: JSON
+  createdAt: Timestamp
+}
+
+ENTITY ApplicationBundle <<Core>> {
+  + id: UUID PK
+  --
+  userId: UUID FK
+  name: String
+  slug: String
+  description: Text
+  createdAt: Timestamp
+}
+
+ENTITY ApplicationDocument <<Core>> {
+  + id: UUID PK
+  --
+  bundleId: UUID FK
+  type: ApplicationDocumentType
+  filename: String
+  s3Key: String
+  s3Url: String
+  fileSize: Int
+  mimeType: String
+  createdAt: Timestamp
+}
+
+' ==================== NETWORKING ENTITIES ====================
+ENTITY NetworkingAction <<Core>> {
+  + id: UUID PK
+  --
+  userId: UUID FK
+  type: NetworkingType
+  platform: String
+  targetName: String
+  targetEmail: String
+  targetLinkedin: String
+  message: Text
+  status: NetworkingStatus
+  sentAt: Timestamp
+  respondedAt: Timestamp
+  createdAt: Timestamp
+}
+
+ENTITY MessageTemplate <<Core>> {
+  + id: UUID PK
+  --
+  userId: UUID FK
+  name: String
+  subject: String
+  body: Text
+  language: String
+  isDefault: Boolean
+  isActive: Boolean
+  createdAt: Timestamp
+}
+
+ENTITY EmailConfig <<Core>> {
+  + id: UUID PK
+  --
+  userId: UUID FK
+  email: String
+  passwordEncrypted: Text
+  smtpHost: String
+  smtpPort: Int
+  encryption: EmailEncryption
+  fromName: String
+  isActive: Boolean
+  createdAt: Timestamp
+}
+
+' ==================== RELATIONSHIPS ====================
+
+' User relationships
+User "1" -- "0..1" Profile : has >
+User "1" -- "0..1" ProfileSettings : has >
+User "1" -- "*" Session : has >
+User "1" -- "*" OAuthAccount : has >
+User "1" -- "*" Document : owns >
+User "1" -- "*" JobApplication : submits >
+User "1" -- "*" SavedJob : saves >
+User "1" -- "*" JobAlert : creates >
+User "1" -- "*" Subscription : has >
+User "1" -- "*" Payment : makes >
+User "1" -- "*" Notification : receives >
+User "1" -- "*" NetworkingAction : performs >
+User "1" -- "*" MessageTemplate : creates >
+User "1" -- "*" EmailConfig : configures >
+User "1" -- "*" ApplicationBundle : creates >
+User "*" -- "1" Role : has >
+
+' Role & Permission
+Role "1" -- "*" RolePermission : has >
+Permission "1" -- "*" RolePermission : granted in >
+
+' Profile relationships
+Profile "1" -- "*" Education : has >
+Profile "1" -- "*" Experience : has >
+Profile "1" -- "*" Skill : has >
+Profile "1" -- "*" Language : speaks >
+
+' Job relationships
+Job "1" -- "*" JobApplication : receives >
+Job "1" -- "*" SavedJob : saved as >
+Company "1" -- "*" JobPost : posts >
+
+' Bundle relationships
+ApplicationBundle "1" -- "*" ApplicationDocument : contains >
+
+@enduml

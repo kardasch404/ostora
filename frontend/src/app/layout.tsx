@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { AppProviders } from "@/providers/app-providers";
+import FloatingAIAssistant from "@/components/dashboard/FloatingAIAssistant";
 import "./globals.css";
 
 const inter = Inter({
@@ -22,7 +23,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body>
-        <AppProviders>{children}</AppProviders>
+        <AppProviders>
+          {children}
+          <FloatingAIAssistant />
+        </AppProviders>
       </body>
     </html>
   );

@@ -180,6 +180,173 @@ async function main() {
   }
 
   console.log('✅ PREMIUM_USER role assigned permissions');
+
+  // Seed a concrete user profile with education and work experience data.
+  const targetEmail = 'zz2406143@gmail.com';
+
+  const seededUsers = await prisma.$queryRawUnsafe<Array<{ id: string }>>(
+    'SELECT id FROM users WHERE email = $1 LIMIT 1',
+    targetEmail,
+  );
+
+  const seededUserId = seededUsers[0]?.id || '38c269a8-629d-4aa3-888d-bbe70a09b24b';
+
+  const existingProfile = await prisma.profile.findUnique({
+    where: { userId: seededUserId },
+    select: { jobPreferences: true },
+  });
+
+  const previousJobPreferences =
+    existingProfile?.jobPreferences && typeof existingProfile.jobPreferences === 'object'
+      ? (existingProfile.jobPreferences as Record<string, unknown>)
+      : {};
+
+  const seededWorkEntries = [
+    {
+      id: 'seed-cw-backend',
+      role: 'Back-End-Entwickler',
+      company: 'Comply World',
+      startDate: '2025-05-01',
+      endDate: '',
+      current: true,
+      summary: 'Python, Data Scraping',
+    },
+    {
+      id: 'seed-alx-cyber',
+      role: 'Cyber-Sicherheitsstudent',
+      company: 'ALX Morocco',
+      startDate: '2026-02-01',
+      endDate: '',
+      current: true,
+      summary: 'Hybrid learning track in cyber security',
+    },
+    {
+      id: 'seed-youcode-fullstack',
+      role: 'Full Stack-Entwickler',
+      company: 'YouCode Maroc',
+      startDate: '2024-09-01',
+      endDate: '',
+      current: true,
+      summary: 'Agile methodologies, VS Code, modern web stack',
+    },
+  ];
+
+  const profile = await prisma.profile.upsert({
+    where: { userId: seededUserId },
+    update: {
+      firstName: 'Zz',
+      lastName: 'User',
+      title: 'Back-End-Entwickler',
+      company: 'Comply World',
+      city: 'Casablanca-Settat',
+      country: 'Morocco',
+      location: 'Casablanca-Settat, Morocco',
+      linkedinUrl: 'https://www.linkedin.com/in/zz2406143',
+      jobPreferences: {
+        ...previousJobPreferences,
+        workEntries: seededWorkEntries,
+      },
+    },
+    create: {
+      userId: seededUserId,
+      firstName: 'Zz',
+      lastName: 'User',
+      title: 'Back-End-Entwickler',
+      company: 'Comply World',
+      city: 'Casablanca-Settat',
+      country: 'Morocco',
+      location: 'Casablanca-Settat, Morocco',
+      linkedinUrl: 'https://www.linkedin.com/in/zz2406143',
+      jobPreferences: {
+        workEntries: seededWorkEntries,
+      },
+    },
+  });
+
+  await prisma.education.deleteMany({ where: { profileId: profile.id } });
+  await prisma.education.createMany({
+    data: [
+      {
+        profileId: profile.id,
+        institution: 'UM6P - University Mohammed VI Polytechnic',
+        degree: 'Computer Software Engineering',
+        field: 'Software Engineering',
+        startDate: new Date('2024-09-01'),
+        endDate: new Date('2026-04-30'),
+        current: false,
+        description:
+          'State-recognized diploma registered in RNCP Level 6 (roughly Bachelor level in EQF).',
+      },
+      {
+        profileId: profile.id,
+        institution: "Faculte des Sciences Ben M'Sik Casablanca",
+        degree: 'General Sciences',
+        field: 'Science',
+        startDate: new Date('2021-09-01'),
+        endDate: new Date('2022-06-30'),
+        current: false,
+      },
+      {
+        profileId: profile.id,
+        institution: 'Omar Khayyam High School, El Youssoufia',
+        degree: 'Highschool Degree in Mathematical Sciences A (French option)',
+        field: 'Mathematical Sciences',
+        startDate: new Date('2018-09-01'),
+        endDate: new Date('2021-06-30'),
+        current: false,
+      },
+    ],
+  });
+
+  try {
+    await prisma.experience.deleteMany({ where: { profileId: profile.id } });
+    await prisma.experience.createMany({
+      data: [
+        {
+          profileId: profile.id,
+          company: 'Comply World',
+          title: 'Back-End-Entwickler',
+          location: 'Casablanca-Settat, Morocco (On-site)',
+          employmentType: 'FULL_TIME',
+          startDate: new Date('2025-05-01'),
+          endDate: null,
+          current: true,
+          description: 'Python, Data Scraping',
+        },
+        {
+          profileId: profile.id,
+          company: 'ALX Morocco',
+          title: 'Cyber-Sicherheitsstudent',
+          location: 'Casablanca-Settat, Morocco (Hybrid)',
+          employmentType: 'INTERNSHIP',
+          startDate: new Date('2026-02-01'),
+          endDate: null,
+          current: true,
+          description: 'Cyber security training program',
+        },
+        {
+          profileId: profile.id,
+          company: 'YouCode Maroc',
+          title: 'Full Stack-Entwickler',
+          location: 'Youssoufia, Marrakesh-Safi, Morocco (On-site)',
+          employmentType: 'INTERNSHIP',
+          startDate: new Date('2024-09-01'),
+          endDate: null,
+          current: true,
+          description: 'Agile methodologies, VS Code, and full-stack development',
+        },
+      ],
+    });
+  } catch (error: any) {
+    const message = String(error?.message || '').toLowerCase();
+    if (!message.includes('experience') || !message.includes('does not exist')) {
+      throw error;
+    }
+
+    console.log('⚠️ Experience table is missing; experience saved in jobPreferences.workEntries only.');
+  }
+
+  console.log('✅ Seeded profile, education, and experience for', targetEmail);
   console.log('🎉 Seeding completed successfully!');
 }
 

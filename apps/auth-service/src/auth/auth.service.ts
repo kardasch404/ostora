@@ -235,17 +235,6 @@ export class AuthService {
 
     const fingerprint = new DeviceFingerprint(req);
 
-    if (user.deviceFingerprint && user.deviceFingerprint !== fingerprint.hash) {
-      await this.eventPublisher.publishNewDeviceLogin({
-        userId: user.id,
-        email: user.email,
-        ip,
-        userAgent,
-        fingerprint: fingerprint.hash,
-      });
-      await this.auditService.logNewDevice(user.id, ip, userAgent, fingerprint.hash);
-    }
-
     const permissions = user.role?.rolePermissions.map((rp) => `${rp.permission.resource}:${rp.permission.action}`) || [];
 
     const tokens = await this.tokenService.generateTokenPair(

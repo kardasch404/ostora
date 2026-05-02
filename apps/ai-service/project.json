@@ -5,7 +5,7 @@
   "projectType": "application",
   "targets": {
     "build": {
-      "executor": "@nx/node:build",
+      "executor": "@nx/js:tsc",
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "dist/apps/ai-service",
@@ -14,7 +14,7 @@
       }
     },
     "serve": {
-      "executor": "@nx/node:execute",
+      "executor": "@nx/js:node",
       "options": {
         "buildTarget": "ai-service:build"
       }

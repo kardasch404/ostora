@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param, UseGuards, Request, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, Request, HttpException, HttpStatus } from '@nestjs/common';
 import { FastApplyService } from './fast-apply.service';
 import { FastApplyRequestDto } from '../dto/fast-apply.dto';
 import { UserPlan } from '../interfaces/fast-apply.interface';

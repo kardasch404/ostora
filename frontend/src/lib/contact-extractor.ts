@@ -8,32 +8,58 @@ export interface ContactInfo {
   position: string;
   email: string;
   phone: string;
+  image?: string;
+}
+
+function normalizePhone(value: string): string {
+  const cleaned = value
+    .replace(/^tel:/i, "")
+    .replace(/[\u00a0\t\r\n]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const digits = (cleaned.match(/\d/g) || []).length;
+  if (digits < 8 || digits > 16) {
+    return "";
+  }
+
+  return cleaned;
+}
+
+function normalizeEmail(value: string): string {
+  const email = value.replace(/^mailto:/i, "").split("?")[0].trim();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : "";
 }
 
 export function extractContactInfo(html: string): ContactInfo {
-  if (!html) return { name: "", position: "", email: "", phone: "" };
+  if (!html) return { name: "", position: "", email: "", phone: "", image: "" };
 
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, "text/html");
+
+  // Remove noisy nodes before text-based extraction.
+  doc.querySelectorAll("script, style, noscript, svg, path, use").forEach((el) => el.remove());
 
   let name = "";
   let position = "";
   let email = "";
   let phone = "";
+  let image = "";
 
   // ── Strategy 1: .job-posting-contact-person structure ────────────────────────
   const contactPerson = doc.querySelector(".job-posting-contact-person");
   if (contactPerson) {
     name = contactPerson.querySelector(".job-posting-contact-person__name")?.textContent?.trim() || "";
     position = contactPerson.querySelector(".job-posting-contact-person__position")?.textContent?.trim() || "";
+    image = contactPerson.querySelector("img")?.getAttribute("src")?.trim() || "";
     const emailLink = contactPerson.querySelector(".job-posting-contact-person__email a");
     const phoneLink = contactPerson.querySelector(".job-posting-contact-person__phone a");
-    
-    email = emailLink?.getAttribute("href")?.replace("mailto:", "").trim() || "";
-    phone = phoneLink?.getAttribute("href")?.replace("tel:", "").trim() || phoneLink?.textContent?.trim() || "";
 
-    if (email || phone) {
-      return { name, position, email, phone };
+    email = normalizeEmail(emailLink?.getAttribute("href") || emailLink?.textContent || "");
+    phone = normalizePhone(phoneLink?.getAttribute("href") || phoneLink?.textContent || "");
+
+    if (name || email || phone || image) {
+      return { name, position, email, phone, image };
     }
   }
 
@@ -64,8 +90,8 @@ export function extractContactInfo(html: string): ContactInfo {
       if (href.includes("?body=") || href.includes("?subject=") || href.includes("utm_source")) {
         continue;
       }
-      const extractedEmail = href.replace("mailto:", "").split("?")[0].trim();
-      if (extractedEmail && extractedEmail.includes("@")) {
+      const extractedEmail = normalizeEmail(href || link.textContent || "");
+      if (extractedEmail) {
         email = extractedEmail;
         break;
       }
@@ -73,22 +99,30 @@ export function extractContactInfo(html: string): ContactInfo {
   }
   
   if (!phone) {
-    const phoneLink = doc.querySelector('a[href^="tel:"]');
-    phone = phoneLink?.getAttribute("href")?.replace("tel:", "").trim() || "";
+    const phoneLinks = doc.querySelectorAll('a[href^="tel:"]');
+    for (const link of phoneLinks) {
+      const extractedPhone = normalizePhone(link.getAttribute("href") || link.textContent || "");
+      if (extractedPhone) {
+        phone = extractedPhone;
+        break;
+      }
+    }
   }
 
   // ── Strategy 4: Text-based email/phone extraction ─────────────────────────────
   if (!email) {
-    const textEmail = html.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/)?.[1];
+    const textEmail = (doc.body.textContent || "").match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/)?.[1];
     if (textEmail && !textEmail.includes("utm_source") && !textEmail.includes("share_vacancy")) {
       email = textEmail;
     }
   }
   
   if (!phone) {
-    const textPhone = html.match(/(\+?\d{1,4}[\s\-]?\(?\d{1,5}\)?[\s\-]?\d{1,10}[\s\-]?\d{0,10})/)?.[1]?.trim();
-    if (textPhone && textPhone.length >= 7) {
-      phone = textPhone;
+    const text = doc.body.textContent || "";
+    const phoneContextMatch = text.match(/(?:tel\.?|telefon|phone|mobil)\s*[:\-]?\s*(\+?[\d\s\-()\/]{8,25})/i)?.[1];
+    const normalized = normalizePhone(phoneContextMatch || "");
+    if (normalized) {
+      phone = normalized;
     }
   }
 
@@ -110,7 +144,14 @@ export function extractContactInfo(html: string): ContactInfo {
     }
   }
 
-  return { name, position, email, phone };
+  if (!image) {
+    image =
+      doc.querySelector(".job-posting-contact-person img")?.getAttribute("src")?.trim() ||
+      doc.querySelector("[class*='contact'] img")?.getAttribute("src")?.trim() ||
+      "";
+  }
+
+  return { name, position, email, phone, image };
 }
 
 /**

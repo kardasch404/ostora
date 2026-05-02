@@ -1,0 +1,392 @@
+@startuml Ostora_Database_Class_Diagram
+
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam linetype ortho
+
+skinparam class {
+    BackgroundColor<<User>> #E3F2FD
+    BackgroundColor<<Auth>> #FFF3E0
+    BackgroundColor<<Profile>> #F3E5F5
+    BackgroundColor<<Job>> #E8F5E9
+    BackgroundColor<<Payment>> #FCE4EC
+    BackgroundColor<<Document>> #FFF9C4
+    BackgroundColor<<Notification>> #E0F2F1
+    BackgroundColor<<Network>> #FFE0B2
+    
+    BorderColor #37474F
+    BorderThickness 2
+    FontName Arial
+    FontSize 11
+    AttributeFontSize 10
+}
+
+skinparam arrow {
+    Color #546E7A
+    Thickness 2
+}
+
+' ==================== USER & AUTH ====================
+package "Authentication & Authorization" {
+    class User <<User>> {
+        + id: UUID
+        --
+        - email: String {unique}
+        - password: String
+        - firstName: String
+        - lastName: String
+        - roleId: UUID
+        - status: UserStatus
+        - emailVerified: Boolean
+        - twoFactorEnabled: Boolean
+        - createdAt: Timestamp
+        - updatedAt: Timestamp
+    }
+    
+    class Role <<Auth>> {
+        + id: UUID
+        --
+        - name: String {unique}
+        - description: String
+        - createdAt: Timestamp
+    }
+    
+    class Permission <<Auth>> {
+        + id: UUID
+        --
+        - resource: String
+        - action: String
+        - description: String
+    }
+    
+    class RolePermission <<Auth>> {
+        + id: UUID
+        --
+        - roleId: UUID
+        - permissionId: UUID
+    }
+    
+    class Session <<Auth>> {
+        + id: UUID
+        --
+        - userId: UUID
+        - token: String {unique}
+        - expiresAt: Timestamp
+    }
+    
+    class OAuthAccount <<Auth>> {
+        + id: UUID
+        --
+        - userId: UUID
+        - provider: String
+        - providerAccountId: String
+        - accessToken: Text
+    }
+}
+
+' ==================== PROFILE ====================
+package "User Profile" {
+    class Profile <<Profile>> {
+        + id: UUID
+        --
+        - userId: UUID {unique}
+        - firstName: String
+        - lastName: String
+        - city: String
+        - country: String
+        - title: String
+        - company: String
+        - experienceYears: Int
+        - salary: Int
+        - visibility: ProfileVisibility
+    }
+    
+    class Education <<Profile>> {
+        + id: UUID
+        --
+        - profileId: UUID
+        - institution: String
+        - degree: String
+        - field: String
+        - startDate: Date
+        - endDate: Date
+    }
+    
+    class Experience <<Profile>> {
+        + id: UUID
+        --
+        - profileId: UUID
+        - company: String
+        - title: String
+        - employmentType: EmploymentType
+        - startDate: Date
+        - endDate: Date
+    }
+    
+    class Skill <<Profile>> {
+        + id: UUID
+        --
+        - profileId: UUID
+        - name: String
+        - level: SkillLevel
+        - yearsOfExperience: Int
+    }
+    
+    class Language <<Profile>> {
+        + id: UUID
+        --
+        - profileId: UUID
+        - name: String
+        - proficiency: LanguageProficiency
+    }
+    
+    class ProfileSettings <<Profile>> {
+        + id: UUID
+        --
+        - userId: UUID {unique}
+        - jobSearchStatus: JobSearchStatus
+        - desiredSalary: Int
+        - remotePreference: RemotePreference
+    }
+}
+
+' ==================== JOB ====================
+package "Job Management" {
+    class Job <<Job>> {
+        + id: UUID
+        --
+        - title: String
+        - company: String
+        - description: Text
+        - location: String
+        - remote: Boolean
+        - salaryMin: Int
+        - salaryMax: Int
+        - type: JobType
+        - level: JobLevel
+        - status: JobStatus
+    }
+    
+    class Company <<Job>> {
+        + id: UUID
+        --
+        - name: String {unique}
+        - website: String
+        - industry: String
+        - country: String
+        - logoUrl: String
+    }
+    
+    class JobPost <<Job>> {
+        + id: UUID
+        --
+        - externalId: String
+        - source: JobSource
+        - title: String
+        - companyId: UUID
+        - remote: Boolean
+        - isActive: Boolean
+    }
+    
+    class JobApplication <<Job>> {
+        + id: UUID
+        --
+        - userId: UUID
+        - jobId: UUID
+        - status: ApplicationStatus
+        - coverLetter: Text
+        - aiScore: Float
+        - appliedAt: Timestamp
+    }
+    
+    class SavedJob <<Job>> {
+        + id: UUID
+        --
+        - userId: UUID
+        - jobId: UUID
+        - notes: Text
+        - createdAt: Timestamp
+    }
+}
+
+' ==================== PAYMENT ====================
+package "Payment & Subscription" {
+    class Subscription <<Payment>> {
+        + id: UUID
+        --
+        - userId: UUID
+        - plan: SubscriptionPlan
+        - status: SubscriptionStatus
+        - stripeSubscriptionId: String
+        - paypalSubscriptionId: String
+        - currentPeriodStart: Timestamp
+        - currentPeriodEnd: Timestamp
+    }
+    
+    class Payment <<Payment>> {
+        + id: UUID
+        --
+        - userId: UUID
+        - amount: Float
+        - currency: String
+        - status: PaymentStatus
+        - provider: String
+        - createdAt: Timestamp
+    }
+}
+
+' ==================== DOCUMENT ====================
+package "Document Management" {
+    class Document <<Document>> {
+        + id: UUID
+        --
+        - userId: UUID
+        - type: DocumentType
+        - name: String
+        - url: String
+        - size: Int
+        - aiAnalysis: JSON
+    }
+    
+    class ApplicationBundle <<Document>> {
+        + id: UUID
+        --
+        - userId: UUID
+        - name: String
+        - slug: String
+        - description: Text
+    }
+    
+    class ApplicationDocument <<Document>> {
+        + id: UUID
+        --
+        - bundleId: UUID
+        - type: ApplicationDocumentType
+        - s3Key: String
+        - s3Url: String
+    }
+}
+
+' ==================== NOTIFICATION ====================
+package "Notifications" {
+    class Notification <<Notification>> {
+        + id: UUID
+        --
+        - userId: UUID
+        - type: NotificationType
+        - title: String
+        - message: Text
+        - read: Boolean
+        - createdAt: Timestamp
+    }
+    
+    class NotificationPreference <<Notification>> {
+        + id: UUID
+        --
+        - userId: UUID {unique}
+        - inAppEnabled: Boolean
+        - pushEnabled: Boolean
+        - emailEnabled: Boolean
+    }
+}
+
+' ==================== NETWORKING ====================
+package "Networking & Outreach" {
+    class NetworkingAction <<Network>> {
+        + id: UUID
+        --
+        - userId: UUID
+        - type: NetworkingType
+        - platform: String
+        - targetName: String
+        - status: NetworkingStatus
+        - sentAt: Timestamp
+    }
+    
+    class MessageTemplate <<Network>> {
+        + id: UUID
+        --
+        - userId: UUID
+        - name: String
+        - subject: String
+        - body: Text
+        - language: String
+    }
+    
+    class EmailConfig <<Network>> {
+        + id: UUID
+        --
+        - userId: UUID
+        - email: String
+        - smtpHost: String
+        - smtpPort: Int
+        - isActive: Boolean
+    }
+}
+
+' ==================== RELATIONSHIPS ====================
+
+' User Core Relationships
+User "1" -- "1" Profile : has >
+User "1" -- "0..1" ProfileSettings : has >
+User "*" -- "1" Role : has >
+User "1" -- "*" Session : has >
+User "1" -- "*" OAuthAccount : has >
+
+' Role & Permission
+Role "1" -- "*" RolePermission
+Permission "1" -- "*" RolePermission
+
+' Profile Relationships
+Profile "1" -- "*" Education : has >
+Profile "1" -- "*" Experience : has >
+Profile "1" -- "*" Skill : has >
+Profile "1" -- "*" Language : speaks >
+
+' Job Relationships
+User "1" -- "*" JobApplication : submits >
+User "1" -- "*" SavedJob : saves >
+Job "1" -- "*" JobApplication : receives >
+Job "1" -- "*" SavedJob
+Company "1" -- "*" JobPost : posts >
+
+' Document Relationships
+User "1" -- "*" Document : owns >
+User "1" -- "*" ApplicationBundle : creates >
+ApplicationBundle "1" -- "*" ApplicationDocument : contains >
+
+' Payment Relationships
+User "1" -- "*" Subscription : has >
+User "1" -- "*" Payment : makes >
+
+' Notification Relationships
+User "1" -- "*" Notification : receives >
+User "1" -- "1" NotificationPreference : has >
+
+' Networking Relationships
+User "1" -- "*" NetworkingAction : performs >
+User "1" -- "*" MessageTemplate : creates >
+User "1" -- "*" EmailConfig : configures >
+
+' ==================== LEGEND ====================
+note right of User
+  <b>Legend</b>
+  ----
+  <b>Cardinality:</b>
+  1 = One
+  0..1 = Zero or One
+  * = Many
+  ----
+  <b>Colors:</b>
+  Blue = User/Core
+  Orange = Auth
+  Purple = Profile
+  Green = Job
+  Pink = Payment
+  Yellow = Document
+  Teal = Notification
+  Light Orange = Network
+end note
+
+@enduml

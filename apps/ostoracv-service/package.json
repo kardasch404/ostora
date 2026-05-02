@@ -1,0 +1,10 @@
+{
+  "name": "@ostora/ostoracv-service",
+  "version": "1.0.0",
+  "main": "src/main.ts",
+  "scripts": {
+    "start": "nest start",
+    "start:dev": "nest start --watch",
+    "start:prod": "node dist/main"
+  }
+}

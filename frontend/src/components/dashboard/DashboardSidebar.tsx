@@ -2,8 +2,22 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { getAppliedJobIds, getApplicationHistory, MESSAGE_TEMPLATES_STORAGE_KEY } from "@/lib/application-state";
+import OstoraLogo from "@/components/brand/OstoraLogo";
+
+type MenuChildItem = {
+  name: string;
+  href: string;
+};
+
+type MenuItem = {
+  name: string;
+  href?: string;
+  icon: ReactNode;
+  badge?: number;
+  children?: MenuChildItem[];
+};
 
 export default function DashboardSidebar() {
   const pathname = usePathname();
@@ -31,7 +45,7 @@ export default function DashboardSidebar() {
     return getApplicationHistory().filter((item) => item.status === "failed").length;
   })();
 
-  const menuItems = [
+  const menuItems: MenuItem[] = [
     {
       name: "Dashboard",
       href: "/dashboard",
@@ -56,6 +70,15 @@ export default function DashboardSidebar() {
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      ),
+    },
+    {
+      name: "Application Historys",
+      href: "/dashboard/application-historys",
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
       badge: failedBadge,
@@ -108,12 +131,33 @@ export default function DashboardSidebar() {
       ),
     },
     {
+      name: "OstoraCV",
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-6-6h12" />
+        </svg>
+      ),
+      children: [
+        { name: "Resume", href: "/dashboard/ostoracv/resume" },
+        { name: "Cover Letter", href: "/dashboard/ostoracv/cover-letter" },
+      ],
+    },
+    {
       name: "Settings",
       href: "/dashboard/settings",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      ),
+    },
+    {
+      name: "Payments",
+      href: "/dashboard/settings/payments",
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
         </svg>
       ),
     },
@@ -128,14 +172,13 @@ export default function DashboardSidebar() {
       {/* Logo */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200">
         {!isCollapsed && (
-          <Link href="/dashboard" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-black rounded-button flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />
-              </svg>
-            </div>
-            <span className="text-xl font-bold text-black">Ostora</span>
-          </Link>
+          <OstoraLogo
+            href="/dashboard"
+            textClassName="text-xl font-bold text-black"
+            containerClassName="flex items-center gap-2"
+            iconWrapperClassName="grid h-8 w-8 place-items-center rounded-button bg-black"
+            imageClassName="h-5 w-5 object-contain"
+          />
         )}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
@@ -150,11 +193,70 @@ export default function DashboardSidebar() {
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {menuItems.map((item) => {
+          if (item.children?.length) {
+            const parentActive = item.children.some((child) => pathname === child.href || pathname.startsWith(`${child.href}/`));
+
+            if (isCollapsed) {
+              return (
+                <Link
+                  key={item.name}
+                  href={item.children[0].href}
+                  className={`flex items-center justify-center px-3 py-2.5 rounded-button transition-all duration-200 group relative ${
+                    parentActive
+                      ? "bg-black text-white"
+                      : "text-gray-600 hover:bg-gray-100 hover:text-black"
+                  }`}
+                >
+                  <span>{item.icon}</span>
+                  <div className="absolute left-full ml-2 px-2 py-1 bg-black text-white text-xs rounded-button opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">
+                    {item.name}
+                  </div>
+                </Link>
+              );
+            }
+
+            return (
+              <div key={item.name} className="space-y-1">
+                <div
+                  className={`flex items-center justify-between px-3 py-2.5 rounded-button transition-all duration-200 ${
+                    parentActive ? "bg-black text-white" : "text-gray-700 bg-gray-50"
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <span>{item.icon}</span>
+                    <span className="font-medium text-sm">{item.name}</span>
+                  </div>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25L12 15.75 4.5 8.25" />
+                  </svg>
+                </div>
+                <div className="ml-4 space-y-1 border-l border-gray-200 pl-3">
+                  {item.children.map((child) => {
+                    const childActive = pathname === child.href || pathname.startsWith(`${child.href}/`);
+                    return (
+                      <Link
+                        key={child.href}
+                        href={child.href}
+                        className={`block rounded-button px-3 py-2 text-sm transition-colors ${
+                          childActive
+                            ? "bg-black text-white"
+                            : "text-gray-600 hover:bg-gray-100 hover:text-black"
+                        }`}
+                      >
+                        {child.name}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          }
+
           const isActive = pathname === item.href;
           return (
             <Link
               key={item.href}
-              href={item.href}
+              href={item.href!}
               className={`flex items-center ${
                 isCollapsed ? "justify-center" : "justify-between"
               } px-3 py-2.5 rounded-button transition-all duration-200 group relative ${

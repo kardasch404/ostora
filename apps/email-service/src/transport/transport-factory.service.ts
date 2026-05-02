@@ -2,62 +2,82 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SmtpTransport } from './smtp.transport';
 import { SesTransport } from './ses.transport';
-import { SmtpTransportInterface } from '../email/interfaces/smtp-transport.interface';
 
 @Injectable()
 export class TransportFactoryService {
   private readonly logger = new Logger(TransportFactoryService.name);
+
+  private readonly providerDefaults: Record<string, { host: string; port: number; secure: boolean }> = {
+    gmail: { host: 'smtp.gmail.com', port: 587, secure: false },
+    outlook: { host: 'smtp-mail.outlook.com', port: 587, secure: false },
+    office365: { host: 'smtp.office365.com', port: 587, secure: false },
+  };
 
   constructor(
     private config: ConfigService,
     private sesTransport: SesTransport
   ) {}
 
-  async createSmtpTransport(emailConfig: any): Promise<SmtpTransport> {
-    const smtpConfig: SmtpTransportInterface = {
-      host: emailConfig.smtpHost,
-      port: emailConfig.smtpPort,
-      secure: emailConfig.smtpSecure,
+  private normalizeSmtpConfig(emailConfig: any): { host: string; port: number; secure: boolean } {
+    const providerKey = emailConfig?.provider?.toLowerCase?.();
+    const defaults = providerKey ? this.providerDefaults[providerKey] : undefined;
+
+    const host = emailConfig?.smtpHost || defaults?.host;
+    const port = Number(emailConfig?.smtpPort ?? defaults?.port);
+    const secure =
+      typeof emailConfig?.smtpSecure === 'boolean'
+        ? emailConfig.smtpSecure
+        : defaults?.secure || false;
+
+    if (!host || Number.isNaN(port) || port <= 0) {
+      throw new Error('Invalid SMTP transport configuration');
+    }
+
+    if (!emailConfig?.smtpUser || !emailConfig?.smtpPassword) {
+      throw new Error('SMTP credentials are required');
+    }
+
+    return { host, port, secure };
+  }
+
+  createSmtpTransport(emailConfig: any): SmtpTransport {
+    const normalizedConfig = this.normalizeSmtpConfig(emailConfig);
+    return new SmtpTransport({
+      host: normalizedConfig.host,
+      port: normalizedConfig.port,
+      secure: normalizedConfig.secure,
       defaultFrom: emailConfig.fromEmail,
       auth: {
         user: emailConfig.smtpUser,
         pass: emailConfig.smtpPassword,
       },
-    };
+    });
+  }
 
-    const transport = new SmtpTransport(smtpConfig);
-    
-    // Verify SMTP connection
-    const isValid = await transport.verify();
-    if (!isValid) {
-      this.logger.warn('SMTP verification failed, will use SES fallback');
-      throw new Error('SMTP verification failed');
-    }
-
-    return transport;
+  async verifySmtpTransport(emailConfig: any): Promise<boolean> {
+    const transport = this.createSmtpTransport(emailConfig);
+    return transport.verify();
   }
 
   getSesTransport(): SesTransport {
     return this.sesTransport;
   }
 
-  async getTransport(emailConfig?: any): Promise<SmtpTransport | SesTransport> {
+  getTransport(emailConfig?: any): SmtpTransport | SesTransport {
     const allowSesFallback = this.config.get<string>('ALLOW_SES_FALLBACK', 'false') === 'true';
 
-    // Try SMTP config first
     if (emailConfig) {
       try {
-        return await this.createSmtpTransport(emailConfig);
+        return this.createSmtpTransport(emailConfig);
       } catch (error) {
         if (!allowSesFallback) {
-          this.logger.error('SMTP transport is configured but failed to initialize');
+          this.logger.error('SMTP transport configured but failed to initialize', error);
           throw error;
         }
         this.logger.warn('Failed to create SMTP transport, falling back to SES');
       }
     }
 
-    // Fallback to AWS SES only when explicitly enabled
     if (!allowSesFallback) {
       throw new Error('No valid SMTP transport available and ALLOW_SES_FALLBACK is disabled');
     }

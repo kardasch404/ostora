@@ -22,20 +22,30 @@ interface Bundle {
   }>;
 }
 
+interface SelectedAttachment {
+  id: string;
+  filename: string;
+  fileSize: number;
+  type: string;
+  bundleName: string;
+}
+
 function ApplicationForm() {
   const searchParams = useSearchParams();
   const jobId = searchParams.get("jobId");
   const jobTitle = searchParams.get("title");
   const company = searchParams.get("company");
   const location = searchParams.get("location");
+  const recipientEmail = searchParams.get("recipientEmail");
   
   const [bundles, setBundles] = useState<Bundle[]>([]);
+  const [senderEmails, setSenderEmails] = useState<Array<{ email: string; isActive: boolean }>>([]);
   const [formData, setFormData] = useState({
     jobTitle: jobTitle || "",
     company: company || "",
     location: location || "",
-    sendFrom: "zz2406143@gmail.com",
-    recipientEmail: "",
+    sendFrom: "",
+    recipientEmail: recipientEmail || "",
     subject: "",
     message: "",
     attachments: {} as Record<string, boolean>,
@@ -43,6 +53,7 @@ function ApplicationForm() {
 
   useEffect(() => {
     loadBundles();
+    loadSenderEmails();
   }, []);
 
   useEffect(() => {
@@ -52,6 +63,7 @@ function ApplicationForm() {
         jobTitle: jobTitle || "",
         company: company || "",
         location: location || "",
+        recipientEmail: recipientEmail || prev.recipientEmail,
         subject: `Application for ${jobTitle} at ${company}`,
         message: `Dear Hiring Manager,
 
@@ -64,7 +76,21 @@ Please find my documents attached.
 Best regards`,
       }));
     }
-  }, [jobTitle, company, location]);
+  }, [jobTitle, company, location, recipientEmail]);
+
+  const loadSenderEmails = async () => {
+    try {
+      const res = await apiClient.get("/api/v1/users/emails");
+      const data = Array.isArray(res.data) ? res.data : Array.isArray(res.data?.data) ? res.data.data : [];
+      setSenderEmails(data.map((e: any) => ({ email: e.email, isActive: e.isActive })));
+      const defaultEmail = data.find((e: any) => e.isActive);
+      if (defaultEmail && !formData.sendFrom) {
+        setFormData(prev => ({ ...prev, sendFrom: defaultEmail.email }));
+      }
+    } catch (error) {
+      console.error("Failed to load sender emails");
+    }
+  };
 
   const loadBundles = async () => {
     try {
@@ -134,6 +160,18 @@ Best regards`,
       .filter(([_, checked]) => checked)
       .map(([docId]) => docId);
 
+    const selectedAttachments: SelectedAttachment[] = bundles.flatMap((bundle) =>
+      bundle.documents
+        .filter((doc) => selectedDocIds.includes(doc.id))
+        .map((doc) => ({
+          id: doc.id,
+          filename: doc.filename,
+          fileSize: doc.fileSize,
+          type: doc.type,
+          bundleName: bundle.name,
+        }))
+    );
+
     try {
       // Get presigned download URLs for attachments
       const attachmentUrls: string[] = [];
@@ -181,6 +219,9 @@ Best regards`,
         message: formData.message,
         sentAt: new Date().toISOString(),
         status: "sent",
+        templateName: "Manual Application Template",
+        sourceUrl: typeof window !== "undefined" ? window.location.href : undefined,
+        attachments: selectedAttachments,
       };
 
       // Update localStorage
@@ -207,7 +248,7 @@ Best regards`,
         jobTitle: "",
         company: "",
         location: "",
-        sendFrom: "zz2406143@gmail.com",
+        sendFrom: senderEmails.find(e => e.isActive)?.email || "",
         recipientEmail: "",
         subject: "",
         message: "",
@@ -231,6 +272,9 @@ Best regards`,
         message: formData.message,
         sentAt: new Date().toISOString(),
         status: "failed",
+        templateName: "Manual Application Template",
+        sourceUrl: typeof window !== "undefined" ? window.location.href : undefined,
+        attachments: selectedAttachments,
       };
 
       if (typeof window !== "undefined") {
@@ -308,7 +352,15 @@ Best regards`,
               onChange={(e) => setFormData({ ...formData, sendFrom: e.target.value })}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-black focus:border-transparent transition-all"
             >
-              <option value="zz2406143@gmail.com">zz2406143@gmail.com (Default)</option>
+              {senderEmails.length === 0 ? (
+                <option value="">No sender emails configured</option>
+              ) : (
+                senderEmails.map((sender) => (
+                  <option key={sender.email} value={sender.email}>
+                    {sender.email}{sender.isActive ? " (Default)" : ""}
+                  </option>
+                ))
+              )}
             </select>
           </div>
           <div>
@@ -441,11 +493,14 @@ export default function ApplicationsPage() {
     <div className="space-y-6">
       <section className="card">
         <p className="text-caption text-gray-400">Applications Center</p>
-        <h1 className="mt-2 text-display-md">Track Every Application</h1>
-        <p className="mt-2 text-body text-gray-600">Monitor your application history and success metrics.</p>
+        <h1 className="mt-2 text-display-md">Send Applications</h1>
+        <p className="mt-2 text-body text-gray-600">Create and send a new application email with attachments.</p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link href="/dashboard/fast-apply" className="btn-primary">
             Fast Apply
+          </Link>
+          <Link href="/dashboard/application-historys" className="btn-secondary">
+            Open Application Historys
           </Link>
           <button type="button" onClick={clearHistory} className="btn-secondary text-red-600 border-red-600 hover:bg-red-50">
             Clear History
@@ -476,27 +531,6 @@ export default function ApplicationsPage() {
       <Suspense fallback={<div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6"><p className="text-gray-500">Loading form...</p></div>}>
         <ApplicationForm />
       </Suspense>
-
-      <section className="card-flat">
-        <h2 className="text-display-sm mb-4">Application History</h2>
-        {history.length === 0 ? (
-          <p className="text-body text-gray-500">No applications yet.</p>
-        ) : (
-          <div className="space-y-2">
-            {history.map((item) => (
-              <div key={item.id} className="flex flex-wrap items-center justify-between gap-3 rounded-button border border-gray-200 bg-gray-50 px-4 py-3 hover:bg-gray-100 transition-colors">
-                <div>
-                  <p className="text-body-sm font-semibold text-black">{item.jobTitle}</p>
-                  <p className="text-xs text-gray-500">{item.company} | {item.contactEmail} | {new Date(item.sentAt).toLocaleString()}</p>
-                </div>
-                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${item.status === "sent" ? "bg-black text-white" : "bg-gray-300 text-gray-700"}`}>
-                  {item.status}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
     </div>
   );
 }

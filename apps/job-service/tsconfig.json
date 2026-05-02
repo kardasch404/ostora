@@ -23,16 +23,5 @@
     "useUnknownInCatchVariables": false
   },
   "include": ["src/**/*"],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "src/application/**/*",
-    "src/company/**/*",
-    "src/favorite/**/*",
-    "src/kafka/**/*",
-    "src/prisma/**/*",
-    "src/search/**/*",
-    "src/sync/**/*",
-    "src/job/job-dedup.service.ts"
-  ]
+  "exclude": ["node_modules", "dist", "test", "**/*.spec.ts"]
 }

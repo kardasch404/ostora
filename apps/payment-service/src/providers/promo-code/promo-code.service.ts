@@ -38,11 +38,41 @@ interface RedemptionResponse {
 export class PromoCodeService {
   private prisma = new PrismaClient() as any;
 
+  private get promoCodeStore() {
+    const store = this.prisma?.promoCode;
+    return store && typeof store.findUnique === 'function' ? store : null;
+  }
+
+  private get promoCodeUsageStore() {
+    const store = this.prisma?.promoCodeUsage;
+    return store && typeof store.findFirst === 'function' ? store : null;
+  }
+
+  private assertPromoStorageConfigured(): void {
+    if (!this.promoCodeStore || !this.promoCodeUsageStore) {
+      throw new BadRequestException('Promo code storage is not configured');
+    }
+  }
+
+  private isPromoStorageError(error: unknown): boolean {
+    if (!(error instanceof Error)) return false;
+
+    const message = error.message.toLowerCase();
+    return (
+      message.includes('promocode') ||
+      message.includes('promo_code') ||
+      message.includes('table') ||
+      message.includes('does not exist')
+    );
+  }
+
   async generatePromoCode(dto: CreatePromoCodeDto, adminId: string): Promise<PromoCodeResponse> {
+    this.assertPromoStorageConfigured();
+
     const code = dto.customCode || this.generateCode(dto.type);
 
     if (dto.customCode) {
-      const existing = await this.prisma.promoCode.findUnique({
+      const existing = await this.promoCodeStore.findUnique({
         where: { code: dto.customCode },
       });
       if (existing) {
@@ -54,7 +84,7 @@ export class PromoCodeService {
       ? new Date(dto.expiresAt)
       : new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
 
-    const promoCode = await this.prisma.promoCode.create({
+    const promoCode = await this.promoCodeStore.create({
       data: {
         code,
         plan: dto.plan,
@@ -73,9 +103,11 @@ export class PromoCodeService {
   }
 
   async redeemPromoCode(userId: string, dto: RedeemPromoCodeDto): Promise<RedemptionResponse> {
+    this.assertPromoStorageConfigured();
+
     const code = dto.code.toUpperCase();
 
-    const promoCode = await this.prisma.promoCode.findUnique({
+    const promoCode = await this.promoCodeStore.findUnique({
       where: { code },
     });
 
@@ -85,7 +117,7 @@ export class PromoCodeService {
 
     this.assertPromoCodeValid(promoCode);
 
-    const existingUsage = await this.prisma.promoCodeUsage.findFirst({
+    const existingUsage = await this.promoCodeUsageStore.findFirst({
       where: {
         userId,
         promoCodeId: promoCode.id,
@@ -130,7 +162,7 @@ export class PromoCodeService {
       },
     });
 
-    await this.prisma.promoCodeUsage.create({
+    await this.promoCodeUsageStore.create({
       data: {
         userId,
         promoCodeId: promoCode.id,
@@ -138,7 +170,7 @@ export class PromoCodeService {
       },
     });
 
-    await this.prisma.promoCode.update({
+    await this.promoCodeStore.update({
       where: { id: promoCode.id },
       data: {
         usedCount: { increment: 1 },
@@ -164,9 +196,21 @@ export class PromoCodeService {
   }
 
   async validatePromoCode(code: string): Promise<boolean> {
-    const promoCode = await this.prisma.promoCode.findUnique({
-      where: { code: code.toUpperCase() },
-    });
+    if (!this.promoCodeStore) {
+      return false;
+    }
+
+    let promoCode: any;
+    try {
+      promoCode = await this.promoCodeStore.findUnique({
+        where: { code: code.toUpperCase() },
+      });
+    } catch (error) {
+      if (this.isPromoStorageError(error)) {
+        return false;
+      }
+      throw error;
+    }
 
     if (!promoCode) {
       return false;
@@ -181,7 +225,9 @@ export class PromoCodeService {
   }
 
   async getPromoCode(code: string): Promise<PromoCodeResponse> {
-    const promoCode = await this.prisma.promoCode.findUnique({
+    this.assertPromoStorageConfigured();
+
+    const promoCode = await this.promoCodeStore.findUnique({
       where: { code: code.toUpperCase() },
     });
 
@@ -197,7 +243,9 @@ export class PromoCodeService {
     status?: PromoCodeStatus;
     plan?: Plan;
   }): Promise<PromoCodeResponse[]> {
-    const promoCodes = await this.prisma.promoCode.findMany({
+    this.assertPromoStorageConfigured();
+
+    const promoCodes = await this.promoCodeStore.findMany({
       where: {
         createdBy: adminId,
         ...(filters?.type && { type: filters.type }),
@@ -211,7 +259,9 @@ export class PromoCodeService {
   }
 
   async deactivatePromoCode(code: string, adminId: string): Promise<PromoCodeResponse> {
-    const promoCode = await this.prisma.promoCode.findUnique({
+    this.assertPromoStorageConfigured();
+
+    const promoCode = await this.promoCodeStore.findUnique({
       where: { code: code.toUpperCase() },
     });
 
@@ -223,7 +273,7 @@ export class PromoCodeService {
       throw new BadRequestException('Unauthorized to deactivate this promo code');
     }
 
-    const updated = await this.prisma.promoCode.update({
+    const updated = await this.promoCodeStore.update({
       where: { id: promoCode.id },
       data: { status: PromoCodeStatus.DISABLED },
     });
@@ -232,7 +282,9 @@ export class PromoCodeService {
   }
 
   async getUsageStats(code: string): Promise<any> {
-    const promoCode = await this.prisma.promoCode.findUnique({
+    this.assertPromoStorageConfigured();
+
+    const promoCode = await this.promoCodeStore.findUnique({
       where: { code: code.toUpperCase() },
       include: {
         usages: {

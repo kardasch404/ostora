@@ -54,12 +54,14 @@ export class EmailService {
     }
 
     // Get appropriate transport (SMTP or SES)
-    const transport = await this.transportFactory.getTransport(emailConfig);
-    const provider = emailConfig ? EmailProvider.SMTP : EmailProvider.SES;
+    const transport = this.transportFactory.getTransport(emailConfig);
+    const isSmtpTransport = transport.constructor.name === 'SmtpTransport';
+    const provider = isSmtpTransport ? EmailProvider.SMTP : EmailProvider.SES;
+    const smtpProvider = isSmtpTransport && emailConfig ? this.inferSmtpProvider(emailConfig) : null;
 
     try {
       let result;
-      if (provider === EmailProvider.SMTP) {
+      if (isSmtpTransport) {
         result = await transport.send(message.nodemailerOptions);
       } else {
         result = await transport.send(message.sesParams);
@@ -68,7 +70,7 @@ export class EmailService {
       if (result.success) {
         await this.emailLog.record(userId, dto.to, dto.subject, EmailStatus.SENT, provider);
         this.logger.log(
-          `Email sent to ${dto.to} via ${provider} (attachments requested=${dto.attachments?.length || 0}, attached=${resolvedAttachments.length})`,
+          `Email sent to ${dto.to} via ${provider}${smtpProvider ? ` (${smtpProvider})` : ''} (attachments requested=${dto.attachments?.length || 0}, attached=${resolvedAttachments.length})`,
         );
       } else {
         throw new Error(result.error);
@@ -139,6 +141,36 @@ export class EmailService {
       smtpPassword,
       fromEmail,
     };
+  }
+
+  private inferSmtpProvider(emailConfig: any): string {
+    const explicitProvider = emailConfig?.provider?.toLowerCase?.().trim?.();
+    if (explicitProvider) {
+      return explicitProvider;
+    }
+
+    const smtpHost = emailConfig?.smtpHost?.toLowerCase?.() || '';
+    if (smtpHost.includes('gmail')) {
+      return 'gmail';
+    }
+    if (smtpHost.includes('outlook') || smtpHost.includes('office365')) {
+      return 'outlook';
+    }
+
+    const smtpUser = emailConfig?.smtpUser?.toLowerCase?.() || '';
+    if (smtpUser.endsWith('@gmail.com')) {
+      return 'gmail';
+    }
+    if (
+      smtpUser.endsWith('@outlook.com') ||
+      smtpUser.endsWith('@outlook.de') ||
+      smtpUser.endsWith('@hotmail.com') ||
+      smtpUser.endsWith('@live.com')
+    ) {
+      return 'outlook';
+    }
+
+    return 'custom';
   }
 
   private async fetchTemplate(templateId: string): Promise<any> {

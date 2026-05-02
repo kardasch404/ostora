@@ -1,5 +1,5 @@
-import { IsOptional, IsString, IsInt, Min, Max } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsOptional, IsString, IsInt, Min, Max, IsNotEmpty } from 'class-validator';
+import { Type, Transform } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class GetJobsDto {
@@ -21,20 +21,42 @@ export class GetJobsDto {
   @ApiPropertyOptional({ description: 'Search query' })
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => value === '' ? undefined : value)
   search?: string;
 
   @ApiPropertyOptional({ description: 'Filter by category' })
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => value === '' ? undefined : value)
   category?: string;
 
   @ApiPropertyOptional({ description: 'Filter by location' })
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => value === '' ? undefined : value)
   location?: string;
 
   @ApiPropertyOptional({ description: 'Filter by country' })
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => value === '' ? undefined : value)
   country?: string;
+
+  @ApiPropertyOptional({ description: 'Filter by employment type' })
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => value === '' ? undefined : value)
+  employmentType?: string;
+
+  @ApiPropertyOptional({ description: 'Filter by company name' })
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => value === '' ? undefined : value)
+  company?: string;
+
+  @ApiPropertyOptional({ description: 'Filter by start date (YYYY-MM-DD)' })
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => value === '' ? undefined : value)
+  startDateFrom?: string;
 }

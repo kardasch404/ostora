@@ -9,7 +9,7 @@ COPY nx.json ./
 
 # Install dependencies
 RUN apk add --no-cache python3 make g++
-RUN npm ci
+RUN npm ci --no-audit --no-fund --fetch-retries=5 --fetch-retry-factor=2 --fetch-retry-mintimeout=20000 --fetch-retry-maxtimeout=120000
 
 # Copy source code
 COPY apps/api-gateway ./apps/api-gateway
@@ -28,7 +28,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install production dependencies only
-RUN npm ci --only=production --ignore-scripts
+RUN npm ci --only=production --ignore-scripts --no-audit --no-fund --fetch-retries=5 --fetch-retry-factor=2 --fetch-retry-mintimeout=20000 --fetch-retry-maxtimeout=120000
 
 # Copy built application
 COPY --from=builder /app/apps/api-gateway/dist ./dist

@@ -1,0 +1,21 @@
+{
+  "run": {
+    "command": "nx serve payment-service",
+    "startTime": "2026-04-06T21:26:35.827Z",
+    "endTime": "2026-04-06T22:45:03.088Z",
+    "inner": false
+  },
+  "tasks": [
+    {
+      "taskId": "payment-service:serve",
+      "target": "serve",
+      "projectName": "payment-service",
+      "hash": "3298711362733379052",
+      "startTime": "2026-04-06T21:26:35.843Z",
+      "endTime": "2026-04-06T22:45:03.064Z",
+      "params": "",
+      "cacheStatus": "cache-miss",
+      "status": 1
+    }
+  ]
+}

@@ -85,6 +85,18 @@ export class EmailConfigService {
     await this.findOne(userId, id);
 
     const updateData: any = { ...dto };
+    const normalizedProvider = dto.provider?.toLowerCase().trim();
+    delete updateData.provider;
+
+    if (normalizedProvider && normalizedProvider !== 'custom' && !dto.smtpHost && !dto.smtpPort && !dto.encryption) {
+      const providerConfig = this.smtpTester.getProviderConfig(normalizedProvider);
+      if (!providerConfig) {
+        throw new BadRequestException(`Unsupported provider: ${normalizedProvider}`);
+      }
+      updateData.smtpHost = providerConfig.host;
+      updateData.smtpPort = providerConfig.port;
+      updateData.encryption = providerConfig.encryption;
+    }
 
     const password = dto.password || dto.appPassword;
     if (password) {
@@ -178,24 +190,7 @@ export class EmailConfigService {
   }
 
   async getProviders() {
-    return [
-      { name: 'Gmail', value: 'gmail' },
-      { name: 'Outlook', value: 'outlook' },
-      { name: 'Yahoo', value: 'yahoo' },
-      { name: 'GMX', value: 'gmx' },
-      { name: 'ProtonMail', value: 'protonmail' },
-      { name: 'iCloud', value: 'icloud' },
-      { name: 'Zoho', value: 'zoho' },
-      { name: 'AOL', value: 'aol' },
-      { name: 'Mail.com', value: 'mail.com' },
-      { name: 'Yandex', value: 'yandex' },
-      { name: 'FastMail', value: 'fastmail' },
-      { name: 'Mailgun', value: 'mailgun' },
-      { name: 'SendGrid', value: 'sendgrid' },
-      { name: 'Office 365', value: 'office365' },
-      { name: 'IONOS', value: 'ionos' },
-      { name: 'Web.de', value: 'web.de' },
-    ];
+    return this.smtpTester.getSupportedProviders();
   }
 
   async getProviderConfig(provider: string) {
@@ -224,6 +219,7 @@ export class EmailConfigService {
 
     return {
       emailConfigId: config.id,
+      provider: this.smtpTester.inferProvider(config.email, config.smtpHost),
       fromEmail: config.email,
       fromName: config.fromName,
       smtpHost: config.smtpHost,
@@ -235,10 +231,11 @@ export class EmailConfigService {
   }
 
   private autoDetectSmtpConfig(email: string, dto: CreateEmailConfigDto) {
-    const domain = email.split('@')[1]?.toLowerCase();
     const username = email.split('@')[0];
+    const domain = email.split('@')[1]?.toLowerCase();
+    const normalizedProvider = dto.provider?.toLowerCase().trim();
 
-    // Use provided values if available
+    // Use provided values when custom SMTP is fully supplied.
     if (dto.smtpHost && dto.smtpPort && dto.encryption) {
       return {
         smtpHost: dto.smtpHost,
@@ -248,32 +245,32 @@ export class EmailConfigService {
       };
     }
 
-    // Auto-detect based on domain
-    const providerConfigs: Record<string, any> = {
-      'gmail.com': { host: 'smtp.gmail.com', port: 587, encryption: 'TLS' },
-      'outlook.com': { host: 'smtp-mail.outlook.com', port: 587, encryption: 'STARTTLS' },
-      'hotmail.com': { host: 'smtp-mail.outlook.com', port: 587, encryption: 'STARTTLS' },
-      'live.com': { host: 'smtp-mail.outlook.com', port: 587, encryption: 'STARTTLS' },
-      'yahoo.com': { host: 'smtp.mail.yahoo.com', port: 587, encryption: 'TLS' },
-      'icloud.com': { host: 'smtp.mail.me.com', port: 587, encryption: 'TLS' },
-      'zoho.com': { host: 'smtp.zoho.com', port: 587, encryption: 'TLS' },
-      'aol.com': { host: 'smtp.aol.com', port: 587, encryption: 'TLS' },
-      'gmx.com': { host: 'smtp.gmx.com', port: 587, encryption: 'STARTTLS' },
-      'mail.com': { host: 'smtp.mail.com', port: 587, encryption: 'TLS' },
-      'yandex.com': { host: 'smtp.yandex.com', port: 587, encryption: 'TLS' },
-    };
+    let detected = null;
 
-    const config = providerConfigs[domain];
-    if (!config) {
+    if (normalizedProvider && normalizedProvider !== 'custom') {
+      detected = this.smtpTester.getProviderConfig(normalizedProvider);
+      if (!detected) {
+        throw new BadRequestException(`Unsupported provider: ${normalizedProvider}`);
+      }
+    }
+
+    if (!detected) {
+      if (!domain) {
+        throw new BadRequestException('Invalid sender email domain');
+      }
+      detected = this.smtpTester.getProviderConfigByDomain(domain);
+    }
+
+    if (!detected) {
       throw new BadRequestException(
         `Unable to auto-detect SMTP settings for ${domain}. Please provide smtpHost, smtpPort, and encryption manually.`
       );
     }
 
     return {
-      smtpHost: dto.smtpHost || config.host,
-      smtpPort: dto.smtpPort || config.port,
-      encryption: dto.encryption || config.encryption,
+      smtpHost: dto.smtpHost || detected.host,
+      smtpPort: dto.smtpPort || detected.port,
+      encryption: dto.encryption || detected.encryption,
       fromName: dto.fromName || username,
     };
   }
@@ -281,6 +278,7 @@ export class EmailConfigService {
   private sanitizeResponse(config: any): EmailConfigResponse {
     return {
       ...config,
+      provider: this.smtpTester.inferProvider(config.email, config.smtpHost),
       password: 'REDACTED',
       passwordEncrypted: undefined,
     };
