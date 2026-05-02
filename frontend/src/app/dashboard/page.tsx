@@ -53,11 +53,17 @@ export default function DashboardPage() {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const response = await apiClient.get("/api/v1/users/me");
+        const response = await apiClient.get("/api/v1/users/profile");
         const serverUser = response.data?.data || {};
         setUserName(serverUser.firstName || serverUser.name || fallbackName);
       } catch {
-        setUserName(fallbackName);
+        try {
+          const fallbackResponse = await apiClient.get("/api/v1/users/me");
+          const serverUser = fallbackResponse.data?.data || {};
+          setUserName(serverUser.firstName || serverUser.name || fallbackName);
+        } catch {
+          setUserName(fallbackName);
+        }
       }
     };
     loadUser();

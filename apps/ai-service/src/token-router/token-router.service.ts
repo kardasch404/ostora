@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 import { BlazeAiProvider } from './blazeai.provider';
 import { OllamaProvider } from './ollama.provider';
-import { IAiProvider, GenerateOptions } from './provider.interface';
+import { GenerateOptions } from './provider.interface';
 
 export enum TaskPriority {
   REALTIME = 'realtime',
@@ -84,10 +84,11 @@ export class TokenRouterService {
       await this.redis.expire(key, secondsUntilEndOfDay);
       
       return result;
-    } catch (error) {
+    } catch (error: unknown) {
       // Fallback on 429 or 5xx errors
       if (this.shouldFallback(error)) {
-        this.logger.warn(`BlazeAI unavailable (${error.message}), routing to Ollama`);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        this.logger.warn(`BlazeAI unavailable (${errorMessage}), routing to Ollama`);
         return await this.ollamaProvider.generate(prompt, options);
       }
       throw error;
@@ -101,9 +102,24 @@ export class TokenRouterService {
     return credits ? parseInt(credits, 10) : 0;
   }
 
-private shouldFallback(error: any): boolean {
-    const message = error.message || '';
-    return message.includes('429') || message.includes('5') && (message.includes('500') || message.includes('502') || message.includes('503'));
+  private shouldFallback(error: unknown): boolean {
+    const message = (error instanceof Error ? error.message : String(error || '')).toLowerCase();
+
+    // Fallback for rate limit/auth/transient provider failures and client-side abort/timeouts.
+    return (
+      message.includes('401') ||
+      message.includes('403') ||
+      message.includes('429') ||
+      message.includes('500') ||
+      message.includes('502') ||
+      message.includes('503') ||
+      message.includes('504') ||
+      message.includes('timeout') ||
+      message.includes('timed out') ||
+      message.includes('abort') ||
+      message.includes('unauthorized') ||
+      message.includes('fetcherror')
+    );
   }
 
   async getRemainingCredits(): Promise<number> {

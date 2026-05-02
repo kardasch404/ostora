@@ -8,14 +8,46 @@ export const apiClient = axios.create({
   timeout: 10000,
 });
 
-apiClient.interceptors.request.use((config) => {
-  const cookieToken = Cookies.get(TOKEN_COOKIE);
-  const storageToken =
-    typeof window !== "undefined" ? window.localStorage.getItem(TOKEN_STORAGE_KEY) || undefined : undefined;
-  const token = cookieToken || storageToken;
+// Request interceptor - Add token to headers
+apiClient.interceptors.request.use(
+  (config) => {
+    const cookieToken = Cookies.get(TOKEN_COOKIE);
+    const storageToken =
+      typeof window !== "undefined" ? window.localStorage.getItem(TOKEN_STORAGE_KEY) || undefined : undefined;
+    const token = cookieToken || storageToken;
 
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
-  return config;
-});
+);
+
+// Response interceptor - Handle 401 errors
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    // If 401 and not already retried
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      // Clear invalid token
+      Cookies.remove(TOKEN_COOKIE);
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+      }
+
+      // Redirect to login if not already there
+      if (typeof window !== "undefined" && !window.location.pathname.includes("/login")) {
+        window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);

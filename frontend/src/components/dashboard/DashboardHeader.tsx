@@ -1,12 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
+import axios from "axios";
 import { apiClient } from "@/lib/api-client";
 import { TOKEN_COOKIE, ROLE_COOKIE, TOKEN_STORAGE_KEY, ROLE_STORAGE_KEY } from "@/lib/constants";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { logout } from "@/store/slices/auth-slice";
+
+type HeaderUser = {
+  firstName?: string;
+  lastName?: string;
+  name?: string;
+  email?: string;
+  avatar?: string;
+  profile?: { avatar?: string };
+  profileImage?: string;
+  image?: string;
+};
 
 export default function DashboardHeader() {
   const router = useRouter();
@@ -14,21 +26,21 @@ export default function DashboardHeader() {
   const authState = useAppSelector((state) => state.auth);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<HeaderUser | null>(null);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+  const notificationsRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const response = await apiClient.get("/api/v1/users/profile");
-        setUser(response.data?.data || authState.user);
-      } catch {
-        setUser(authState.user);
-      }
-    };
-    loadUser();
-  }, [authState.user]);
+  const resolveDisplayName = (value: HeaderUser | null) => {
+    const fromProfile = [value?.firstName, value?.lastName].filter(Boolean).join(" ").trim();
+    if (fromProfile) return fromProfile;
+    if (typeof value?.name === "string" && value.name.trim().length > 0) return value.name.trim();
+    return "User";
+  };
 
-  const handleLogout = () => {
+  const resolveAvatar = (value: HeaderUser | null): string | undefined =>
+    value?.avatar || value?.profile?.avatar || value?.profileImage || value?.image || undefined;
+
+  const clearSessionAndRedirect = () => {
     Cookies.remove(TOKEN_COOKIE);
     Cookies.remove(ROLE_COOKIE);
     if (typeof window !== "undefined") {
@@ -36,7 +48,48 @@ export default function DashboardHeader() {
       window.localStorage.removeItem(ROLE_STORAGE_KEY);
     }
     dispatch(logout());
-    router.push("/login");
+    router.replace("/login");
+  };
+
+  useEffect(() => {
+    setUser((authState.user as HeaderUser | null) || null);
+
+    const loadUser = async () => {
+      try {
+        const response = await apiClient.get("/api/v1/users/profile");
+        setUser((response.data?.data as HeaderUser) || (authState.user as HeaderUser | null));
+      } catch (error) {
+        if (axios.isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 403)) {
+          clearSessionAndRedirect();
+          return;
+        }
+        setUser((authState.user as HeaderUser | null) || null);
+      }
+    };
+    void loadUser();
+  }, [authState.user]);
+
+  useEffect(() => {
+    const onPointerDown = (event: MouseEvent) => {
+      const target = event.target as Node;
+
+      if (profileMenuRef.current && !profileMenuRef.current.contains(target)) {
+        setShowProfileMenu(false);
+      }
+
+      if (notificationsRef.current && !notificationsRef.current.contains(target)) {
+        setShowNotifications(false);
+      }
+    };
+
+    document.addEventListener("mousedown", onPointerDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+    };
+  }, []);
+
+  const handleLogout = () => {
+    clearSessionAndRedirect();
   };
 
   const getInitials = (name?: string) => {
@@ -54,6 +107,8 @@ export default function DashboardHeader() {
     { id: 2, title: "Application viewed", message: "Your application was viewed", time: "1h ago", unread: true },
     { id: 3, title: "Interview scheduled", message: "Interview on Friday at 2 PM", time: "2h ago", unread: false },
   ];
+
+  const avatarUrl = resolveAvatar(user);
 
   return (
     <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
@@ -79,9 +134,12 @@ export default function DashboardHeader() {
       {/* Right Section */}
       <div className="flex items-center space-x-4 ml-6">
         {/* Notifications */}
-        <div className="relative">
+        <div className="relative" ref={notificationsRef}>
           <button
-            onClick={() => setShowNotifications(!showNotifications)}
+            onClick={() => {
+              setShowNotifications((value) => !value);
+              setShowProfileMenu(false);
+            }}
             className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -129,22 +187,23 @@ export default function DashboardHeader() {
         </div>
 
         {/* User Profile */}
-        <div className="relative">
+        <div className="relative" ref={profileMenuRef}>
           <button
-            onClick={() => setShowProfileMenu(!showProfileMenu)}
+            onClick={() => {
+              setShowProfileMenu((value) => !value);
+              setShowNotifications(false);
+            }}
             className="flex items-center space-x-3 p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
             <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center text-white font-semibold">
-              {user?.avatar ? (
-                <img src={user.avatar} alt={user.name} className="w-full h-full rounded-full object-cover" />
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={resolveDisplayName(user)} className="w-full h-full rounded-full object-cover" />
               ) : (
-                getInitials(user?.firstName || user?.name)
+                getInitials(resolveDisplayName(user))
               )}
             </div>
             <div className="text-left hidden md:block">
-              <p className="text-sm font-semibold text-gray-900">
-                {user?.firstName || user?.name || "User"}
-              </p>
+              <p className="text-sm font-semibold text-gray-900">{resolveDisplayName(user)}</p>
               <p className="text-xs text-gray-500">{user?.email || "user@ostora.com"}</p>
             </div>
             <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -155,12 +214,15 @@ export default function DashboardHeader() {
           {showProfileMenu && (
             <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
               <div className="p-4 border-b border-gray-200">
-                <p className="font-semibold text-gray-900">{user?.firstName || user?.name || "User"}</p>
+                <p className="font-semibold text-gray-900">{resolveDisplayName(user)}</p>
                 <p className="text-sm text-gray-500">{user?.email || "user@ostora.com"}</p>
               </div>
               <div className="py-2">
                 <button
-                  onClick={() => router.push("/dashboard/profile")}
+                  onClick={() => {
+                    setShowProfileMenu(false);
+                    router.push("/dashboard/profile");
+                  }}
                   className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -169,7 +231,10 @@ export default function DashboardHeader() {
                   <span>My Profile</span>
                 </button>
                 <button
-                  onClick={() => router.push("/dashboard/settings")}
+                  onClick={() => {
+                    setShowProfileMenu(false);
+                    router.push("/dashboard/settings");
+                  }}
                   className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

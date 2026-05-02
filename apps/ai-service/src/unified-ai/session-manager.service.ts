@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 import { v4 as uuidv4 } from 'uuid';
@@ -19,7 +19,6 @@ interface SessionData {
 
 @Injectable()
 export class SessionManagerService {
-  private readonly logger = new Logger(SessionManagerService.name);
   private readonly redis: Redis;
   private readonly sessionTTL = 3600; // 1 hour
 

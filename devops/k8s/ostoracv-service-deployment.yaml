@@ -1,0 +1,131 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ostoracv-service-config
+  namespace: ostora
+data:
+  PORT: "4731"
+  NODE_ENV: "production"
+  USER_SERVICE_URL: "http://user-service:4719"
+  AI_SERVICE_URL: "http://ai-service:4723"
+  AI_SERVICE_COVER_LETTER_ENDPOINT: "/api/v1/ai/cover-letter"
+  AWS_REGION: "us-east-1"
+  AWS_S3_BUCKET: "ostora-documents-prod"
+  S3_SIGNED_URL_TTL_SECONDS: "3600"
+  PUPPETEER_EXECUTABLE_PATH: "/usr/bin/chromium"
+  CORS_ORIGIN: "*"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ostoracv-service-secrets
+  namespace: ostora
+type: Opaque
+stringData:
+  INTERNAL_SERVICE_SECRET: "change-me-in-production"
+  AWS_ACCESS_KEY_ID: "your-aws-access-key"
+  AWS_SECRET_ACCESS_KEY: "your-aws-secret-key"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ostoracv-service
+  namespace: ostora
+  labels:
+    app: ostoracv-service
+    tier: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ostoracv-service
+  template:
+    metadata:
+      labels:
+        app: ostoracv-service
+        tier: backend
+    spec:
+      containers:
+      - name: ostoracv
+        image: ostora/ostoracv-service:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 4731
+          name: http
+          protocol: TCP
+        envFrom:
+        - configMapRef:
+            name: ostoracv-service-config
+        - secretRef:
+            name: ostoracv-service-secrets
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /api/v1/ostoracv/health
+            port: 4731
+          initialDelaySeconds: 40
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/v1/ostoracv/health
+            port: 4731
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ostoracv-service
+  namespace: ostora
+  labels:
+    app: ostoracv-service
+spec:
+  type: ClusterIP
+  ports:
+  - port: 4731
+    targetPort: 4731
+    protocol: TCP
+    name: http
+  selector:
+    app: ostoracv-service
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ostoracv-service-hpa
+  namespace: ostora
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ostoracv-service
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80

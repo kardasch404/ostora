@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { BullModule } from '@nestjs/bull';
+import { join } from 'path';
 import { PrismaService } from './prisma.service';
 import { UnifiedAiController } from './unified-ai/unified-ai.controller';
 import { IntentDetectorService } from './unified-ai/intent-detector.service';
@@ -15,6 +16,7 @@ import { FastApplyController } from './fast-apply/fast-apply.controller';
 import { FastApplyService } from './fast-apply/fast-apply.service';
 import { FastApplyProgressService } from './fast-apply/fast-apply-progress.service';
 import { AiResultController } from './result/ai-result.controller';
+import { CoverLetterController } from './cover-letter/cover-letter.controller';
 import { CvAnalysisProcessor } from './queues/cv-analysis.processor';
 import { CoverLetterProcessor } from './queues/cover-letter.processor';
 import { JobMatchingProcessor } from './queues/job-matching.processor';
@@ -32,7 +34,10 @@ import { AssistantMode } from './unified-ai/modes/assistant.mode';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath: [
+        join(process.cwd(), 'apps/ai-service/.env'),
+        join(process.cwd(), '.env'),
+      ],
     }),
     BullModule.forRoot({
       redis: {
@@ -48,7 +53,7 @@ import { AssistantMode } from './unified-ai/modes/assistant.mode';
       { name: 'fast-apply' },
     ),
   ],
-  controllers: [UnifiedAiController, FastApplyController, AiResultController],
+  controllers: [UnifiedAiController, FastApplyController, AiResultController, CoverLetterController],
   providers: [
     PrismaService,
     BlazeAiProvider,

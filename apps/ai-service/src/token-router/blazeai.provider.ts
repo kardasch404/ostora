@@ -8,22 +8,31 @@ export class BlazeAiProvider implements IAiProvider {
   private readonly logger = new Logger(BlazeAiProvider.name);
   private readonly apiUrl: string;
   private readonly apiKey: string;
+  private readonly model: string;
+  private readonly requestTimeoutMs: number;
 
   constructor(private configService: ConfigService) {
     this.apiUrl = this.configService.get('BLAZEAI_API_URL');
     this.apiKey = this.configService.get('BLAZEAI_API_KEY');
+    this.model = this.configService.get('BLAZEAI_MODEL', 'random-model');
+    this.requestTimeoutMs = this.configService.get('BLAZEAI_REQUEST_TIMEOUT_MS', 30000);
   }
 
   async generate(prompt: string, options?: GenerateOptions): Promise<string> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.requestTimeoutMs);
+
     try {
       const response = await fetch(`${this.apiUrl}/v1/chat/completions`, {
         method: 'POST',
+        signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${this.apiKey}`,
         },
         body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
+          model: this.model,
+          stream: false,
           messages: [
             ...(options?.systemPrompt ? [{ role: 'system', content: options.systemPrompt }] : []),
             { role: 'user', content: prompt }
@@ -38,10 +47,13 @@ export class BlazeAiProvider implements IAiProvider {
       }
 
       const data = await response.json();
-      return data.choices[0].message.content;
-    } catch (error) {
-      this.logger.error(`BlazeAI generation failed: ${error.message}`);
+      return data?.choices?.[0]?.message?.content || data?.choices?.[0]?.message?.reasoning_content || '';
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`BlazeAI generation failed: ${errorMessage}`);
       throw error;
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 

@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { TokenRouterService, TaskType, TaskPriority } from '../../token-router/token-router.service';
-import { PromptBuilderService } from '../../prompt-builder/prompt-builder.service';
 import { ParsedCV, JobPost, AnalyzeFitResult, AnalyzeStandaloneResult } from '../../interfaces/analyzer.interface';
 
 @Injectable()
@@ -9,7 +8,6 @@ export class AnalyzerMode {
 
   constructor(
     private tokenRouter: TokenRouterService,
-    private promptBuilder: PromptBuilderService,
   ) {}
 
   async run(cv: ParsedCV, jobPost?: JobPost): Promise<AnalyzeFitResult | AnalyzeStandaloneResult> {
@@ -92,8 +90,9 @@ Return STRICT JSON:
         missingSkills: parsed.missingSkills || [],
         verdict: parsed.verdict || 'No verdict provided',
       };
-    } catch (error) {
-      this.logger.error(`Failed to parse analyze fit result: ${error.message}`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to parse analyze fit result: ${errorMessage}`);
       return this.fallbackParseFit(result);
     }
   }
@@ -108,8 +107,9 @@ Return STRICT JSON:
         suggestions: parsed.suggestions || [],
         profileCompleteness: parsed.profileCompleteness || 0,
       };
-    } catch (error) {
-      this.logger.error(`Failed to parse standalone result: ${error.message}`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to parse standalone result: ${errorMessage}`);
       return this.fallbackParseStandalone(result);
     }
   }

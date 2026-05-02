@@ -35,7 +35,18 @@ export class ProfileService {
     };
   }
 
+  private static readonly UUID_REGEX =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+  private validateUuid(value: string, label = 'userId'): void {
+    if (!value || !ProfileService.UUID_REGEX.test(value)) {
+      throw new BadRequestException(`Invalid ${label} format: expected a valid UUID`);
+    }
+  }
+
   async getProfile(userId: string): Promise<ProfileResponse> {
+    this.validateUuid(userId);
+
     const profile = await this.prisma.profile.findUnique({
       where: { userId },
       include: {

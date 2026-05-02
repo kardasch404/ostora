@@ -21,6 +21,8 @@ export class MySQLService implements OnModuleInit, OnModuleDestroy {
       queueLimit: 0,
       enableKeepAlive: true,
       keepAliveInitialDelay: 0,
+      connectTimeout: 10000,
+      timeout: 30000,
     });
 
     this.logger.log('MySQL connection pool initialized');

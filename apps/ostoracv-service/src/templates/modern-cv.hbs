@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <style>
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #111827; margin: 0; }
+    .page { padding: 24px 28px; }
+    .hero { background: linear-gradient(135deg, #0f172a, #1e293b); color: #f8fafc; padding: 24px; border-radius: 12px; }
+    .hero h1 { margin: 0 0 6px; font-size: 28px; }
+    .hero p { margin: 3px 0; opacity: 0.92; }
+    h2 { margin: 22px 0 10px; font-size: 16px; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 6px; }
+    .row { margin-bottom: 10px; }
+    .title { font-weight: 700; }
+    .meta { color: #475569; font-size: 12px; }
+    .chips span { display: inline-block; padding: 3px 8px; background: #e2e8f0; border-radius: 999px; margin: 0 6px 6px 0; font-size: 11px; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="hero">
+      <h1>{{profile.fullName}}</h1>
+      <p>{{profile.title}}</p>
+      <p>{{profile.city}}, {{profile.country}}</p>
+      <p>{{profile.phone}} {{profile.email}}</p>
+    </div>
+
+    <h2>{{labels.summary}}</h2>
+    <div class="row">{{profile.bio}}</div>
+
+    <h2>{{labels.experience}}</h2>
+    {{#each profile.experience}}
+      <div class="row">
+        <div class="title">{{title}}{{role}}</div>
+        <div>{{company}}</div>
+        <div class="meta">{{startDate}} - {{#if current}}Present{{else}}{{endDate}}{{/if}}</div>
+      </div>
+    {{/each}}
+
+    <h2>{{labels.education}}</h2>
+    {{#each profile.education}}
+      <div class="row">
+        <div class="title">{{institution}}</div>
+        <div>{{degree}} {{field}}</div>
+        <div class="meta">{{startDate}} - {{#if current}}Present{{else}}{{endDate}}{{/if}}</div>
+      </div>
+    {{/each}}
+
+    <h2>{{labels.skills}}</h2>
+    <div class="chips">
+      {{#each profile.skills}}
+        <span>{{name}}</span>
+      {{/each}}
+    </div>
+
+    <h2>{{labels.languages}}</h2>
+    <div class="chips">
+      {{#each profile.languages}}
+        <span>{{name}}</span>
+      {{/each}}
+    </div>
+
+    <p class="meta">{{labels.generatedBy}} - {{generatedAt}}</p>
+  </div>
+</body>
+</html>

@@ -31,6 +31,18 @@ export class JobController {
     return this.jobService.getJobsFromStellen(query);
   }
 
+  @Get('categories/hierarchy')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Get job categories as hierarchy',
+    description: 'Returns categories grouped by parent slug -> children. Built dynamically from DB. Cached 1 hour.'
+  })
+  @ApiResponse({ status: 200, description: 'Hierarchy retrieved successfully' })
+  async getCategoriesHierarchy() {
+    const data = await this.jobService.getCategoriesHierarchy();
+    return { data };
+  }
+
   @Get('categories')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ 

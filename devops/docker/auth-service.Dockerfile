@@ -12,7 +12,7 @@ COPY nx.json ./
 
 # Install workspace deps (including dev deps needed for TypeScript/Nx build) while skipping prepare scripts like husky.
 # Rebuild native bcrypt binding explicitly since install scripts are skipped.
-RUN npm ci --include=dev --ignore-scripts \
+RUN npm ci --include=dev --ignore-scripts --no-audit --no-fund --fetch-retries=5 --fetch-retry-factor=2 --fetch-retry-mintimeout=20000 --fetch-retry-maxtimeout=120000 \
   && npm rebuild bcrypt --build-from-source \
   && npm cache clean --force
 

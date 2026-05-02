@@ -26,21 +26,45 @@ export class GatewayController {
     @Inject('ANALYTICS_SERVICE') private readonly analyticsClient: ClientKafka,
   ) {}
 
+  private kafkaReady = false;
+
   async onModuleInit() {
-    // Connect to Kafka topics
-    const services = [
-      this.authClient,
-      this.userClient,
-      this.jobClient,
-      this.emailClient,
-      this.paymentClient,
-      this.aiClient,
-      this.notificationClient,
-      this.analyticsClient,
+    // Connect to Kafka topics — non-blocking so HTTP proxy routes work even if Kafka is down
+    const serviceEntries: Array<{ name: string; client: ClientKafka }> = [
+      { name: 'AUTH_SERVICE', client: this.authClient },
+      { name: 'USER_SERVICE', client: this.userClient },
+      { name: 'JOB_SERVICE', client: this.jobClient },
+      { name: 'EMAIL_SERVICE', client: this.emailClient },
+      { name: 'PAYMENT_SERVICE', client: this.paymentClient },
+      { name: 'AI_SERVICE', client: this.aiClient },
+      { name: 'NOTIFICATION_SERVICE', client: this.notificationClient },
+      { name: 'ANALYTICS_SERVICE', client: this.analyticsClient },
     ];
 
-    for (const service of services) {
-      await service.connect();
+    const CONNECT_TIMEOUT_MS = 8_000;
+
+    const connectWithTimeout = async (entry: { name: string; client: ClientKafka }) => {
+      const timeout = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error(`Kafka connect timeout for ${entry.name}`)), CONNECT_TIMEOUT_MS),
+      );
+      await Promise.race([entry.client.connect(), timeout]);
+    };
+
+    const results = await Promise.allSettled(
+      serviceEntries.map((entry) => connectWithTimeout(entry)),
+    );
+
+    const failed = results
+      .map((r, i) => (r.status === 'rejected' ? serviceEntries[i].name : null))
+      .filter(Boolean);
+
+    if (failed.length > 0) {
+      console.warn(
+        `⚠️  Kafka clients failed to connect (gateway HTTP proxy routes still work): ${failed.join(', ')}`,
+      );
+    } else {
+      this.kafkaReady = true;
+      console.log('✅ All Kafka clients connected successfully');
     }
   }
 
@@ -104,19 +128,21 @@ export class GatewayController {
   }
 
   // ==================== USER ROUTES ====================
+  // HTTP proxy routes for /api/v1/users/* are handled by UserProxyController.
+  // Version '2' avoids route conflict with the HTTP proxy on version '1'.
   @Get('users/profile')
-  @Version('1')
+  @Version('2')
   @ApiTags('Users')
-  @ApiOperation({ summary: 'Get user profile' })
+  @ApiOperation({ summary: 'Get user profile (Kafka)' })
   @ApiBearerAuth('JWT-auth')
   async getUserProfile(@Query('userId') userId: string) {
     return firstValueFrom(this.userClient.send('user.getProfile', { userId }));
   }
 
   @Get('users/me')
-  @Version('1')
+  @Version('2')
   @ApiTags('Users')
-  @ApiOperation({ summary: 'Get current user profile' })
+  @ApiOperation({ summary: 'Get current user profile (Kafka)' })
   @ApiBearerAuth('JWT-auth')
   async getCurrentUserProfile(@Req() req: Request, @Query('userId') userId?: string) {
     const resolvedUserId = userId || this.extractUserIdFromAuthHeader(req);
@@ -129,80 +155,83 @@ export class GatewayController {
   }
 
   @Put('users/profile')
-  @Version('1')
+  @Version('2')
   @ApiTags('Users')
-  @ApiOperation({ summary: 'Update user profile' })
+  @ApiOperation({ summary: 'Update user profile (Kafka)' })
   @ApiBearerAuth('JWT-auth')
   async updateUserProfile(@Body() dto: any) {
     return firstValueFrom(this.userClient.send('user.updateProfile', dto));
   }
 
   @Post('users/documents')
-  @Version('1')
+  @Version('2')
   @ApiTags('Users')
-  @ApiOperation({ summary: 'Upload user document (CV, Resume)' })
+  @ApiOperation({ summary: 'Upload user document (Kafka)' })
   @ApiBearerAuth('JWT-auth')
   async uploadDocument(@Body() dto: any) {
     return firstValueFrom(this.userClient.send('user.uploadDocument', dto));
   }
 
   @Get('users/documents')
-  @Version('1')
+  @Version('2')
   @ApiTags('Users')
-  @ApiOperation({ summary: 'Get user documents' })
+  @ApiOperation({ summary: 'Get user documents (Kafka)' })
   @ApiBearerAuth('JWT-auth')
   async getUserDocuments(@Query('userId') userId: string) {
     return firstValueFrom(this.userClient.send('user.getDocuments', { userId }));
   }
 
   // ==================== JOB ROUTES ====================
+  // These routes use Kafka transport (future use).
+  // HTTP proxy routes for /api/v1/jobs/* are handled by JobProxyController.
+  // Version '2' avoids route conflict with the HTTP proxy on version '1'.
   @Get('jobs/categories')
-  @Version('1')
+  @Version('2')
   @ApiTags('Jobs')
-  @ApiOperation({ summary: 'Get job categories' })
+  @ApiOperation({ summary: 'Get job categories (Kafka)' })
   async getJobCategories() {
     return firstValueFrom(this.jobClient.send('job.getCategories', {}));
   }
 
   @Get('jobs')
-  @Version('1')
+  @Version('2')
   @ApiTags('Jobs')
-  @ApiOperation({ summary: 'Search jobs' })
+  @ApiOperation({ summary: 'Search jobs (Kafka)' })
   @ApiResponse({ status: 200, description: 'Jobs retrieved successfully' })
   async searchJobs(@Query() query: any) {
     return firstValueFrom(this.jobClient.send('job.search', query));
   }
 
   @Get('jobs/:id')
-  @Version('1')
+  @Version('2')
   @ApiTags('Jobs')
-  @ApiOperation({ summary: 'Get job by ID' })
+  @ApiOperation({ summary: 'Get job by ID (Kafka)' })
   async getJobById(@Param('id') id: string) {
     return firstValueFrom(this.jobClient.send('job.getById', { id }));
   }
 
   @Post('jobs/:id/apply')
-  @Version('1')
+  @Version('2')
   @ApiTags('Jobs')
-  @ApiOperation({ summary: 'Apply to job' })
+  @ApiOperation({ summary: 'Apply to job (Kafka)' })
   @ApiBearerAuth('JWT-auth')
   async applyToJob(@Param('id') jobId: string, @Body() dto: any) {
     return firstValueFrom(this.jobClient.send('job.apply', { jobId, ...dto }));
   }
 
   @Post('jobs/:id/save')
-  @Version('1')
+  @Version('2')
   @ApiTags('Jobs')
-  @ApiOperation({ summary: 'Save job for later' })
+  @ApiOperation({ summary: 'Save job for later (Kafka)' })
   @ApiBearerAuth('JWT-auth')
   async saveJob(@Param('id') jobId: string, @Body() dto: any) {
     return firstValueFrom(this.jobClient.send('job.save', { jobId, ...dto }));
   }
 
   @Get('jobs/applications/my')
-  @Version('1')
+  @Version('2')
   @ApiTags('Jobs')
-  @ApiOperation({ summary: 'Get my job applications' })
+  @ApiOperation({ summary: 'Get my job applications (Kafka)' })
   @ApiBearerAuth('JWT-auth')
   async getMyApplications(@Query('userId') userId: string) {
     return firstValueFrom(this.jobClient.send('job.getMyApplications', { userId }));

@@ -1,0 +1,187 @@
+pipeline {
+  agent any
+
+  environment {
+    SERVICE_NAME = 'ostoracv-service'
+    DOCKER_IMAGE = "ostora/${SERVICE_NAME}"
+    DOCKER_REGISTRY = 'docker.io'
+    K8S_NAMESPACE = 'ostora'
+    AWS_REGION = 'us-east-1'
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+        script {
+          env.GIT_COMMIT_SHORT = sh(
+            script: "git rev-parse --short HEAD",
+            returnStdout: true
+          ).trim()
+          env.BUILD_TAG = "${env.BUILD_NUMBER}-${env.GIT_COMMIT_SHORT}"
+        }
+      }
+    }
+
+    stage('Install Dependencies') {
+      steps {
+        sh '''
+          npm ci --ignore-scripts
+          cd apps/ostoracv-service
+          npm install
+        '''
+      }
+    }
+
+    stage('Lint') {
+      steps {
+        sh '''
+          npm run lint -- apps/ostoracv-service
+        '''
+      }
+    }
+
+    stage('Unit Tests') {
+      steps {
+        sh '''
+          cd apps/ostoracv-service
+          npm test -- --coverage --passWithNoTests
+        '''
+      }
+      post {
+        always {
+          junit 'apps/ostoracv-service/test-results/**/*.xml'
+          publishHTML([
+            reportDir: 'apps/ostoracv-service/coverage',
+            reportFiles: 'index.html',
+            reportName: 'Coverage Report'
+          ])
+        }
+      }
+    }
+
+    stage('Build Docker Image') {
+      steps {
+        script {
+          docker.build(
+            "${DOCKER_IMAGE}:${BUILD_TAG}",
+            "-f devops/docker/ostoracv-service.Dockerfile ."
+          )
+          docker.build(
+            "${DOCKER_IMAGE}:latest",
+            "-f devops/docker/ostoracv-service.Dockerfile ."
+          )
+        }
+      }
+    }
+
+    stage('Security Scan') {
+      steps {
+        sh """
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \\
+            aquasec/trivy image --severity HIGH,CRITICAL \\
+            ${DOCKER_IMAGE}:${BUILD_TAG}
+        """
+      }
+    }
+
+    stage('Push to Registry') {
+      when {
+        branch 'develop'
+      }
+      steps {
+        script {
+          docker.withRegistry("https://${DOCKER_REGISTRY}", 'docker-credentials') {
+            docker.image("${DOCKER_IMAGE}:${BUILD_TAG}").push()
+            docker.image("${DOCKER_IMAGE}:latest").push()
+          }
+        }
+      }
+    }
+
+    stage('Deploy to Staging') {
+      when {
+        branch 'develop'
+      }
+      steps {
+        withKubeConfig([credentialsId: 'k8s-staging-config']) {
+          sh """
+            kubectl set image deployment/${SERVICE_NAME} \\
+              ostoracv=${DOCKER_IMAGE}:${BUILD_TAG} \\
+              -n ${K8S_NAMESPACE}
+            
+            kubectl rollout status deployment/${SERVICE_NAME} \\
+              -n ${K8S_NAMESPACE} \\
+              --timeout=5m
+          """
+        }
+      }
+    }
+
+    stage('Integration Tests') {
+      when {
+        branch 'develop'
+      }
+      steps {
+        sh '''
+          cd apps/ostoracv-service
+          npm run test:e2e -- --passWithNoTests
+        '''
+      }
+    }
+
+    stage('Deploy to Production') {
+      when {
+        branch 'main'
+      }
+      steps {
+        input message: 'Deploy to production?', ok: 'Deploy'
+        
+        withKubeConfig([credentialsId: 'k8s-production-config']) {
+          sh """
+            kubectl set image deployment/${SERVICE_NAME} \\
+              ostoracv=${DOCKER_IMAGE}:${BUILD_TAG} \\
+              -n ${K8S_NAMESPACE}
+            
+            kubectl rollout status deployment/${SERVICE_NAME} \\
+              -n ${K8S_NAMESPACE} \\
+              --timeout=5m
+          """
+        }
+      }
+    }
+
+    stage('Smoke Tests') {
+      when {
+        anyOf {
+          branch 'develop'
+          branch 'main'
+        }
+      }
+      steps {
+        sh '''
+          sleep 10
+          curl -f http://ostoracv-service:4731/api/v1/ostoracv/health || exit 1
+        '''
+      }
+    }
+  }
+
+  post {
+    success {
+      slackSend(
+        color: 'good',
+        message: "✅ ${SERVICE_NAME} build ${BUILD_TAG} succeeded"
+      )
+    }
+    failure {
+      slackSend(
+        color: 'danger',
+        message: "❌ ${SERVICE_NAME} build ${BUILD_TAG} failed"
+      )
+    }
+    always {
+      cleanWs()
+    }
+  }
+}

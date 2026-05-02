@@ -11,6 +11,9 @@ export class EmailConfigResponse {
   @ApiProperty()
   email: string;
 
+  @ApiPropertyOptional({ description: 'Inferred provider key such as gmail, outlook, or custom' })
+  provider?: string;
+
   @ApiProperty()
   password: string = 'REDACTED';
 

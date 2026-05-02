@@ -21,8 +21,9 @@ async function parsePdf(pdfUrl: string): Promise<string> {
     }
     
     return fullText.trim();
-  } catch (error) {
-    throw new Error(`PDF parsing failed: ${error.message}`);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`PDF parsing failed: ${errorMessage}`);
   }
 }
 
@@ -37,11 +38,12 @@ if (parentPort) {
         text,
       });
     })
-    .catch((error) => {
+    .catch((error: unknown) => {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       parentPort.postMessage({
         taskId: task.taskId,
         success: false,
-        error: error.message,
+        error: errorMessage,
       });
     });
 }
